@@ -19,3 +19,5 @@
     "typescript": "^5"
   }
 }
+"tailwindcss": "^4",
+"@tailwindcss/postcss": "^4"
