@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #050505;
-  --foreground: #ffffff;
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 * {
@@ -20,80 +20,4 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
-
-.bg-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
-.text-gradient {
-  background: linear-gradient(90deg, #ffffff, #8b5cf6, #22d3ee);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.orb {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.35;
-  animation: float 8s ease-in-out infinite;
-}
-
-.orb-1 {
-  background: #7c3aed;
-  top: 10%;
-  left: 10%;
-}
-
-.orb-2 {
-  background: #06b6d4;
-  right: 10%;
-  top: 30%;
-  animation-delay: 2s;
-}
-
-.orb-3 {
-  background: #ec4899;
-  bottom: 5%;
-  left: 40%;
-  animation-delay: 4s;
-}
-
-.glass-button {
-  padding: 16px 30px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  backdrop-filter: blur(12px);
-  transition: all 0.3s ease;
-}
-
-.glass-button:hover {
-  transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.glass-button.primary {
-  background: linear-gradient(135deg, #7c3aed, #06b6d4);
-  border: none;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-
-  50% {
-    transform: translate(30px, -30px);
-  }
 }
