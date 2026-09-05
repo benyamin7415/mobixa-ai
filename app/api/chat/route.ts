@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-type ChatMessage = {
+type Message = {
   role: "user" | "assistant";
   content: string;
 };
@@ -39,54 +39,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /*
-     * تاریخچه را بررسی می‌کنیم.
-     * فقط پیام‌های معتبر user و assistant پذیرفته می‌شوند.
-     */
-    const validHistory: ChatMessage[] = Array.isArray(history)
+    const validHistory: Message[] = Array.isArray(history)
       ? history.filter(
-          (item: ChatMessage) =>
-            item &&
+          (item: Message) =>
             (item.role === "user" ||
               item.role === "assistant") &&
             typeof item.content === "string" &&
-            item.content.trim().length > 0
+            item.content.trim()
         )
       : [];
 
-    /*
-     * برای جلوگیری از بزرگ شدن بیش از حد درخواست،
-     * حداکثر 30 پیام آخر را به Gemini می‌فرستیم.
-     */
+    // فقط آخرین 30 پیام برای کنترل حجم درخواست
     const recentHistory = validHistory.slice(-30);
 
-    /*
-     * پیام فعلی را هم به انتهای تاریخچه اضافه می‌کنیم.
-     */
-    const conversation = [
-      ...recentHistory,
-      {
-        role: "user",
-        content: message,
-      },
-    ];
-
-    /*
-     * Gemini Interactions API از input به صورت آرایه
-     * برای ارسال مکالمه چندپیامی پشتیبانی می‌کند.
-     */
-    const input = conversation.map((item) => ({
+    const contents = recentHistory.map((item) => ({
       role: item.role === "assistant" ? "model" : "user",
-      content: [
+      parts: [
         {
-          type: "text",
           text: item.content,
         },
       ],
     }));
 
+    // پیام جدید کاربر
+    contents.push({
+      role: "user",
+      parts: [
+        {
+          text: message,
+        },
+      ],
+    });
+
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/interactions",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse",
       {
         method: "POST",
         headers: {
@@ -95,26 +81,24 @@ export async function POST(request: NextRequest) {
           Accept: "text/event-stream",
         },
         body: JSON.stringify({
-          model: "gemini-3.6-flash",
-          input,
-          store: false,
-          stream: true,
+          contents,
         }),
       }
     );
 
     if (!response.ok) {
-      let data: any = null;
+      let errorMessage = "خطا در ارتباط با Gemini";
 
       try {
-        data = await response.json();
+        const data = await response.json();
+
+        errorMessage =
+          data?.error?.message || errorMessage;
       } catch {}
 
       return new Response(
         JSON.stringify({
-          error:
-            data?.error?.message ||
-            "خطا در ارتباط با Gemini",
+          error: errorMessage,
         }),
         {
           status: response.status,
@@ -141,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     return new Response(response.body, {
       headers: {
-        "Content-Type": "text/event-stream",
+        "Content-Type": "text/event-stream; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
       },
