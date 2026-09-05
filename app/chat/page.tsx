@@ -8,6 +8,7 @@ type Message = {
 };
 
 const STORAGE_KEY = "mobixa-chat-history";
+const INTERACTION_KEY = "mobixa-last-interaction-id";
 
 export default function ChatPage() {
   const [message, setMessage] = useState("");
