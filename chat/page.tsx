@@ -29,7 +29,7 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* Chat area */}
+      {/* Chat */}
       <section className="mx-auto flex min-h-[calc(100vh-90px)] max-w-4xl flex-col">
 
         {/* Welcome */}
@@ -68,7 +68,7 @@ export default function ChatPage() {
 
         </div>
 
-        {/* Input */}
+        {/* Message Box */}
         <div className="pb-5">
 
           <div className="rounded-[28px] border border-white/10 bg-white/[0.055] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
