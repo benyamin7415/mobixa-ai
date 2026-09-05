@@ -8,15 +8,11 @@ type Message = {
 };
 
 const STORAGE_KEY = "mobixa-chat-history";
-const INTERACTION_KEY = "mobixa-last-interaction-id";
 
 export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const [previousInteractionId, setPreviousInteractionId] = useState<
-    string | null
-  >(null);
 
   const suggestions = [
     "💡 یه ایده خلاقانه بهم بده",
@@ -34,13 +30,6 @@ export default function ChatPage() {
         if (Array.isArray(parsed)) {
           setMessages(parsed);
         }
-      }
-
-      const savedInteractionId =
-        localStorage.getItem(INTERACTION_KEY);
-
-      if (savedInteractionId) {
-        setPreviousInteractionId(savedInteractionId);
       }
     } catch {
       console.error("خطا در خواندن تاریخچه");
@@ -64,6 +53,17 @@ export default function ChatPage() {
     setMessage("");
     setLoading(true);
 
+    /*
+     * تاریخچه فعلی را قبل از اضافه کردن پیام جدید
+     * نگه می‌داریم تا همان را برای Gemini بفرستیم.
+     */
+    const historyForGemini = messages.filter(
+      (item) =>
+        item.content.trim().length > 0 &&
+        (item.role === "user" ||
+          item.role === "assistant")
+    );
+
     setMessages((prev) => [
       ...prev,
       {
@@ -77,16 +77,6 @@ export default function ChatPage() {
     ]);
 
     try {
-      /*
-       * اولویت با ID ذخیره‌شده در Local Storage است.
-       * این باعث می‌شود همیشه آخرین ID استفاده شود.
-       */
-      const storedInteractionId =
-        localStorage.getItem(INTERACTION_KEY);
-
-      const interactionIdToSend =
-        storedInteractionId || previousInteractionId;
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -94,7 +84,7 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           message: userMessage,
-          previousInteractionId: interactionIdToSend,
+          history: historyForGemini,
         }),
       });
 
@@ -158,30 +148,24 @@ export default function ChatPage() {
             const parsed = JSON.parse(data);
 
             /*
-             * دریافت Interaction ID جدید
+             * طبق ساختار جدید Interactions API،
+             * متن Streaming داخل step.delta قرار دارد.
              */
             if (
-              parsed?.event_type ===
-                "interaction.created" &&
-              parsed?.interaction?.id
+              parsed?.event_type === "step.delta" &&
+              parsed?.delta?.type === "text" &&
+              typeof parsed?.delta?.text === "string"
             ) {
-              const interactionId =
-                parsed.interaction.id;
+              assistantText += parsed.delta.text;
 
-              setPreviousInteractionId(
-                interactionId
-              );
-
-              localStorage.setItem(
-                INTERACTION_KEY,
-                interactionId
-              );
+              updateAssistant(assistantText);
             }
 
             /*
-             * دریافت متن Streaming
+             * برای سازگاری بیشتر با پاسخ‌های احتمالی،
+             * دو حالت قدیمی‌تر را هم بررسی می‌کنیم.
              */
-            const text =
+            const fallbackText =
               parsed?.step?.content?.find(
                 (item: {
                   type?: string;
@@ -194,15 +178,44 @@ export default function ChatPage() {
                   text?: string;
                 }) => item.type === "text"
               )?.text ??
-              parsed?.delta?.text ??
               "";
 
-            if (text) {
-              assistantText += text;
+            if (
+              fallbackText &&
+              parsed?.event_type !== "step.delta"
+            ) {
+              assistantText += fallbackText;
+
               updateAssistant(assistantText);
             }
-          } catch {
-            // منتظر کامل شدن قطعه بعدی می‌مانیم
+
+            /*
+             * اگر خود API یک خطای Streaming فرستاد،
+             * آن را به کاربر نمایش می‌دهیم.
+             */
+            if (parsed?.event_type === "error") {
+              const apiError =
+                parsed?.error?.message ||
+                "خطا در دریافت پاسخ از Gemini";
+
+              throw new Error(apiError);
+            }
+          } catch (eventError) {
+            /*
+             * اگر JSON ناقص باشد، قطعه بعدی را منتظر می‌مانیم.
+             * خطاهای واقعی خارج از این بخش توسط catch اصلی
+             * مدیریت می‌شوند.
+             */
+            if (
+              eventError instanceof Error &&
+              eventError.message !==
+                "Unexpected end of JSON input"
+            ) {
+              console.error(
+                "خطا در پردازش Event:",
+                eventError
+              );
+            }
           }
         }
       };
@@ -227,8 +240,8 @@ export default function ChatPage() {
       }
 
       /*
-       * اگر آخرین Event بدون \n\n تمام شده باشد،
-       * اینجا هم آن را پردازش می‌کنیم.
+       * آخرین Event را هم پردازش می‌کنیم
+       * اگر بدون \n\n رسیده باشد.
        */
       if (buffer.trim()) {
         processEvent(buffer);
