@@ -45,11 +45,10 @@ export async function POST(request: NextRequest) {
             (item.role === "user" ||
               item.role === "assistant") &&
             typeof item.content === "string" &&
-            item.content.trim()
+            item.content.trim().length > 0
         )
       : [];
 
-    // فقط آخرین 30 پیام برای کنترل حجم درخواست
     const recentHistory = validHistory.slice(-30);
 
     const contents = recentHistory.map((item) => ({
@@ -61,7 +60,6 @@ export async function POST(request: NextRequest) {
       ],
     }));
 
-    // پیام جدید کاربر
     contents.push({
       role: "user",
       parts: [
