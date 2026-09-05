@@ -1,24 +1,15 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  const [active, setActive] = useState<string | null>(null);
-
   return (
     <main className="min-h-screen px-5 py-6 sm:px-8">
 
       {/* Header */}
       <header className="mx-auto flex max-w-6xl items-center justify-between">
-        <div>
-          <div className="text-2xl font-black tracking-[0.18em]">
-            MOBIXA
-            <span className="text-violet-400"> AI</span>
-          </div>
-          <div className="mt-1 text-xs text-white/40">
-            هوش مصنوعی، ساده‌تر از همیشه
-          </div>
-        </div>
+        <Link href="/" className="text-2xl font-black tracking-[0.18em]">
+          MOBIXA
+          <span className="text-violet-400"> AI</span>
+        </Link>
 
         <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/60 backdrop-blur-xl">
           ✦ آینده اینجاست
@@ -40,7 +31,7 @@ export default function Home() {
           </span>
         </h1>
 
-        <p className="fade-up mt-6 max-w-2xl text-sm leading-7 text-white/55 sm:text-base">
+        <p className="mt-6 max-w-2xl text-sm leading-7 text-white/55 sm:text-base">
           با موبیکسا با هوش مصنوعی گفتگو کن یا ایده‌هایت را به تصاویر
           خلاقانه تبدیل کن.
         </p>
@@ -49,9 +40,9 @@ export default function Home() {
       {/* Main Cards */}
       <section className="mx-auto mt-14 grid max-w-5xl gap-5 md:grid-cols-2">
 
-        {/* Chat */}
-        <button
-          onClick={() => setActive("chat")}
+        {/* CHAT */}
+        <Link
+          href="/chat"
           className="glass-card group relative min-h-[260px] overflow-hidden rounded-[32px] p-7 text-right"
         >
           <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl transition-all duration-500 group-hover:bg-violet-500/35" />
@@ -84,11 +75,11 @@ export default function Home() {
             </div>
 
           </div>
-        </button>
+        </Link>
 
-        {/* Image */}
-        <button
-          onClick={() => setActive("image")}
+        {/* IMAGE */}
+        <Link
+          href="/image"
           className="glass-card group relative min-h-[260px] overflow-hidden rounded-[32px] p-7 text-right"
         >
           <div className="absolute -left-20 -bottom-20 h-48 w-48 rounded-full bg-cyan-500/20 blur-3xl transition-all duration-500 group-hover:bg-cyan-500/35" />
@@ -121,13 +112,14 @@ export default function Home() {
             </div>
 
           </div>
-        </button>
+        </Link>
 
       </section>
 
-      {/* Quick actions */}
+      {/* Features */}
       <section className="mx-auto mt-8 max-w-5xl">
         <div className="glass-card rounded-3xl p-5">
+
           <div className="mb-4 text-sm font-semibold text-white/70">
             🚀 با موبیکسا چه کارهایی می‌تونی بکنی؟
           </div>
@@ -170,7 +162,6 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="mx-auto mt-20 max-w-5xl border-t border-white/10 py-8 text-center">
-
         <div className="text-sm text-white/35">
           Crafted by
         </div>
@@ -182,42 +173,7 @@ export default function Home() {
         <div className="mt-3 text-xs text-white/25">
           Built with curiosity. Designed for the future.
         </div>
-
       </footer>
-
-      {/* Temporary interaction message */}
-      {active && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5 backdrop-blur-md"
-          onClick={() => setActive(null)}
-        >
-          <div
-            className="glass-card w-full max-w-md rounded-[32px] p-8 text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-4xl">
-              {active === "chat" ? "🤖" : "✨"}
-            </div>
-
-            <h2 className="mt-5 text-2xl font-bold">
-              {active === "chat"
-                ? "چت موبیکسا"
-                : "ساخت تصویر"}
-            </h2>
-
-            <p className="mt-3 text-sm leading-7 text-white/45">
-              این بخش در مرحله بعد به رابط اصلی موبیکسا متصل می‌شود.
-            </p>
-
-            <button
-              onClick={() => setActive(null)}
-              className="mt-7 rounded-2xl bg-white px-6 py-3 text-sm font-bold text-black transition hover:scale-105"
-            >
-              بستن
-            </button>
-          </div>
-        </div>
-      )}
 
     </main>
   );
