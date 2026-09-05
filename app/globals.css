@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -17,7 +12,89 @@ body {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #050509;
+  color: white;
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Animated background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(110, 80, 255, 0.25), transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(0, 200, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 50% 100%, rgba(180, 40, 255, 0.15), transparent 35%);
+  animation: backgroundMove 14s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);
+  background-size: 45px 45px;
+  opacity: 0.18;
+  animation: particles 20s linear infinite;
+}
+
+@keyframes backgroundMove {
+  0% {
+    transform: translate3d(-2%, -2%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(2%, 2%, 0) scale(1.08);
+  }
+}
+
+@keyframes particles {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-45px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.8s ease forwards;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(110, 80, 255, 0.12);
 }
