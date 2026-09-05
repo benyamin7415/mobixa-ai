@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
         headers: {
@@ -29,15 +29,9 @@ export async function POST(request: NextRequest) {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: message,
-                },
-              ],
-            },
-          ],
+          model: "gemini-3.6-flash",
+          input: message,
+          store: false
         }),
       }
     );
@@ -47,17 +41,28 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       return NextResponse.json(
         {
-          error: data?.error?.message || "خطا در ارتباط با Gemini",
+          error:
+            data?.error?.message ||
+            "خطا در ارتباط با Gemini",
         },
         { status: response.status }
       );
     }
 
+    const steps = data?.steps || [];
+
+    const modelOutput = steps.find(
+      (step: any) => step.type === "model_output"
+    );
+
     const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      modelOutput?.content?.find(
+        (item: any) => item.type === "text"
+      )?.text ||
       "متأسفانه پاسخی دریافت نشد.";
 
     return NextResponse.json({ reply });
+
   } catch (error) {
     console.error(error);
 
