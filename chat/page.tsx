@@ -1,5 +1,3 @@
-توی پیجه چت این کدو قرار بدم؟
-
 "use client";
 
 import { useState } from "react";
