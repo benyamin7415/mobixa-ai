@@ -36,7 +36,8 @@ export default function ChatPage() {
         }
       }
 
-      const savedInteractionId = localStorage.getItem(INTERACTION_KEY);
+      const savedInteractionId =
+        localStorage.getItem(INTERACTION_KEY);
 
       if (savedInteractionId) {
         setPreviousInteractionId(savedInteractionId);
@@ -48,7 +49,10 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(messages)
+      );
     }
   }, [messages]);
 
@@ -73,6 +77,16 @@ export default function ChatPage() {
     ]);
 
     try {
+      /*
+       * اولویت با ID ذخیره‌شده در Local Storage است.
+       * این باعث می‌شود همیشه آخرین ID استفاده شود.
+       */
+      const storedInteractionId =
+        localStorage.getItem(INTERACTION_KEY);
+
+      const interactionIdToSend =
+        storedInteractionId || previousInteractionId;
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -80,12 +94,13 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           message: userMessage,
-          previousInteractionId,
+          previousInteractionId: interactionIdToSend,
         }),
       });
 
       if (!response.ok) {
-        let errorMessage = "خطایی در ارتباط با سرور رخ داد.";
+        let errorMessage =
+          "خطایی در ارتباط با سرور رخ داد.";
 
         try {
           const data = await response.json();
@@ -99,7 +114,9 @@ export default function ChatPage() {
       }
 
       if (!response.body) {
-        throw new Error("پاسخ Streaming دریافت نشد.");
+        throw new Error(
+          "پاسخ Streaming دریافت نشد."
+        );
       }
 
       const reader = response.body.getReader();
@@ -114,7 +131,8 @@ export default function ChatPage() {
 
           if (
             updated.length > 0 &&
-            updated[updated.length - 1].role === "assistant"
+            updated[updated.length - 1].role ===
+              "assistant"
           ) {
             updated[updated.length - 1] = {
               role: "assistant",
@@ -126,68 +144,100 @@ export default function ChatPage() {
         });
       };
 
+      const processEvent = (event: string) => {
+        const lines = event.split("\n");
+
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+
+          const data = line.slice(5).trim();
+
+          if (!data || data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data);
+
+            /*
+             * دریافت Interaction ID جدید
+             */
+            if (
+              parsed?.event_type ===
+                "interaction.created" &&
+              parsed?.interaction?.id
+            ) {
+              const interactionId =
+                parsed.interaction.id;
+
+              setPreviousInteractionId(
+                interactionId
+              );
+
+              localStorage.setItem(
+                INTERACTION_KEY,
+                interactionId
+              );
+            }
+
+            /*
+             * دریافت متن Streaming
+             */
+            const text =
+              parsed?.step?.content?.find(
+                (item: {
+                  type?: string;
+                  text?: string;
+                }) => item.type === "text"
+              )?.text ??
+              parsed?.content?.find(
+                (item: {
+                  type?: string;
+                  text?: string;
+                }) => item.type === "text"
+              )?.text ??
+              parsed?.delta?.text ??
+              "";
+
+            if (text) {
+              assistantText += text;
+              updateAssistant(assistantText);
+            }
+          } catch {
+            // منتظر کامل شدن قطعه بعدی می‌مانیم
+          }
+        }
+      };
+
       while (true) {
-        const { value, done } = await reader.read();
+        const { value, done } =
+          await reader.read();
 
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, {
+          stream: true,
+        });
 
         const events = buffer.split("\n\n");
 
         buffer = events.pop() ?? "";
 
         for (const event of events) {
-          const lines = event.split("\n");
-
-          for (const line of lines) {
-            if (!line.startsWith("data:")) continue;
-
-            const data = line.slice(5).trim();
-
-            if (!data || data === "[DONE]") continue;
-
-            try {
-              const parsed = JSON.parse(data);
-
-              if (
-                parsed?.event_type === "interaction.created" &&
-                parsed?.interaction?.id
-              ) {
-                const interactionId = parsed.interaction.id;
-
-                setPreviousInteractionId(interactionId);
-                localStorage.setItem(
-                  INTERACTION_KEY,
-                  interactionId
-                );
-              }
-
-              const text =
-                parsed?.step?.content?.find(
-                  (item: { type?: string; text?: string }) =>
-                    item.type === "text"
-                )?.text ??
-                parsed?.content?.find(
-                  (item: { type?: string; text?: string }) =>
-                    item.type === "text"
-                )?.text ??
-                parsed?.delta?.text ??
-                "";
-
-              if (text) {
-                assistantText += text;
-                updateAssistant(assistantText);
-              }
-            } catch {
-              // منتظر کامل شدن قطعه بعدی می‌مانیم
-            }
-          }
+          processEvent(event);
         }
       }
 
+      /*
+       * اگر آخرین Event بدون \n\n تمام شده باشد،
+       * اینجا هم آن را پردازش می‌کنیم.
+       */
+      if (buffer.trim()) {
+        processEvent(buffer);
+      }
+
       if (!assistantText) {
-        updateAssistant("متأسفانه پاسخی دریافت نشد.");
+        updateAssistant(
+          "متأسفانه پاسخی دریافت نشد."
+        );
       }
     } catch (error) {
       const errorMessage =
@@ -200,7 +250,8 @@ export default function ChatPage() {
 
         if (
           updated.length > 0 &&
-          updated[updated.length - 1].role === "assistant"
+          updated[updated.length - 1].role ===
+            "assistant"
         ) {
           updated[updated.length - 1] = {
             role: "assistant",
@@ -218,7 +269,10 @@ export default function ChatPage() {
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLTextAreaElement>
   ) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
       e.preventDefault();
       sendMessage();
     }
@@ -236,7 +290,10 @@ export default function ChatPage() {
 
         <div className="text-xl font-black tracking-[0.16em]">
           MOBIXA
-          <span className="text-violet-400"> AI</span>
+          <span className="text-violet-400">
+            {" "}
+            AI
+          </span>
         </div>
       </header>
 
@@ -266,7 +323,9 @@ export default function ChatPage() {
                 {suggestions.map((item) => (
                   <button
                     key={item}
-                    onClick={() => sendMessage(item.slice(2))}
+                    onClick={() =>
+                      sendMessage(item.slice(2))
+                    }
                     className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-white/65 backdrop-blur-xl transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.07]"
                   >
                     {item}
@@ -296,7 +355,8 @@ export default function ChatPage() {
 
                     {loading &&
                       msg.role === "assistant" &&
-                      index === messages.length - 1 && (
+                      index ===
+                        messages.length - 1 && (
                         <span className="ml-1 inline-block animate-pulse">
                           ▋
                         </span>
@@ -313,7 +373,9 @@ export default function ChatPage() {
             <div className="flex items-end gap-2">
               <textarea
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) =>
+                  setMessage(e.target.value)
+                }
                 onKeyDown={handleKeyDown}
                 placeholder="پیامت رو برای موبیکسا بنویس..."
                 rows={1}
@@ -323,7 +385,10 @@ export default function ChatPage() {
 
               <button
                 onClick={() => sendMessage()}
-                disabled={!message.trim() || loading}
+                disabled={
+                  !message.trim() ||
+                  loading
+                }
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-xl text-black transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ↑
