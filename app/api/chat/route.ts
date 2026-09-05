@@ -1,12 +1,19 @@
 import { NextRequest } from "next/server";
 
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export async function POST(request: NextRequest) {
   try {
-    const { message, previousInteractionId } = await request.json();
+    const { message, history } = await request.json();
 
     if (!message || typeof message !== "string") {
       return new Response(
-        JSON.stringify({ error: "پیام معتبر نیست." }),
+        JSON.stringify({
+          error: "پیام معتبر نیست.",
+        }),
         {
           status: 400,
           headers: {
@@ -32,19 +39,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: Record<string, unknown> = {
-      model: "gemini-3.6-flash",
-      input: message,
-      store: true,
-      stream: true,
-    };
+    /*
+     * تاریخچه را بررسی می‌کنیم.
+     * فقط پیام‌های معتبر user و assistant پذیرفته می‌شوند.
+     */
+    const validHistory: ChatMessage[] = Array.isArray(history)
+      ? history.filter(
+          (item: ChatMessage) =>
+            item &&
+            (item.role === "user" ||
+              item.role === "assistant") &&
+            typeof item.content === "string" &&
+            item.content.trim().length > 0
+        )
+      : [];
 
-    if (
-      previousInteractionId &&
-      typeof previousInteractionId === "string"
-    ) {
-      body.previous_interaction_id = previousInteractionId;
-    }
+    /*
+     * برای جلوگیری از بزرگ شدن بیش از حد درخواست،
+     * حداکثر 30 پیام آخر را به Gemini می‌فرستیم.
+     */
+    const recentHistory = validHistory.slice(-30);
+
+    /*
+     * پیام فعلی را هم به انتهای تاریخچه اضافه می‌کنیم.
+     */
+    const conversation = [
+      ...recentHistory,
+      {
+        role: "user",
+        content: message,
+      },
+    ];
+
+    /*
+     * Gemini Interactions API از input به صورت آرایه
+     * برای ارسال مکالمه چندپیامی پشتیبانی می‌کند.
+     */
+    const input = conversation.map((item) => ({
+      role: item.role === "assistant" ? "model" : "user",
+      content: [
+        {
+          type: "text",
+          text: item.content,
+        },
+      ],
+    }));
 
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/interactions",
@@ -53,13 +92,23 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": apiKey,
+          Accept: "text/event-stream",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          model: "gemini-3.6-flash",
+          input,
+          store: false,
+          stream: true,
+        }),
       }
     );
 
     if (!response.ok) {
-      const data = await response.json();
+      let data: any = null;
+
+      try {
+        data = await response.json();
+      } catch {}
 
       return new Response(
         JSON.stringify({
@@ -93,7 +142,7 @@ export async function POST(request: NextRequest) {
     return new Response(response.body, {
       headers: {
         "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
       },
     });
