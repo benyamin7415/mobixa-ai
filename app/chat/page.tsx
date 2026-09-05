@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Message = {
   role: "user" | "assistant";
@@ -18,15 +18,46 @@ export default function ChatPage() {
     "✍️ کمکم کن یه متن بنویسم",
   ];
 
+  // Load chat history
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mobixa-chat-history");
+
+      if (saved) {
+        setMessages(JSON.parse(saved));
+      }
+    } catch {
+      console.error("خطا در خواندن تاریخچه");
+    }
+  }, []);
+
+  // Save chat history
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(
+        "mobixa-chat-history",
+        JSON.stringify(messages)
+      );
+    }
+  }, [messages]);
+
   async function sendMessage(text?: string) {
     const userMessage = (text ?? message).trim();
 
     if (!userMessage || loading) return;
 
     setMessage("");
+
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: userMessage },
+      {
+        role: "user",
+        content: userMessage,
+      },
+      {
+        role: "assistant",
+        content: "",
+      },
     ]);
 
     setLoading(true);
@@ -42,30 +73,105 @@ export default function ChatPage() {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data?.error || "خطایی رخ داد.");
+        const data = await response.json();
+        throw new Error(
+          data?.error || "خطایی در ارتباط با سرور رخ داد."
+        );
       }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply,
-        },
-      ]);
+      if (!response.body) {
+        throw new Error("پاسخ Streaming دریافت نشد.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let buffer = "";
+      let assistantText = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, {
+          stream: true,
+        });
+
+        const events = buffer.split("\n\n");
+
+        buffer = events.pop() || "";
+
+        for (const event of events) {
+          const lines = event.split("\n");
+
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+
+            const data = line.slice(5).trim();
+
+            if (!data || data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+
+              const text =
+                parsed?.step?.content?.find(
+                  (item: any) => item.type === "text"
+                )?.text ||
+                parsed?.content?.find(
+                  (item: any) => item.type === "text"
+                )?.text ||
+                "";
+
+              if (text) {
+                assistantText += text;
+
+                setMessages((prev) => {
+                  const updated = [...prev];
+
+                  updated[updated.length - 1] = {
+                    role: "assistant",
+                    content: assistantText,
+                  };
+
+                  return updated;
+                });
+              }
+            } catch {
+              // Ignore incomplete SSE chunks
+            }
+          }
+        }
+      }
+
+      if (!assistantText) {
+        setMessages((prev) => {
+          const updated = [...prev];
+
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: "متأسفانه پاسخی دریافت نشد.",
+          };
+
+          return updated;
+        });
+      }
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
+      setMessages((prev) => {
+        const updated = [...prev];
+
+        updated[updated.length - 1] = {
           role: "assistant",
           content:
             error instanceof Error
               ? error.message
               : "متأسفانه خطایی رخ داد.",
-        },
-      ]);
+        };
+
+        return updated;
+      });
     } finally {
       setLoading(false);
     }
@@ -83,7 +189,6 @@ export default function ChatPage() {
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6">
 
-      {/* Header */}
       <header className="mx-auto flex max-w-5xl items-center justify-between">
         <a
           href="/"
@@ -98,10 +203,8 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* Chat */}
       <section className="mx-auto flex min-h-[calc(100vh-90px)] max-w-4xl flex-col">
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto py-8">
 
           {messages.length === 0 ? (
@@ -158,14 +261,14 @@ export default function ChatPage() {
                     }`}
                   >
                     {msg.content}
-                  </div>
-                </div>
-              ))}
 
-              {loading && (
-                <div className="flex justify-end">
-                  <div className="glass-card rounded-3xl px-5 py-4 text-sm text-white/40">
-                    موبیکسا در حال فکر کردنه...
+                    {loading &&
+                      msg.role === "assistant" &&
+                      index === messages.length - 1 && (
+                        <span className="ml-1 inline-block animate-pulse">
+                          ▋
+                        </span>
+                      )}
                   </div>
                 </div>
               )}
@@ -175,7 +278,6 @@ export default function ChatPage() {
 
         </div>
 
-        {/* Input */}
         <div className="pb-5">
 
           <div className="rounded-[28px] border border-white/10 bg-white/[0.055] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
