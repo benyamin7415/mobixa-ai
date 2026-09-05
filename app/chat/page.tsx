@@ -14,6 +14,7 @@ export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previousInteractionId, setPreviousInteractionId] = useState<string | null>(null);
 
   const suggestions = [
     "💡 یه ایده خلاقانه بهم بده",
