@@ -1,13 +1,8 @@
 import { NextRequest } from "next/server";
 
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-};
-
 export async function POST(request: NextRequest) {
   try {
-    const { message, history } = await request.json();
+    const { message } = await request.json();
 
     if (!message || typeof message !== "string") {
       return new Response(
@@ -39,36 +34,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validHistory: Message[] = Array.isArray(history)
-      ? history.filter(
-          (item: Message) =>
-            (item.role === "user" ||
-              item.role === "assistant") &&
-            typeof item.content === "string" &&
-            item.content.trim().length > 0
-        )
-      : [];
-
-    const recentHistory = validHistory.slice(-30);
-
-    const contents = recentHistory.map((item) => ({
-      role: item.role === "assistant" ? "model" : "user",
-      parts: [
-        {
-          text: item.content,
-        },
-      ],
-    }));
-
-    contents.push({
-      role: "user",
-      parts: [
-        {
-          text: message,
-        },
-      ],
-    });
-
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse",
       {
@@ -79,7 +44,16 @@ export async function POST(request: NextRequest) {
           Accept: "text/event-stream",
         },
         body: JSON.stringify({
-          contents,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: message,
+                },
+              ],
+            },
+          ],
         }),
       }
     );
@@ -89,7 +63,6 @@ export async function POST(request: NextRequest) {
 
       try {
         const data = await response.json();
-
         errorMessage =
           data?.error?.message || errorMessage;
       } catch {}
