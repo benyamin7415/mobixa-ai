@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json();
+    const { message, previousInteractionId } = await request.json();
 
     if (!message || typeof message !== "string") {
       return new Response(
@@ -32,6 +32,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const body: Record<string, unknown> = {
+      model: "gemini-3.6-flash",
+      input: message,
+      store: true,
+      stream: true,
+    };
+
+    if (
+      previousInteractionId &&
+      typeof previousInteractionId === "string"
+    ) {
+      body.previous_interaction_id = previousInteractionId;
+    }
+
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
@@ -40,12 +54,7 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/json",
           "x-goog-api-key": apiKey,
         },
-        body: JSON.stringify({
-          model: "gemini-3.6-flash",
-          input: message,
-          store: false,
-          stream: true,
-        }),
+        body: JSON.stringify(body),
       }
     );
 
