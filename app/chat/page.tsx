@@ -53,16 +53,7 @@ export default function ChatPage() {
     setMessage("");
     setLoading(true);
 
-    /*
-     * تاریخچه فعلی را قبل از اضافه کردن پیام جدید
-     * نگه می‌داریم تا همان را برای Gemini بفرستیم.
-     */
-    const historyForGemini = messages.filter(
-      (item) =>
-        item.content.trim().length > 0 &&
-        (item.role === "user" ||
-          item.role === "assistant")
-    );
+    const history = [...messages];
 
     setMessages((prev) => [
       ...prev,
@@ -84,7 +75,7 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           message: userMessage,
-          history: historyForGemini,
+          history,
         }),
       });
 
@@ -147,75 +138,19 @@ export default function ChatPage() {
           try {
             const parsed = JSON.parse(data);
 
-            /*
-             * طبق ساختار جدید Interactions API،
-             * متن Streaming داخل step.delta قرار دارد.
-             */
-            if (
-              parsed?.event_type === "step.delta" &&
-              parsed?.delta?.type === "text" &&
-              typeof parsed?.delta?.text === "string"
-            ) {
-              assistantText += parsed.delta.text;
+            const text =
+              parsed?.candidates?.[0]?.content?.parts?.find(
+                (part: {
+                  text?: string;
+                }) => typeof part.text === "string"
+              )?.text ?? "";
 
+            if (text) {
+              assistantText += text;
               updateAssistant(assistantText);
             }
-
-            /*
-             * برای سازگاری بیشتر با پاسخ‌های احتمالی،
-             * دو حالت قدیمی‌تر را هم بررسی می‌کنیم.
-             */
-            const fallbackText =
-              parsed?.step?.content?.find(
-                (item: {
-                  type?: string;
-                  text?: string;
-                }) => item.type === "text"
-              )?.text ??
-              parsed?.content?.find(
-                (item: {
-                  type?: string;
-                  text?: string;
-                }) => item.type === "text"
-              )?.text ??
-              "";
-
-            if (
-              fallbackText &&
-              parsed?.event_type !== "step.delta"
-            ) {
-              assistantText += fallbackText;
-
-              updateAssistant(assistantText);
-            }
-
-            /*
-             * اگر خود API یک خطای Streaming فرستاد،
-             * آن را به کاربر نمایش می‌دهیم.
-             */
-            if (parsed?.event_type === "error") {
-              const apiError =
-                parsed?.error?.message ||
-                "خطا در دریافت پاسخ از Gemini";
-
-              throw new Error(apiError);
-            }
-          } catch (eventError) {
-            /*
-             * اگر JSON ناقص باشد، قطعه بعدی را منتظر می‌مانیم.
-             * خطاهای واقعی خارج از این بخش توسط catch اصلی
-             * مدیریت می‌شوند.
-             */
-            if (
-              eventError instanceof Error &&
-              eventError.message !==
-                "Unexpected end of JSON input"
-            ) {
-              console.error(
-                "خطا در پردازش Event:",
-                eventError
-              );
-            }
+          } catch {
+            // منتظر کامل شدن قطعه بعدی می‌مانیم
           }
         }
       };
@@ -239,10 +174,6 @@ export default function ChatPage() {
         }
       }
 
-      /*
-       * آخرین Event را هم پردازش می‌کنیم
-       * اگر بدون \n\n رسیده باشد.
-       */
       if (buffer.trim()) {
         processEvent(buffer);
       }
