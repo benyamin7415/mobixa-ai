@@ -430,6 +430,7 @@ export default function ImagePage() {
                   </div>
 
                   <h2>در حال ساخت تصویر...</h2>
+
                   <p>
                     موبیکسا داره ایده‌ات رو به تصویر تبدیل می‌کنه ✨
                   </p>
@@ -439,7 +440,9 @@ export default function ImagePage() {
               {error && !loading && (
                 <div className="error-box">
                   <div className="error-icon">!</div>
+
                   <h2>اوه! مشکلی پیش اومد</h2>
+
                   <p>{error}</p>
                 </div>
               )}
@@ -495,6 +498,7 @@ export default function ImagePage() {
 
           <div className="footer">
             <span>✦ Mobixa AI</span>
+
             <span>
               تصاویر توسط هوش مصنوعی تولید می‌شوند.
             </span>
