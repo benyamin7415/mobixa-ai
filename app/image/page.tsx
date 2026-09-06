@@ -49,11 +49,14 @@ export default function ImagePage() {
     if (!image) return;
 
     const link = document.createElement("a");
+
     link.href = image;
     link.download = "mobixa-image.jpg";
 
     document.body.appendChild(link);
+
     link.click();
+
     document.body.removeChild(link);
   };
 
@@ -66,13 +69,19 @@ export default function ImagePage() {
   return (
     <main className="image-page">
 
-      {/* Background */}
+      {/* =========================
+          BACKGROUND GLOWS
+      ========================= */}
+
       <div className="bg-glow bg-glow-1" />
       <div className="bg-glow bg-glow-2" />
 
       <div className="image-wrapper">
 
-        {/* Header */}
+        {/* =========================
+            HEADER
+        ========================= */}
+
         <header className="image-header">
 
           <div className="image-label">
@@ -90,7 +99,11 @@ export default function ImagePage() {
 
         </header>
 
-        {/* Prompt */}
+
+        {/* =========================
+            PROMPT BOX
+        ========================= */}
+
         <section className="prompt-box">
 
           <textarea
@@ -102,17 +115,22 @@ export default function ImagePage() {
             disabled={loading}
           />
 
+
           <div className="prompt-footer">
 
             <div className="counter">
               {prompt.length}/2048
             </div>
 
-            {/* Send Button */}
+
+            {/* =========================
+                SEND BUTTON
+            ========================= */}
+
             <div className="send-button-wrapper">
 
-              {/* Rotating Light */}
-              <div className="rotating-border" />
+              {/* نور چرخان واقعی دور دکمه */}
+              <div className="send-light-ring" />
 
               <button
                 className="send-button"
@@ -126,11 +144,11 @@ export default function ImagePage() {
                 ) : (
                   <svg
                     viewBox="0 0 24 24"
-                    width="21"
-                    height="21"
+                    width="22"
+                    height="22"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
@@ -147,28 +165,43 @@ export default function ImagePage() {
 
         </section>
 
-        {/* Error */}
+
+        {/* =========================
+            ERROR
+        ========================= */}
+
         {error && (
           <div className="error-message">
             {error}
           </div>
         )}
 
-        {/* Generated Image */}
+
+        {/* =========================
+            GENERATED IMAGE
+        ========================= */}
+
         {image && (
           <section className="result">
 
             <div className="image-card">
+
               <img
                 src={image}
                 alt="تصویر ساخته شده توسط موبیکسا"
               />
+
             </div>
 
-            {/* Small Actions */}
+
+            {/* =========================
+                IMAGE ACTIONS
+            ========================= */}
+
             <div className="image-actions">
 
-              {/* Download */}
+              {/* DOWNLOAD */}
+
               <button
                 className="small-action"
                 onClick={downloadImage}
@@ -195,7 +228,9 @@ export default function ImagePage() {
 
               </button>
 
-              {/* Retry */}
+
+              {/* RETRY */}
+
               <button
                 className="small-action"
                 onClick={retryImage}
@@ -231,28 +266,36 @@ export default function ImagePage() {
 
       </div>
 
+
+      {/* =========================
+          STYLES
+      ========================= */}
+
       <style jsx>{`
 
         * {
           box-sizing: border-box;
         }
 
-        /* =========================
+
+        /* =================================
            PAGE
-        ========================= */
+        ================================= */
 
         .image-page {
           min-height: 100vh;
+
           width: 100%;
 
           position: relative;
+
           overflow-x: hidden;
 
           background:
             radial-gradient(
-              circle at 50% 5%,
-              rgba(112, 88, 255, 0.10),
-              transparent 35%
+              circle at 50% 4%,
+              rgba(112, 88, 255, 0.12),
+              transparent 36%
             ),
             #050507;
 
@@ -261,8 +304,13 @@ export default function ImagePage() {
           direction: rtl;
 
           padding:
-            70px 20px 100px;
+            70px 20px 120px;
         }
+
+
+        /* =================================
+           MAIN WRAPPER
+        ================================= */
 
         .image-wrapper {
           width: min(850px, 100%);
@@ -274,14 +322,16 @@ export default function ImagePage() {
           z-index: 2;
         }
 
-        /* =========================
+
+        /* =================================
            BACKGROUND GLOW
-        ========================= */
+        ================================= */
 
         .bg-glow {
           position: absolute;
 
           width: 420px;
+
           height: 420px;
 
           border-radius: 50%;
@@ -293,33 +343,35 @@ export default function ImagePage() {
           pointer-events: none;
         }
 
+
         .bg-glow-1 {
           top: -180px;
+
           right: -160px;
 
           background: #735cff;
         }
 
+
         .bg-glow-2 {
           bottom: -200px;
+
           left: -160px;
 
           background: #00bfff;
         }
 
-        /* =========================
+
+        /* =================================
            HEADER
-        ========================= */
+        ================================= */
 
         .image-header {
           text-align: center;
 
-          /*
-            فاصله زیاد بین هدر
-            و کادر پرامپت
-          */
-          margin-bottom: 120px;
+          margin-bottom: 0;
         }
+
 
         .image-label {
           font-size: 10px;
@@ -329,12 +381,13 @@ export default function ImagePage() {
           letter-spacing: 3px;
 
           color:
-            rgba(170, 155, 255, 0.7);
+            rgba(170, 155, 255, 0.72);
 
           direction: ltr;
 
           margin-bottom: 14px;
         }
+
 
         .image-header h1 {
           margin: 0;
@@ -348,6 +401,7 @@ export default function ImagePage() {
 
           line-height: 1.25;
         }
+
 
         .image-header h1 span {
           background:
@@ -363,6 +417,7 @@ export default function ImagePage() {
           -webkit-text-fill-color: transparent;
         }
 
+
         .image-header p {
           margin:
             15px auto 0;
@@ -377,14 +432,19 @@ export default function ImagePage() {
           line-height: 1.9;
         }
 
-        /* =========================
+
+        /* =================================
            PROMPT BOX
-        ========================= */
+
+           عمداً خیلی پایین‌تر از هدر
+        ================================= */
 
         .prompt-box {
           width: 100%;
 
           min-height: 210px;
+
+          margin-top: 175px;
 
           border-radius: 25px;
 
@@ -392,24 +452,47 @@ export default function ImagePage() {
             rgba(255, 255, 255, 0.045);
 
           border:
-            1px solid rgba(255, 255, 255, 0.09);
+            1px solid
+            rgba(255, 255, 255, 0.10);
 
           padding: 17px;
 
           backdrop-filter: blur(22px);
 
+          -webkit-backdrop-filter: blur(22px);
+
           box-shadow:
-            0 25px 75px rgba(0, 0, 0, 0.36),
-            inset 0 1px rgba(255, 255, 255, 0.035);
+            0 25px 75px
+            rgba(0, 0, 0, 0.36),
+
+            inset 0 1px
+            rgba(255, 255, 255, 0.035);
 
           transition:
-            border-color 0.25s ease;
+            border-color 0.25s ease,
+            box-shadow 0.25s ease;
         }
+
 
         .prompt-box:focus-within {
           border-color:
             rgba(135, 115, 255, 0.32);
+
+          box-shadow:
+            0 30px 85px
+            rgba(0, 0, 0, 0.42),
+
+            0 0 35px
+            rgba(115, 92, 255, 0.05),
+
+            inset 0 1px
+            rgba(255, 255, 255, 0.035);
         }
+
+
+        /* =================================
+           TEXTAREA
+        ================================= */
 
         .prompt-box textarea {
           width: 100%;
@@ -437,6 +520,7 @@ export default function ImagePage() {
           direction: rtl;
         }
 
+
         .prompt-box textarea::placeholder {
           color:
             rgba(255, 255, 255, 0.32);
@@ -446,13 +530,15 @@ export default function ImagePage() {
           white-space: pre-line;
         }
 
+
         .prompt-box textarea:disabled {
           opacity: 0.55;
         }
 
-        /* =========================
+
+        /* =================================
            PROMPT FOOTER
-        ========================= */
+        ================================= */
 
         .prompt-footer {
           height: 42px;
@@ -469,6 +555,7 @@ export default function ImagePage() {
             0 5px;
         }
 
+
         .counter {
           font-size: 10px;
 
@@ -478,29 +565,39 @@ export default function ImagePage() {
           direction: ltr;
         }
 
-        /* =========================
-           SEND BUTTON
-        ========================= */
+
+        /* =================================
+           SEND BUTTON WRAPPER
+        ================================= */
 
         .send-button-wrapper {
           position: relative;
 
-          width: 53px;
-          height: 53px;
+          width: 61px;
+
+          height: 61px;
 
           display: flex;
 
           align-items: center;
+
           justify-content: center;
+
+          isolation: isolate;
         }
 
-        /* فقط حاشیه نورانی چرخان */
 
-        .rotating-border {
+        /* =================================
+           REAL ROTATING LIGHT RING
+
+           این دیگه مربع جدا نیست.
+           دقیقاً حاشیه‌ی خود دکمه است.
+        ================================= */
+
+        .send-light-ring {
           position: absolute;
 
-          width: 65px;
-          height: 65px;
+          inset: 0;
 
           border-radius: 21px;
 
@@ -509,46 +606,106 @@ export default function ImagePage() {
               from 0deg,
 
               transparent 0deg,
-              transparent 220deg,
 
-              rgba(156, 137, 255, 0.05) 245deg,
+              transparent 35deg,
 
-              rgba(156, 137, 255, 0.95) 300deg,
+              rgba(104, 78, 255, 0.08) 65deg,
 
-              rgba(111, 217, 255, 0.9) 330deg,
+              rgba(115, 92, 255, 0.95) 115deg,
+
+              rgba(111, 217, 255, 1) 165deg,
+
+              rgba(130, 110, 255, 0.35) 210deg,
+
+              transparent 270deg,
 
               transparent 360deg
             );
 
           animation:
-            rotate-light 1.7s linear infinite;
+            send-ring-rotate
+            2.2s
+            linear
+            infinite;
 
-          filter: blur(1px);
+          filter:
+            drop-shadow(
+              0 0 5px
+              rgba(115, 92, 255, 0.55)
+            );
 
           pointer-events: none;
 
           z-index: 0;
         }
 
-        .rotating-border::after {
+
+        /* هاله‌ی نرم‌تر پشت نور */
+
+        .send-light-ring::before {
           content: "";
 
           position: absolute;
 
-          inset: 2px;
+          inset: -4px;
 
-          border-radius: 19px;
+          border-radius: 24px;
+
+          background:
+            conic-gradient(
+              from 0deg,
+
+              transparent 0deg,
+
+              transparent 70deg,
+
+              rgba(115, 92, 255, 0.45) 130deg,
+
+              rgba(111, 217, 255, 0.55) 175deg,
+
+              transparent 245deg,
+
+              transparent 360deg
+            );
+
+          filter: blur(7px);
+
+          opacity: 0.55;
+
+          z-index: -1;
+        }
+
+
+        /*
+          مرکز رینگ خالی می‌شود
+          تا فقط خود حاشیه دیده شود
+        */
+
+        .send-light-ring::after {
+          content: "";
+
+          position: absolute;
+
+          inset: 3px;
+
+          border-radius: 18px;
 
           background: #050507;
         }
+
+
+        /* =================================
+           SEND BUTTON
+        ================================= */
 
         .send-button {
           position: relative;
 
           z-index: 2;
 
-          width: 53px;
-          height: 53px;
+          width: 55px;
+
+          height: 55px;
 
           border: none;
 
@@ -557,6 +714,7 @@ export default function ImagePage() {
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           color: white;
@@ -572,62 +730,105 @@ export default function ImagePage() {
 
           box-shadow:
             0 8px 30px
-            rgba(101, 76, 255, 0.32);
+            rgba(101, 76, 255, 0.32),
+
+            inset 0 1px
+            rgba(255, 255, 255, 0.12);
 
           transition:
             transform 0.2s ease,
-            opacity 0.2s ease;
+            opacity 0.2s ease,
+            box-shadow 0.2s ease;
         }
+
 
         .send-button:hover:not(:disabled) {
           transform:
             translateY(-1px);
+
+          box-shadow:
+            0 10px 35px
+            rgba(101, 76, 255, 0.42),
+
+            inset 0 1px
+            rgba(255, 255, 255, 0.15);
         }
+
+
+        .send-button:active:not(:disabled) {
+          transform:
+            scale(0.96);
+        }
+
 
         .send-button:disabled {
           cursor: not-allowed;
 
-          opacity: 0.35;
+          opacity: 0.38;
 
-          box-shadow: none;
+          box-shadow:
+            none;
         }
 
-        @keyframes rotate-light {
+
+        /* =================================
+           RING ANIMATION
+        ================================= */
+
+        @keyframes send-ring-rotate {
+
+          from {
+            transform:
+              rotate(0deg);
+          }
+
           to {
             transform:
               rotate(360deg);
           }
+
         }
 
-        /* Loading */
+
+        /* =================================
+           LOADING SPINNER
+        ================================= */
 
         .button-spinner {
           width: 19px;
+
           height: 19px;
 
           border-radius: 50%;
 
           border:
             2px solid
-            rgba(255, 255, 255, 0.3);
+            rgba(255, 255, 255, 0.28);
 
-          border-top-color: white;
+          border-top-color:
+            white;
 
           animation:
             button-spin
-            0.75s linear infinite;
+            0.75s
+            linear
+            infinite;
         }
 
+
         @keyframes button-spin {
+
           to {
             transform:
               rotate(360deg);
           }
+
         }
 
-        /* =========================
+
+        /* =================================
            ERROR
-        ========================= */
+        ================================= */
 
         .error-message {
           margin-top: 15px;
@@ -644,20 +845,23 @@ export default function ImagePage() {
             1px solid
             rgba(255, 70, 70, 0.15);
 
-          color: #ff9b9b;
+          color:
+            #ff9b9b;
 
           font-size: 12px;
 
           text-align: center;
         }
 
-        /* =========================
+
+        /* =================================
            RESULT
-        ========================= */
+        ================================= */
 
         .result {
           margin-top: 40px;
         }
+
 
         .image-card {
           width: 100%;
@@ -678,6 +882,7 @@ export default function ImagePage() {
             rgba(0, 0, 0, 0.42);
         }
 
+
         .image-card img {
           display: block;
 
@@ -686,9 +891,10 @@ export default function ImagePage() {
           height: auto;
         }
 
-        /* =========================
-           SMALL ACTION BUTTONS
-        ========================= */
+
+        /* =================================
+           IMAGE ACTIONS
+        ================================= */
 
         .image-actions {
           display: flex;
@@ -701,6 +907,7 @@ export default function ImagePage() {
 
           margin-top: 10px;
         }
+
 
         .small-action {
           min-width: 105px;
@@ -745,6 +952,7 @@ export default function ImagePage() {
             transform 0.2s ease;
         }
 
+
         .small-action:hover:not(:disabled) {
           background:
             rgba(255, 255, 255, 0.085);
@@ -758,46 +966,53 @@ export default function ImagePage() {
             translateY(-1px);
         }
 
+
         .small-action:disabled {
           opacity: 0.4;
 
           cursor: not-allowed;
         }
 
-        /* =========================
+
+        /* =================================
            MOBILE
-        ========================= */
+        ================================= */
 
         @media (max-width: 600px) {
 
           .image-page {
             padding:
-              45px 14px 70px;
+              45px 14px 80px;
           }
 
+
           .image-header {
-            /*
-              روی موبایل هم کادر
-              پایین‌تر باقی می‌ماند
-            */
-            margin-bottom: 85px;
+            margin-bottom: 0;
           }
+
 
           .image-header h1 {
             font-size: 31px;
           }
 
+
           .image-header p {
             font-size: 12px;
           }
 
+
+          /* کادر روی موبایل هم خیلی پایین‌تر */
+
           .prompt-box {
             min-height: 195px;
+
+            margin-top: 145px;
 
             border-radius: 21px;
 
             padding: 13px;
           }
+
 
           .prompt-box textarea {
             height: 135px;
@@ -805,11 +1020,39 @@ export default function ImagePage() {
             font-size: 14px;
           }
 
+
+          .send-button-wrapper {
+            width: 59px;
+
+            height: 59px;
+          }
+
+
+          .send-button {
+            width: 53px;
+
+            height: 53px;
+
+            border-radius: 16px;
+          }
+
+
+          .send-light-ring {
+            border-radius: 20px;
+          }
+
+
+          .send-light-ring::after {
+            border-radius: 17px;
+          }
+
+
           .small-action {
             min-width: 100px;
 
             height: 33px;
           }
+
         }
 
       `}</style>
