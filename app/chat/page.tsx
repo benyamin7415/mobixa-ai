@@ -190,7 +190,6 @@ function MobixaRobot() {
           </filter>
         </defs>
 
-        {/* antenna */}
         <line
           x1="120"
           y1="29"
@@ -199,6 +198,7 @@ function MobixaRobot() {
           stroke="#6deaff"
           strokeWidth="4"
         />
+
         <circle
           cx="120"
           cy="10"
@@ -207,7 +207,6 @@ function MobixaRobot() {
           filter="url(#robotGlow)"
         />
 
-        {/* ears */}
         <rect
           x="45"
           y="83"
@@ -218,6 +217,7 @@ function MobixaRobot() {
           stroke="#735cff"
           strokeWidth="4"
         />
+
         <rect
           x="173"
           y="83"
@@ -229,7 +229,6 @@ function MobixaRobot() {
           strokeWidth="4"
         />
 
-        {/* head */}
         <rect
           x="58"
           y="34"
@@ -241,7 +240,6 @@ function MobixaRobot() {
           strokeWidth="4"
         />
 
-        {/* face */}
         <rect
           x="72"
           y="53"
@@ -254,7 +252,6 @@ function MobixaRobot() {
           strokeWidth="2"
         />
 
-        {/* eyes */}
         <path
           d="M89 83c4-8 12-8 16 0"
           fill="none"
@@ -271,7 +268,6 @@ function MobixaRobot() {
           strokeLinecap="round"
         />
 
-        {/* smile */}
         <path
           d="M105 101c9 9 21 9 30 0"
           fill="none"
@@ -280,7 +276,6 @@ function MobixaRobot() {
           strokeLinecap="round"
         />
 
-        {/* neck */}
         <rect
           x="106"
           y="139"
@@ -290,7 +285,6 @@ function MobixaRobot() {
           fill="#292469"
         />
 
-        {/* body */}
         <path
           d="M77 148c8-12 23-17 43-17s35 5 43 17l17 55H60l17-55Z"
           fill="url(#robotBody)"
@@ -298,7 +292,6 @@ function MobixaRobot() {
           strokeWidth="4"
         />
 
-        {/* chest */}
         <circle
           cx="120"
           cy="170"
@@ -316,7 +309,6 @@ function MobixaRobot() {
           filter="url(#robotGlow)"
         />
 
-        {/* left arm */}
         <path
           d="M77 157c-18 4-27 15-35 29"
           fill="none"
@@ -325,7 +317,6 @@ function MobixaRobot() {
           strokeLinecap="round"
         />
 
-        {/* right raised arm */}
         <path
           d="M164 157c18-3 27-14 34-30"
           fill="none"
@@ -334,7 +325,6 @@ function MobixaRobot() {
           strokeLinecap="round"
         />
 
-        {/* hand */}
         <circle
           cx="199"
           cy="119"
@@ -343,7 +333,6 @@ function MobixaRobot() {
           filter="url(#robotGlow)"
         />
 
-        {/* pointing finger */}
         <path
           d="M199 111v-27"
           stroke="#d0c2ff"
@@ -351,7 +340,6 @@ function MobixaRobot() {
           strokeLinecap="round"
         />
 
-        {/* little gesture lines */}
         <path
           d="M214 98l8-7M215 108l10-2"
           stroke="#34dfff"
@@ -556,8 +544,6 @@ export default function ChatPage() {
 
   return (
     <main dir="rtl" className="mobixa">
-      {/* BACKGROUND */}
-
       <div className="background">
         <div className="purple-cloud cloud-one" />
         <div className="purple-cloud cloud-two" />
@@ -578,8 +564,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* HEADER */}
-
       <header className="header">
         <button
           className="back"
@@ -596,8 +580,6 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* CONTENT */}
-
       <section className="page-content">
         <div
           ref={scrollRef}
@@ -605,15 +587,9 @@ export default function ChatPage() {
         >
           {messages.length === 0 ? (
             <div className="home-content">
-              {/* BIG LOGO */}
-
               <MobixaLogo />
 
-              {/* ROBOT */}
-
               <MobixaRobot />
-
-              {/* GREETING */}
 
               <div className="greeting">
                 <div className="hello">
@@ -631,8 +607,6 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* INTRO */}
-
               <p className="intro">
                 اینجا هر چیزی که توی ذهنت داری،
                 <br />
@@ -640,8 +614,6 @@ export default function ChatPage() {
                 <br />
                 <span>ایده بده، سؤال بپرس، بساز.</span>
               </p>
-
-              {/* CARDS */}
 
               <div className="cards">
                 <button
@@ -727,8 +699,6 @@ export default function ChatPage() {
             </div>
           )}
         </div>
-
-        {/* COMPOSER */}
 
         <div className="composer-zone">
           <form
@@ -906,8 +876,6 @@ export default function ChatPage() {
           right: 31%;
         }
 
-        /* HEADER */
-
         .header {
           position: relative;
           z-index: 10;
@@ -966,8 +934,6 @@ export default function ChatPage() {
           height: 20px;
         }
 
-        /* CONTENT */
-
         .page-content {
           position: relative;
           z-index: 5;
@@ -998,8 +964,6 @@ export default function ChatPage() {
           align-items: center;
           padding-bottom: 10px;
         }
-
-        /* LOGO */
 
         .hero-logo {
           position: relative;
@@ -1144,8 +1108,6 @@ export default function ChatPage() {
           right: 5px;
         }
 
-        /* ROBOT */
-
         .robot-stage {
           position: relative;
           width: 210px;
@@ -1199,8 +1161,6 @@ export default function ChatPage() {
           left: 10px;
           font-size: 9px;
         }
-
-        /* GREETING */
 
         .greeting {
           text-align: center;
@@ -1294,8 +1254,6 @@ export default function ChatPage() {
           color: #a5afe8;
         }
 
-        /* CARDS */
-
         .cards {
           width: 100%;
           max-width: 620px;
@@ -1352,11 +1310,13 @@ export default function ChatPage() {
           white-space: nowrap;
         }
 
+        /* حذف قطعی هر فلش/محتوای اضافه از کارت‌ها */
+        .card::before,
+        .card::after,
         .card small {
-          position: absolute;
-          bottom: 5px;
-          font-size: 14px;
-          opacity: 0.9;
+          content: none !important;
+          display: none !important;
+          visibility: hidden !important;
         }
 
         .create {
@@ -1394,8 +1354,6 @@ export default function ChatPage() {
         .idea b {
           color: #c06cff;
         }
-
-        /* MESSAGES */
 
         .messages {
           width: 100%;
@@ -1443,8 +1401,6 @@ export default function ChatPage() {
           color: #a76bff;
           animation: blink 0.7s infinite;
         }
-
-        /* COMPOSER */
 
         .composer-zone {
           position: relative;
@@ -1571,8 +1527,6 @@ export default function ChatPage() {
           }
         }
 
-        /* MOBILE */
-
         @media (max-width: 500px) {
           .header {
             height: 72px;
@@ -1658,11 +1612,6 @@ export default function ChatPage() {
           .card span {
             font-size: 8px;
             margin-top: 4px;
-          }
-
-          .card small {
-            font-size: 11px;
-            bottom: 4px;
           }
 
           .composer-zone {
