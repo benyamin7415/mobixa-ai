@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("IMAGE_REQUEST_START");
+
     const result = await ai.run(
       "@cf/black-forest-labs/flux-1-schnell",
       {
@@ -60,10 +62,13 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    console.log("IMAGE_REQUEST_SUCCESS");
+
     if (!result?.image) {
       return new Response(
         JSON.stringify({
-          error: "تصویر تولید نشد.",
+          error: "Workers AI اجرا شد اما تصویر برنگرداند.",
+          debug: result,
         }),
         {
           status: 500,
@@ -87,12 +92,25 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-  } catch (error) {
-    console.error("IMAGE_GENERATION_ERROR:", error);
+  } catch (error: any) {
+    console.error("IMAGE_GENERATION_ERROR", error);
+
+    let errorMessage = "خطای نامشخص در Workers AI";
+
+    try {
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else {
+        errorMessage = JSON.stringify(error);
+      }
+    } catch {}
 
     return new Response(
       JSON.stringify({
-        error: "در ساخت تصویر مشکلی پیش آمد.",
+        error: errorMessage,
+        type: error?.name || "UnknownError",
       }),
       {
         status: 500,
