@@ -54,9 +54,7 @@ export default function ImagePage() {
     link.download = "mobixa-image.jpg";
 
     document.body.appendChild(link);
-
     link.click();
-
     document.body.removeChild(link);
   };
 
@@ -69,18 +67,14 @@ export default function ImagePage() {
   return (
     <main className="image-page">
 
-      {/* =========================
-          BACKGROUND GLOWS
-      ========================= */}
+      {/* BACKGROUND */}
 
       <div className="bg-glow bg-glow-1" />
       <div className="bg-glow bg-glow-2" />
 
       <div className="image-wrapper">
 
-        {/* =========================
-            HEADER
-        ========================= */}
+        {/* HEADER */}
 
         <header className="image-header">
 
@@ -100,9 +94,7 @@ export default function ImagePage() {
         </header>
 
 
-        {/* =========================
-            PROMPT BOX
-        ========================= */}
+        {/* PROMPT BOX */}
 
         <section className="prompt-box">
 
@@ -115,7 +107,6 @@ export default function ImagePage() {
             disabled={loading}
           />
 
-
           <div className="prompt-footer">
 
             <div className="counter">
@@ -123,13 +114,11 @@ export default function ImagePage() {
             </div>
 
 
-            {/* =========================
-                SEND BUTTON
-            ========================= */}
+            {/* SEND BUTTON */}
 
             <div className="send-button-wrapper">
 
-              {/* نور چرخان واقعی دور دکمه */}
+              {/* نور دقیقاً چسبیده به دکمه */}
               <div className="send-light-ring" />
 
               <button
@@ -166,9 +155,7 @@ export default function ImagePage() {
         </section>
 
 
-        {/* =========================
-            ERROR
-        ========================= */}
+        {/* ERROR */}
 
         {error && (
           <div className="error-message">
@@ -177,9 +164,7 @@ export default function ImagePage() {
         )}
 
 
-        {/* =========================
-            GENERATED IMAGE
-        ========================= */}
+        {/* RESULT */}
 
         {image && (
           <section className="result">
@@ -193,10 +178,6 @@ export default function ImagePage() {
 
             </div>
 
-
-            {/* =========================
-                IMAGE ACTIONS
-            ========================= */}
 
             <div className="image-actions">
 
@@ -267,10 +248,6 @@ export default function ImagePage() {
       </div>
 
 
-      {/* =========================
-          STYLES
-      ========================= */}
-
       <style jsx>{`
 
         * {
@@ -278,9 +255,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            PAGE
-        ================================= */
+        ===================================== */
 
         .image-page {
           min-height: 100vh;
@@ -304,13 +281,9 @@ export default function ImagePage() {
           direction: rtl;
 
           padding:
-            70px 20px 120px;
+            70px 20px 140px;
         }
 
-
-        /* =================================
-           MAIN WRAPPER
-        ================================= */
 
         .image-wrapper {
           width: min(850px, 100%);
@@ -323,9 +296,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            BACKGROUND GLOW
-        ================================= */
+        ===================================== */
 
         .bg-glow {
           position: absolute;
@@ -362,9 +335,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            HEADER
-        ================================= */
+        ===================================== */
 
         .image-header {
           text-align: center;
@@ -433,18 +406,23 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            PROMPT BOX
 
-           عمداً خیلی پایین‌تر از هدر
-        ================================= */
+           اینجا عمداً خیلی پایین آمده
+        ===================================== */
 
         .prompt-box {
           width: 100%;
 
           min-height: 210px;
 
-          margin-top: 175px;
+          /*
+            فاصله‌ی خیلی زیاد از هدر
+            تا کادر واقعاً پایین صفحه باشد
+          */
+
+          margin-top: 390px;
 
           border-radius: 25px;
 
@@ -490,9 +468,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            TEXTAREA
-        ================================= */
+        ===================================== */
 
         .prompt-box textarea {
           width: 100%;
@@ -536,9 +514,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
-           PROMPT FOOTER
-        ================================= */
+        /* =====================================
+           FOOTER
+        ===================================== */
 
         .prompt-footer {
           height: 42px;
@@ -566,16 +544,19 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            SEND BUTTON WRAPPER
-        ================================= */
+
+           اندازه‌ی رینگ فقط کمی بزرگ‌تر
+           از خود دکمه است
+        ===================================== */
 
         .send-button-wrapper {
           position: relative;
 
-          width: 61px;
+          width: 59px;
 
-          height: 61px;
+          height: 59px;
 
           display: flex;
 
@@ -587,19 +568,20 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
-           REAL ROTATING LIGHT RING
+        /* =====================================
+           LIGHT RING
 
-           این دیگه مربع جدا نیست.
-           دقیقاً حاشیه‌ی خود دکمه است.
-        ================================= */
+           فقط 2px دور خود دکمه
+        ===================================== */
 
         .send-light-ring {
           position: absolute;
 
-          inset: 0;
+          width: 59px;
 
-          border-radius: 21px;
+          height: 59px;
+
+          border-radius: 19px;
 
           background:
             conic-gradient(
@@ -607,78 +589,44 @@ export default function ImagePage() {
 
               transparent 0deg,
 
-              transparent 35deg,
+              transparent 45deg,
 
-              rgba(104, 78, 255, 0.08) 65deg,
+              rgba(115, 92, 255, 0.08) 70deg,
 
-              rgba(115, 92, 255, 0.95) 115deg,
+              rgba(139, 122, 255, 0.95) 105deg,
 
-              rgba(111, 217, 255, 1) 165deg,
+              rgba(111, 217, 255, 1) 135deg,
 
-              rgba(130, 110, 255, 0.35) 210deg,
+              rgba(139, 122, 255, 0.9) 165deg,
 
-              transparent 270deg,
+              rgba(115, 92, 255, 0.08) 205deg,
+
+              transparent 240deg,
 
               transparent 360deg
             );
 
           animation:
-            send-ring-rotate
-            2.2s
+            send-ring-spin
+            2.4s
             linear
             infinite;
-
-          filter:
-            drop-shadow(
-              0 0 5px
-              rgba(115, 92, 255, 0.55)
-            );
 
           pointer-events: none;
 
           z-index: 0;
-        }
 
-
-        /* هاله‌ی نرم‌تر پشت نور */
-
-        .send-light-ring::before {
-          content: "";
-
-          position: absolute;
-
-          inset: -4px;
-
-          border-radius: 24px;
-
-          background:
-            conic-gradient(
-              from 0deg,
-
-              transparent 0deg,
-
-              transparent 70deg,
-
-              rgba(115, 92, 255, 0.45) 130deg,
-
-              rgba(111, 217, 255, 0.55) 175deg,
-
-              transparent 245deg,
-
-              transparent 360deg
+          filter:
+            drop-shadow(
+              0 0 4px
+              rgba(111, 217, 255, 0.55)
             );
-
-          filter: blur(7px);
-
-          opacity: 0.55;
-
-          z-index: -1;
         }
 
 
         /*
-          مرکز رینگ خالی می‌شود
-          تا فقط خود حاشیه دیده شود
+          وسط رینگ را می‌بندیم
+          تا فقط لبه‌ی نورانی بماند
         */
 
         .send-light-ring::after {
@@ -686,17 +634,17 @@ export default function ImagePage() {
 
           position: absolute;
 
-          inset: 3px;
+          inset: 2px;
 
-          border-radius: 18px;
+          border-radius: 17px;
 
           background: #050507;
         }
 
 
-        /* =================================
+        /* =====================================
            SEND BUTTON
-        ================================= */
+        ===================================== */
 
         .send-button {
           position: relative;
@@ -730,15 +678,15 @@ export default function ImagePage() {
 
           box-shadow:
             0 8px 30px
-            rgba(101, 76, 255, 0.32),
+            rgba(101, 76, 255, 0.34),
 
             inset 0 1px
             rgba(255, 255, 255, 0.12);
 
           transition:
-            transform 0.2s ease,
-            opacity 0.2s ease,
-            box-shadow 0.2s ease;
+            transform 0.18s ease,
+            opacity 0.18s ease,
+            box-shadow 0.18s ease;
         }
 
 
@@ -748,16 +696,16 @@ export default function ImagePage() {
 
           box-shadow:
             0 10px 35px
-            rgba(101, 76, 255, 0.42),
+            rgba(101, 76, 255, 0.46),
 
             inset 0 1px
-            rgba(255, 255, 255, 0.15);
+            rgba(255, 255, 255, 0.16);
         }
 
 
         .send-button:active:not(:disabled) {
           transform:
-            scale(0.96);
+            scale(0.95);
         }
 
 
@@ -765,24 +713,21 @@ export default function ImagePage() {
           cursor: not-allowed;
 
           opacity: 0.38;
-
-          box-shadow:
-            none;
         }
 
 
-        /* =================================
-           RING ANIMATION
-        ================================= */
+        /* =====================================
+           ROTATING LIGHT ANIMATION
+        ===================================== */
 
-        @keyframes send-ring-rotate {
+        @keyframes send-ring-spin {
 
-          from {
+          0% {
             transform:
               rotate(0deg);
           }
 
-          to {
+          100% {
             transform:
               rotate(360deg);
           }
@@ -790,9 +735,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
-           LOADING SPINNER
-        ================================= */
+        /* =====================================
+           LOADING
+        ===================================== */
 
         .button-spinner {
           width: 19px;
@@ -826,9 +771,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            ERROR
-        ================================= */
+        ===================================== */
 
         .error-message {
           margin-top: 15px;
@@ -854,9 +799,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            RESULT
-        ================================= */
+        ===================================== */
 
         .result {
           margin-top: 40px;
@@ -892,9 +837,9 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            IMAGE ACTIONS
-        ================================= */
+        ===================================== */
 
         .image-actions {
           display: flex;
@@ -974,15 +919,15 @@ export default function ImagePage() {
         }
 
 
-        /* =================================
+        /* =====================================
            MOBILE
-        ================================= */
+        ===================================== */
 
         @media (max-width: 600px) {
 
           .image-page {
             padding:
-              45px 14px 80px;
+              45px 14px 100px;
           }
 
 
@@ -1001,12 +946,16 @@ export default function ImagePage() {
           }
 
 
-          /* کادر روی موبایل هم خیلی پایین‌تر */
+          /*
+             این مقدار عمداً خیلی زیاد است.
+             کادر از وسط صفحه رد می‌شود
+             و پایین‌تر قرار می‌گیرد.
+          */
 
           .prompt-box {
             min-height: 195px;
 
-            margin-top: 145px;
+            margin-top: 430px;
 
             border-radius: 21px;
 
@@ -1021,10 +970,26 @@ export default function ImagePage() {
           }
 
 
-          .send-button-wrapper {
-            width: 59px;
+          /* موبایل */
 
-            height: 59px;
+          .send-button-wrapper {
+            width: 57px;
+
+            height: 57px;
+          }
+
+
+          .send-light-ring {
+            width: 57px;
+
+            height: 57px;
+
+            border-radius: 18px;
+          }
+
+
+          .send-light-ring::after {
+            border-radius: 16px;
           }
 
 
@@ -1034,16 +999,6 @@ export default function ImagePage() {
             height: 53px;
 
             border-radius: 16px;
-          }
-
-
-          .send-light-ring {
-            border-radius: 20px;
-          }
-
-
-          .send-light-ring::after {
-            border-radius: 17px;
           }
 
 
