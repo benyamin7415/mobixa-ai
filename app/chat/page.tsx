@@ -9,76 +9,16 @@ type Message = {
   content: string;
 };
 
-function MobixaLogo() {
-  return (
-    <div className="logo-orbit">
-      <div className="orbit orbit-one" />
-      <div className="orbit orbit-two" />
-
-      <div className="logo-sphere">
-        <div className="logo-m">
-          <span className="m-left" />
-          <span className="m-center" />
-          <span className="m-right" />
-        </div>
-
-        <div className="logo-star star-one">✦</div>
-        <div className="logo-star star-two">✦</div>
-      </div>
-    </div>
-  );
-}
-
-function Robot() {
-  return (
-    <div className="robot-wrap">
-      <div className="robot-glow" />
-
-      <div className="robot">
-        <div className="robot-head">
-          <div className="robot-ear left" />
-          <div className="robot-ear right" />
-
-          <div className="robot-face">
-            <div className="robot-eye left-eye" />
-            <div className="robot-eye right-eye" />
-
-            <div className="robot-smile" />
-          </div>
-        </div>
-
-        <div className="robot-body">
-          <div className="robot-chest">
-            <div />
-          </div>
-
-          <div className="robot-arm left-arm" />
-          <div className="robot-arm right-arm">
-            <div className="robot-finger" />
-          </div>
-        </div>
-      </div>
-
-      <div className="robot-spark spark-one">✦</div>
-      <div className="robot-spark spark-two">✧</div>
-      <div className="robot-spark spark-three">✦</div>
-    </div>
-  );
-}
-
-function HandSticker() {
-  return (
-    <span className="hand-sticker" aria-hidden="true">
-      👋
-    </span>
-  );
-}
+/* =========================
+   ICONS
+========================= */
 
 function BackIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M19 12H5M11 6l-6 6 6 6"
+        fill="none"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -90,15 +30,17 @@ function BackIcon() {
 
 function SendIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
-        d="M21 3 10.5 13.5"
+        d="M21 3 10 14"
+        fill="none"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
       />
       <path
         d="m21 3-7 18-3.5-7.5L3 10l18-7Z"
+        fill="none"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -110,23 +52,19 @@ function SendIcon() {
 
 function CreateIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <path
-        d="m4 20 4.5-1 10-10-3.5-3.5-10 10L4 20Z"
+        d="m5 27 5.5-1.5L25 11l-4-4L6.5 21.5 5 27Z"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinejoin="round"
       />
       <path
-        d="m13.5 6.5 3.5 3.5M7 17l3 3"
+        d="m18 8 4 4M22 4v4M20 6h4"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M18.5 3v3M17 4.5h3"
-        stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2"
         strokeLinecap="round"
       />
     </svg>
@@ -135,17 +73,19 @@ function CreateIcon() {
 
 function LearnIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <path
-        d="M3 5.5 12 3l9 2.5v13L12 21l-9-2.5v-13Z"
+        d="M4 7 16 3l12 4v18l-12 4-12-4V7Z"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
         strokeLinejoin="round"
       />
       <path
-        d="M12 3v18M3 5.5l9 2.7 9-2.7"
+        d="M16 3v26M4 7l12 4 12-4"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.7"
+        strokeWidth="2"
       />
     </svg>
   );
@@ -153,28 +93,295 @@ function LearnIcon() {
 
 function IdeaIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <path
-        d="M9 18h6M10 21h4"
+        d="M10 23c-2-1.7-3-4.1-3-6.8C7 10.6 11 7 16 7s9 3.6 9 9.2c0 2.7-1 5.1-3 6.8-1.2 1-1.8 2.2-2 3.5H12c-.2-1.3-.8-2.5-2-3.5Z"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
+      />
+      <path
+        d="M12 30h8M14 26h4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinecap="round"
       />
       <path
-        d="M8 14.5c-1.2-1-2-2.5-2-4.2A6 6 0 0 1 18 10.3c0 1.7-.8 3.2-2 4.2-.8.7-1.3 1.5-1.4 2.5h-5.2c-.1-1-.6-1.8-1.4-2.5Z"
+        d="M16 2v2M28 10h-2M6 10H4"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M20 4v2M19 5h2M4 5v2M3 6h2"
-        stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2"
         strokeLinecap="round"
       />
     </svg>
   );
 }
+
+/* =========================
+   MOBIXA LOGO
+========================= */
+
+function MobixaLogo() {
+  return (
+    <div className="hero-logo">
+      <div className="hero-orbit orbit-a" />
+      <div className="hero-orbit orbit-b" />
+      <div className="hero-orbit orbit-c" />
+
+      <div className="hero-glass">
+        <div className="hero-m">
+          <span className="m1" />
+          <span className="m2" />
+          <span className="m3" />
+        </div>
+
+        <span className="hero-star hero-star-one">✦</span>
+        <span className="hero-star hero-star-two">✦</span>
+      </div>
+
+      <span className="logo-spark spark-a">✦</span>
+      <span className="logo-spark spark-b">✧</span>
+      <span className="logo-spark spark-c">✦</span>
+    </div>
+  );
+}
+
+/* =========================
+   ROBOT
+========================= */
+
+function MobixaRobot() {
+  return (
+    <div className="robot-stage">
+      <div className="robot-aura" />
+
+      <svg
+        className="robot-svg"
+        viewBox="0 0 240 240"
+        role="img"
+        aria-label="Mobixa AI robot"
+      >
+        <defs>
+          <linearGradient id="robotHead" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#a975ff" />
+            <stop offset="45%" stopColor="#372a86" />
+            <stop offset="100%" stopColor="#080a22" />
+          </linearGradient>
+
+          <linearGradient id="robotBody" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#6950db" />
+            <stop offset="50%" stopColor="#17164d" />
+            <stop offset="100%" stopColor="#070918" />
+          </linearGradient>
+
+          <linearGradient id="robotBlue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#e3d4ff" />
+            <stop offset="50%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#19d9ff" />
+          </linearGradient>
+
+          <filter id="robotGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* antenna */}
+        <line
+          x1="120"
+          y1="29"
+          x2="120"
+          y2="14"
+          stroke="#6deaff"
+          strokeWidth="4"
+        />
+        <circle
+          cx="120"
+          cy="10"
+          r="7"
+          fill="#c18cff"
+          filter="url(#robotGlow)"
+        />
+
+        {/* ears */}
+        <rect
+          x="45"
+          y="83"
+          width="22"
+          height="53"
+          rx="11"
+          fill="#151747"
+          stroke="#735cff"
+          strokeWidth="4"
+        />
+        <rect
+          x="173"
+          y="83"
+          width="22"
+          height="53"
+          rx="11"
+          fill="#151747"
+          stroke="#735cff"
+          strokeWidth="4"
+        />
+
+        {/* head */}
+        <rect
+          x="58"
+          y="34"
+          width="124"
+          height="112"
+          rx="48"
+          fill="url(#robotHead)"
+          stroke="#a98aff"
+          strokeWidth="4"
+        />
+
+        {/* face */}
+        <rect
+          x="72"
+          y="53"
+          width="96"
+          height="73"
+          rx="32"
+          fill="#030716"
+          stroke="#27cfff"
+          strokeOpacity=".45"
+          strokeWidth="2"
+        />
+
+        {/* eyes */}
+        <path
+          d="M89 83c4-8 12-8 16 0"
+          fill="none"
+          stroke="#49eaff"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        <path
+          d="M135 83c4-8 12-8 16 0"
+          fill="none"
+          stroke="#49eaff"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        {/* smile */}
+        <path
+          d="M105 101c9 9 21 9 30 0"
+          fill="none"
+          stroke="#9a7cff"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+
+        {/* neck */}
+        <rect
+          x="106"
+          y="139"
+          width="28"
+          height="14"
+          rx="7"
+          fill="#292469"
+        />
+
+        {/* body */}
+        <path
+          d="M77 148c8-12 23-17 43-17s35 5 43 17l17 55H60l17-55Z"
+          fill="url(#robotBody)"
+          stroke="#7967ff"
+          strokeWidth="4"
+        />
+
+        {/* chest */}
+        <circle
+          cx="120"
+          cy="170"
+          r="17"
+          fill="#090d2b"
+          stroke="#42ddff"
+          strokeWidth="3"
+        />
+
+        <circle
+          cx="120"
+          cy="170"
+          r="7"
+          fill="#32dcff"
+          filter="url(#robotGlow)"
+        />
+
+        {/* left arm */}
+        <path
+          d="M77 157c-18 4-27 15-35 29"
+          fill="none"
+          stroke="url(#robotBlue)"
+          strokeWidth="15"
+          strokeLinecap="round"
+        />
+
+        {/* right raised arm */}
+        <path
+          d="M164 157c18-3 27-14 34-30"
+          fill="none"
+          stroke="url(#robotBlue)"
+          strokeWidth="15"
+          strokeLinecap="round"
+        />
+
+        {/* hand */}
+        <circle
+          cx="199"
+          cy="119"
+          r="13"
+          fill="#b99cff"
+          filter="url(#robotGlow)"
+        />
+
+        {/* pointing finger */}
+        <path
+          d="M199 111v-27"
+          stroke="#d0c2ff"
+          strokeWidth="9"
+          strokeLinecap="round"
+        />
+
+        {/* little gesture lines */}
+        <path
+          d="M214 98l8-7M215 108l10-2"
+          stroke="#34dfff"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </svg>
+
+      <span className="robot-star rs-one">✦</span>
+      <span className="robot-star rs-two">✧</span>
+      <span className="robot-star rs-three">✦</span>
+    </div>
+  );
+}
+
+/* =========================
+   HAND
+========================= */
+
+function Hand() {
+  return (
+    <span className="hello-hand" aria-hidden="true">
+      👋
+    </span>
+  );
+}
+
+/* =========================
+   PAGE
+========================= */
 
 export default function ChatPage() {
   const router = useRouter();
@@ -184,9 +391,9 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const messagesRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  function handleBack() {
+  function goBack() {
     if (window.history.length > 1) {
       router.back();
     } else {
@@ -194,7 +401,7 @@ export default function ChatPage() {
     }
   }
 
-  function useSuggestion(text: string) {
+  function putSuggestion(text: string) {
     setInput(text);
 
     requestAnimationFrame(() => {
@@ -202,24 +409,23 @@ export default function ChatPage() {
     });
   }
 
-  async function sendMessage(customMessage?: string) {
-    const message = (customMessage ?? input).trim();
+  async function sendMessage(custom?: string) {
+    const message = (custom ?? input).trim();
 
     if (!message || loading) return;
 
     setInput("");
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: message,
-    };
-
+    const userId = crypto.randomUUID();
     const assistantId = crypto.randomUUID();
 
-    setMessages((prev) => [
-      ...prev,
-      userMessage,
+    setMessages((old) => [
+      ...old,
+      {
+        id: userId,
+        role: "user",
+        content: message,
+      },
       {
         id: assistantId,
         role: "assistant",
@@ -241,14 +447,14 @@ export default function ChatPage() {
       });
 
       if (!response.ok) {
-        let errorText = "خطایی در ارتباط با هوش مصنوعی رخ داد.";
+        let errorMessage = "خطا در ارتباط با Gemini";
 
         try {
-          const errorData = await response.json();
-          errorText = errorData?.error || errorText;
+          const data = await response.json();
+          errorMessage = data?.error || errorMessage;
         } catch {}
 
-        throw new Error(errorText);
+        throw new Error(errorMessage);
       }
 
       if (!response.body) {
@@ -275,17 +481,15 @@ export default function ChatPage() {
         buffer = events.pop() || "";
 
         for (const event of events) {
-          const lines = event.split("\n");
-
-          for (const line of lines) {
+          for (const line of event.split("\n")) {
             if (!line.startsWith("data:")) continue;
 
-            const rawData = line.slice(5).trim();
+            const raw = line.slice(5).trim();
 
-            if (!rawData || rawData === "[DONE]") continue;
+            if (!raw || raw === "[DONE]") continue;
 
             try {
-              const parsed = JSON.parse(rawData);
+              const parsed = JSON.parse(raw);
 
               const text =
                 parsed?.candidates?.[0]?.content?.parts?.find(
@@ -297,8 +501,8 @@ export default function ChatPage() {
 
               assistantText += text;
 
-              setMessages((prev) =>
-                prev.map((item) =>
+              setMessages((old) =>
+                old.map((item) =>
                   item.id === assistantId
                     ? {
                         ...item,
@@ -307,24 +511,22 @@ export default function ChatPage() {
                     : item
                 )
               );
-            } catch {
-              // بعضی eventها ممکن است JSON کامل نباشند.
-            }
+            } catch {}
           }
         }
       }
     } catch (error) {
-      const errorMessage =
+      const errorText =
         error instanceof Error
           ? error.message
           : "خطایی رخ داد.";
 
-      setMessages((prev) =>
-        prev.map((item) =>
+      setMessages((old) =>
+        old.map((item) =>
           item.id === assistantId
             ? {
                 ...item,
-                content: `⚠️ ${errorMessage}`,
+                content: `⚠️ ${errorText}`,
               }
             : item
         )
@@ -334,7 +536,7 @@ export default function ChatPage() {
     }
   }
 
-  function handleKeyDown(
+  function keyDown(
     event: React.KeyboardEvent<HTMLTextAreaElement>
   ) {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -344,82 +546,79 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    const element = messagesRef.current;
+    if (!scrollRef.current) return;
 
-    if (!element) return;
-
-    element.scrollTo({
-      top: element.scrollHeight,
+    scrollRef.current.scrollTo({
+      top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
   }, [messages.length]);
 
   return (
-    <main
-      dir="rtl"
-      className="mobixa-page min-h-[100svh] overflow-hidden bg-[#02030b] text-white"
-    >
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="bg-glow glow-purple" />
-        <div className="bg-glow glow-blue" />
-        <div className="bg-glow glow-bottom" />
+    <main dir="rtl" className="mobixa">
+      {/* BACKGROUND */}
 
-        <div className="light-line line-one" />
-        <div className="light-line line-two" />
-        <div className="light-line line-three" />
+      <div className="background">
+        <div className="purple-cloud cloud-one" />
+        <div className="purple-cloud cloud-two" />
+        <div className="blue-cloud cloud-three" />
 
-        <div className="stars">
+        <div className="neon-wave wave-one" />
+        <div className="neon-wave wave-two" />
+
+        <div className="starfield">
           <span>✦</span>
-          <span>·</span>
           <span>✧</span>
           <span>·</span>
           <span>✦</span>
           <span>·</span>
           <span>✧</span>
-          <span>·</span>
           <span>✦</span>
+          <span>·</span>
         </div>
       </div>
 
-      {/* Header */}
-      <header className="relative z-20 mx-auto flex w-full max-w-5xl items-center justify-between px-5 pb-2 pt-6 sm:px-8">
+      {/* HEADER */}
+
+      <header className="header">
         <button
+          className="back"
+          onClick={goBack}
           type="button"
-          onClick={handleBack}
-          className="back-button"
         >
           <BackIcon />
           <span>بازگشت</span>
         </button>
 
-        <div className="brand">
+        <div className="wordmark">
           <span>MOBIXA</span>
           <b>AI</b>
         </div>
       </header>
 
-      {/* Main */}
-      <section className="relative z-10 mx-auto flex h-[calc(100svh-91px)] min-h-0 w-full max-w-5xl flex-col px-4 sm:px-8">
+      {/* CONTENT */}
+
+      <section className="page-content">
         <div
-          ref={messagesRef}
-          className="min-h-0 flex-1 overflow-y-auto pb-4 pt-1 scrollbar-none"
+          ref={scrollRef}
+          className="message-area"
         >
           {messages.length === 0 ? (
-            <div className="flex min-h-full flex-col items-center">
-              {/* Logo */}
-              <div className="logo-zone">
-                <MobixaLogo />
-              </div>
+            <div className="home-content">
+              {/* BIG LOGO */}
 
-              {/* Robot */}
-              <Robot />
+              <MobixaLogo />
 
-              {/* Greeting */}
-              <div className="welcome-block">
-                <div className="hello-line">
+              {/* ROBOT */}
+
+              <MobixaRobot />
+
+              {/* GREETING */}
+
+              <div className="greeting">
+                <div className="hello">
                   <span>سلام</span>
-                  <HandSticker />
+                  <Hand />
                 </div>
 
                 <h1>
@@ -427,8 +626,12 @@ export default function ChatPage() {
                   <strong>مهندس</strong>
                 </h1>
 
-                <div className="welcome-line" />
+                <div className="under-line">
+                  <i />
+                </div>
               </div>
+
+              {/* INTRO */}
 
               <p className="intro">
                 اینجا هر چیزی که توی ذهنت داری،
@@ -438,104 +641,91 @@ export default function ChatPage() {
                 <span>ایده بده، سؤال بپرس، بساز.</span>
               </p>
 
-              {/* Suggestions */}
-              <div className="suggestions">
+              {/* CARDS */}
+
+              <div className="cards">
                 <button
                   type="button"
+                  className="card create"
                   onClick={() =>
-                    useSuggestion(
-                      "این متن رو برای من حرفه‌ای‌تر و جذاب‌تر کن:"
+                    putSuggestion(
+                      "این متن رو برای من حرفه‌ای و جذاب‌تر کن:"
                     )
                   }
-                  className="suggestion-card purple-card"
                 >
-                  <div className="suggestion-icon">
+                  <div className="card-icon">
                     <CreateIcon />
                   </div>
 
-                  <div className="suggestion-content">
-                    <span className="suggestion-title">CREATE</span>
-                    <span className="suggestion-text">
-                      متنت رو حرفه‌ای کن
-                    </span>
-                  </div>
+                  <b>CREATE</b>
 
-                  <span className="card-arrow">↗</span>
+                  <span>متنت رو حرفه‌ای کن</span>
+
+                  <small>↗</small>
                 </button>
 
                 <button
                   type="button"
+                  className="card learn"
                   onClick={() =>
-                    useSuggestion(
+                    putSuggestion(
                       "این موضوع رو خیلی ساده و قابل فهم برام توضیح بده:"
                     )
                   }
-                  className="suggestion-card blue-card"
                 >
-                  <div className="suggestion-icon">
+                  <div className="card-icon">
                     <LearnIcon />
                   </div>
 
-                  <div className="suggestion-content">
-                    <span className="suggestion-title">LEARN MODE</span>
-                    <span className="suggestion-text">
-                      هر چیزی رو ساده یاد بگیر
-                    </span>
-                  </div>
+                  <b>LEARN MODE</b>
 
-                  <span className="card-arrow">↗</span>
+                  <span>هر چیزی رو ساده یاد بگیر</span>
+
+                  <small>↗</small>
                 </button>
 
                 <button
                   type="button"
+                  className="card idea"
                   onClick={() =>
-                    useSuggestion(
+                    putSuggestion(
                       "برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
                     )
                   }
-                  className="suggestion-card violet-card"
                 >
-                  <div className="suggestion-icon">
+                  <div className="card-icon">
                     <IdeaIcon />
                   </div>
 
-                  <div className="suggestion-content">
-                    <span className="suggestion-title">IDEA LAB</span>
-                    <span className="suggestion-text">
-                      یه ایده خفن بساز
-                    </span>
-                  </div>
+                  <b>IDEA LAB</b>
 
-                  <span className="card-arrow">↗</span>
+                  <span>یه ایده خفن بساز</span>
+
+                  <small>↗</small>
                 </button>
               </div>
-
-              <div className="empty-space" />
             </div>
           ) : (
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-1 pb-8 pt-6">
+            <div className="messages">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={
                     message.role === "user"
-                      ? "message-row user-row"
-                      : "message-row assistant-row"
+                      ? "message user-message"
+                      : "message ai-message"
                   }
                 >
-                  <div
-                    className={
-                      message.role === "user"
-                        ? "message-bubble user-bubble"
-                        : "message-bubble assistant-bubble"
-                    }
-                  >
+                  <div className="bubble">
                     {message.content}
 
                     {message.role === "assistant" &&
                       loading &&
-                      message.id === messages[messages.length - 1]?.id && (
-                        <span className="typing-cursor">▋</span>
+                      message.id ===
+                        messages[messages.length - 1]?.id && (
+                        <span className="cursor">
+                          ▋
+                        </span>
                       )}
                   </div>
                 </div>
@@ -544,37 +734,38 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* Composer */}
-        <div className="relative z-30 shrink-0 pb-3 pt-2 sm:pb-5">
+        {/* COMPOSER */}
+
+        <div className="composer-zone">
           <form
+            className="composer"
             onSubmit={(event) => {
               event.preventDefault();
               sendMessage();
             }}
-            className="composer"
           >
             <textarea
               ref={textareaRef}
               value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="پیامت رو برای موبیکسا بنویس..."
-              rows={1}
               disabled={loading}
-              className="composer-input"
+              onChange={(event) =>
+                setInput(event.target.value)
+              }
+              onKeyDown={keyDown}
+              rows={1}
+              placeholder="پیامت رو برای موبیکسا بنویس..."
             />
 
             <button
               type="submit"
+              className="send"
               disabled={!input.trim() || loading}
-              className="send-button"
-              aria-label="ارسال پیام"
             >
               <SendIcon />
             </button>
           </form>
 
-          <div className="footer-note">
+          <div className="footer">
             <span>✦ Mobixa AI</span>
             <span>ممکن است گاهی پاسخ نادرست باشد.</span>
           </div>
@@ -582,218 +773,255 @@ export default function ChatPage() {
       </section>
 
       <style jsx>{`
-        .mobixa-page {
-          position: relative;
-          min-height: 100svh;
-          font-family:
-            Arial,
-            Tahoma,
-            system-ui,
-            sans-serif;
-        }
-
-        .mobixa-page * {
+        * {
           box-sizing: border-box;
         }
 
-        .bg-glow {
-          position: absolute;
-          border-radius: 999px;
-          filter: blur(80px);
-          opacity: 0.42;
+        .mobixa {
+          position: relative;
+          width: 100%;
+          height: 100svh;
+          overflow: hidden;
+          background:
+            radial-gradient(
+              circle at 15% 45%,
+              rgba(89, 21, 180, 0.35),
+              transparent 30%
+            ),
+            radial-gradient(
+              circle at 90% 75%,
+              rgba(0, 84, 190, 0.3),
+              transparent 34%
+            ),
+            #02030b;
+          color: white;
+          font-family:
+            Arial,
+            Tahoma,
+            sans-serif;
         }
 
-        .glow-purple {
-          width: 360px;
-          height: 360px;
-          left: -170px;
-          top: 180px;
-          background: #7c22ff;
-        }
-
-        .glow-blue {
-          width: 340px;
-          height: 340px;
-          right: -170px;
-          top: 400px;
-          background: #0066ff;
-        }
-
-        .glow-bottom {
-          width: 430px;
-          height: 180px;
-          left: 50%;
-          bottom: -100px;
-          transform: translateX(-50%);
-          background: #6d21ff;
-          opacity: 0.3;
-        }
-
-        .light-line {
-          position: absolute;
-          height: 1px;
-          width: 70%;
-          opacity: 0.5;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            #9b5cff,
-            #00cfff,
-            transparent
-          );
-          transform-origin: center;
-        }
-
-        .line-one {
-          top: 390px;
-          left: -10%;
-          transform: rotate(-25deg);
-        }
-
-        .line-two {
-          top: 520px;
-          right: -15%;
-          transform: rotate(27deg);
-        }
-
-        .line-three {
-          bottom: 170px;
-          left: 15%;
-          transform: rotate(-5deg);
-          opacity: 0.2;
-        }
-
-        .stars {
+        .background {
           position: absolute;
           inset: 0;
-          color: #9a8cff;
-          font-size: 10px;
-          opacity: 0.55;
+          overflow: hidden;
+          pointer-events: none;
         }
 
-        .stars span {
+        .purple-cloud {
           position: absolute;
+          border-radius: 50%;
+          filter: blur(75px);
+          opacity: 0.4;
         }
 
-        .stars span:nth-child(1) {
-          top: 15%;
+        .cloud-one {
+          width: 330px;
+          height: 330px;
+          left: -190px;
+          top: 270px;
+          background: #681cff;
+        }
+
+        .cloud-two {
+          width: 270px;
+          height: 270px;
+          left: 30%;
+          bottom: -160px;
+          background: #4f18d6;
+        }
+
+        .cloud-three {
+          position: absolute;
+          width: 300px;
+          height: 300px;
+          right: -190px;
+          top: 500px;
+          border-radius: 50%;
+          background: #006cff;
+          filter: blur(90px);
+          opacity: 0.28;
+        }
+
+        .neon-wave {
+          position: absolute;
+          width: 850px;
+          height: 260px;
+          border: 1px solid rgba(122, 77, 255, 0.35);
+          border-radius: 50%;
+          filter: blur(0.2px);
+        }
+
+        .wave-one {
+          left: -480px;
+          top: 550px;
+          transform: rotate(-22deg);
+          box-shadow: 0 0 14px rgba(91, 58, 255, 0.3);
+        }
+
+        .wave-two {
+          right: -500px;
+          top: 690px;
+          transform: rotate(25deg);
+          border-color: rgba(0, 194, 255, 0.28);
+        }
+
+        .starfield span {
+          position: absolute;
+          color: rgba(164, 140, 255, 0.7);
+          font-size: 10px;
+        }
+
+        .starfield span:nth-child(1) {
+          top: 25%;
           left: 12%;
         }
 
-        .stars span:nth-child(2) {
-          top: 24%;
-          right: 14%;
-        }
-
-        .stars span:nth-child(3) {
-          top: 36%;
-          left: 8%;
-        }
-
-        .stars span:nth-child(4) {
-          top: 44%;
-          right: 10%;
-        }
-
-        .stars span:nth-child(5) {
-          top: 60%;
-          left: 14%;
-        }
-
-        .stars span:nth-child(6) {
-          top: 68%;
-          right: 15%;
-        }
-
-        .stars span:nth-child(7) {
-          top: 78%;
-          left: 9%;
-        }
-
-        .stars span:nth-child(8) {
-          top: 84%;
+        .starfield span:nth-child(2) {
+          top: 40%;
           right: 12%;
         }
 
-        .stars span:nth-child(9) {
-          top: 30%;
-          left: 48%;
+        .starfield span:nth-child(3) {
+          top: 53%;
+          left: 8%;
         }
 
-        .back-button {
+        .starfield span:nth-child(4) {
+          top: 65%;
+          right: 8%;
+        }
+
+        .starfield span:nth-child(5) {
+          top: 73%;
+          left: 15%;
+        }
+
+        .starfield span:nth-child(6) {
+          top: 83%;
+          right: 18%;
+        }
+
+        .starfield span:nth-child(7) {
+          top: 31%;
+          left: 47%;
+        }
+
+        .starfield span:nth-child(8) {
+          top: 58%;
+          right: 31%;
+        }
+
+        /* HEADER */
+
+        .header {
+          position: relative;
+          z-index: 10;
+          width: 100%;
+          max-width: 1100px;
+          margin: 0 auto;
+          height: 82px;
+          padding: 20px 24px 0;
           display: flex;
-          height: 42px;
           align-items: center;
-          gap: 7px;
-          border-radius: 999px;
-          border: 1px solid rgba(157, 84, 255, 0.9);
-          padding: 0 14px 0 11px;
-          color: white;
-          background:
-            linear-gradient(
-              135deg,
-              rgba(104, 27, 255, 0.42),
-              rgba(0, 142, 255, 0.13)
-            );
-          box-shadow:
-            0 0 16px rgba(132, 44, 255, 0.38),
-            inset 0 0 16px rgba(96, 52, 255, 0.15);
-          backdrop-filter: blur(15px);
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: 0.2s ease;
-        }
-
-        .back-button:hover {
-          transform: translateY(-1px);
-          box-shadow:
-            0 0 24px rgba(132, 44, 255, 0.55),
-            inset 0 0 18px rgba(96, 52, 255, 0.2);
-        }
-
-        .back-button svg {
-          width: 20px;
-          height: 20px;
-        }
-
-        .brand {
+          justify-content: space-between;
           direction: ltr;
-          letter-spacing: 4px;
-          font-size: 18px;
-          font-weight: 800;
+        }
+
+        .wordmark {
+          direction: ltr;
+          font-size: 21px;
+          font-weight: 900;
+          letter-spacing: 5px;
           text-shadow: 0 0 15px rgba(255, 255, 255, 0.18);
         }
 
-        .brand b {
-          margin-left: 5px;
-          background: linear-gradient(90deg, #a855f7, #22d3ee);
+        .wordmark b {
+          margin-left: 6px;
+          background: linear-gradient(
+            90deg,
+            #b05cff,
+            #20dfff
+          );
           -webkit-background-clip: text;
           color: transparent;
         }
 
-        .logo-zone {
-          height: 180px;
-          width: 100%;
+        .back {
+          direction: rtl;
           display: flex;
-          align-items: flex-end;
-          justify-content: center;
-          margin-top: 3px;
+          align-items: center;
+          gap: 7px;
+          height: 44px;
+          padding: 0 16px;
+          border-radius: 999px;
+          border: 1px solid rgba(155, 73, 255, 0.95);
+          background: rgba(55, 16, 111, 0.25);
+          color: white;
+          box-shadow:
+            0 0 15px rgba(144, 59, 255, 0.42),
+            inset 0 0 18px rgba(94, 70, 255, 0.13);
+          backdrop-filter: blur(18px);
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
         }
 
-        .logo-orbit {
+        .back svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        /* CONTENT */
+
+        .page-content {
           position: relative;
-          width: 155px;
-          height: 155px;
+          z-index: 5;
+          width: 100%;
+          max-width: 900px;
+          height: calc(100svh - 82px);
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .message-area {
+          min-height: 0;
+          flex: 1;
+          overflow-y: auto;
+          scrollbar-width: none;
+          padding: 0 18px;
+        }
+
+        .message-area::-webkit-scrollbar {
+          display: none;
+        }
+
+        .home-content {
+          min-height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding-bottom: 10px;
+        }
+
+        /* LOGO */
+
+        .hero-logo {
+          position: relative;
+          width: 210px;
+          height: 185px;
+          flex: 0 0 auto;
+          margin-top: -5px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .logo-sphere {
+        .hero-glass {
           position: relative;
-          width: 105px;
-          height: 105px;
+          width: 112px;
+          height: 112px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -801,643 +1029,540 @@ export default function ChatPage() {
           background:
             radial-gradient(
               circle at 35% 25%,
-              rgba(179, 126, 255, 0.8),
-              rgba(43, 12, 102, 0.48) 42%,
-              rgba(2, 5, 20, 0.9) 75%
+              rgba(181, 122, 255, 0.85),
+              rgba(42, 14, 100, 0.48) 42%,
+              rgba(3, 5, 25, 0.92) 76%
             );
-          border: 1px solid rgba(125, 87, 255, 0.65);
+          border: 1px solid rgba(132, 89, 255, 0.8);
           box-shadow:
-            0 0 22px rgba(135, 55, 255, 0.72),
-            inset 0 0 28px rgba(29, 159, 255, 0.28);
+            0 0 25px rgba(134, 63, 255, 0.75),
+            inset 0 0 30px rgba(0, 194, 255, 0.2);
         }
 
-        .logo-m {
+        .hero-orbit {
+          position: absolute;
+          border-radius: 50%;
+          border: 1px solid;
+        }
+
+        .orbit-a {
+          width: 205px;
+          height: 65px;
+          transform: rotate(-18deg);
+          border-color: rgba(170, 79, 255, 0.8);
+          box-shadow: 0 0 12px rgba(161, 74, 255, 0.4);
+        }
+
+        .orbit-b {
+          width: 205px;
+          height: 72px;
+          transform: rotate(46deg);
+          border-color: rgba(0, 209, 255, 0.65);
+          box-shadow: 0 0 12px rgba(0, 209, 255, 0.35);
+        }
+
+        .orbit-c {
+          width: 150px;
+          height: 150px;
+          border-color: rgba(118, 75, 255, 0.2);
+        }
+
+        .hero-m {
           position: relative;
-          width: 55px;
-          height: 55px;
+          width: 65px;
+          height: 66px;
           filter:
-            drop-shadow(0 0 7px #b16cff)
-            drop-shadow(0 0 14px #00cfff);
+            drop-shadow(0 0 7px #ae63ff)
+            drop-shadow(0 0 17px #00d9ff);
         }
 
-        .logo-m span {
+        .hero-m span {
           position: absolute;
           top: 6px;
-          width: 17px;
-          height: 45px;
+          display: block;
+          width: 20px;
+          height: 54px;
           border-radius: 5px;
           background: linear-gradient(
             180deg,
-            #ecb6ff,
-            #8f43ff 46%,
-            #20d9ff
+            #f0c5ff,
+            #974cff 45%,
+            #25dfff
           );
         }
 
-        .m-left {
-          left: 3px;
-          transform: skewY(28deg);
+        .m1 {
+          left: 2px;
+          transform: skewY(27deg);
         }
 
-        .m-center {
-          left: 19px;
-          height: 32px !important;
-          top: 13px !important;
-          transform: rotate(45deg) skewY(-17deg);
+        .m2 {
+          left: 22px;
+          top: 18px !important;
+          width: 19px !important;
+          height: 35px !important;
+          transform: rotate(45deg);
         }
 
-        .m-right {
-          right: 3px;
-          transform: skewY(-28deg);
+        .m3 {
+          right: 2px;
+          transform: skewY(-27deg);
         }
 
-        .orbit {
+        .hero-star {
           position: absolute;
-          border: 1px solid rgba(118, 83, 255, 0.7);
-          border-radius: 50%;
-          box-shadow: 0 0 12px rgba(85, 160, 255, 0.22);
-        }
-
-        .orbit-one {
-          width: 155px;
-          height: 55px;
-          transform: rotate(-18deg);
-        }
-
-        .orbit-two {
-          width: 150px;
-          height: 65px;
-          transform: rotate(54deg);
-          border-color: rgba(0, 204, 255, 0.55);
-        }
-
-        .logo-star {
-          position: absolute;
-          color: #fff;
+          color: white;
           text-shadow:
-            0 0 8px #a96cff,
-            0 0 18px #00d9ff;
+            0 0 8px #b566ff,
+            0 0 16px #00d9ff;
         }
 
-        .star-one {
-          top: -2px;
-          right: 16px;
+        .hero-star-one {
+          top: -3px;
+          right: 43px;
+          font-size: 21px;
         }
 
-        .star-two {
-          bottom: 5px;
-          left: 18px;
+        .hero-star-two {
+          bottom: 26px;
+          left: 45px;
           font-size: 13px;
         }
 
-        .robot-wrap {
-          position: relative;
-          width: 150px;
-          height: 132px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: -4px;
+        .logo-spark {
+          position: absolute;
+          color: #d6caff;
+          text-shadow: 0 0 10px #00cfff;
         }
 
-        .robot-glow {
+        .spark-a {
+          top: 35px;
+          left: 10px;
+        }
+
+        .spark-b {
+          bottom: 22px;
+          right: 15px;
+        }
+
+        .spark-c {
+          top: 55px;
+          right: 5px;
+        }
+
+        /* ROBOT */
+
+        .robot-stage {
+          position: relative;
+          width: 210px;
+          height: 155px;
+          flex: 0 0 auto;
+          margin-top: -30px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .robot-aura {
           position: absolute;
-          width: 110px;
+          width: 125px;
           height: 90px;
           border-radius: 50%;
-          background: #7c3cff;
-          filter: blur(42px);
-          opacity: 0.4;
+          background: #7040ff;
+          filter: blur(45px);
+          opacity: 0.38;
         }
 
-        .robot {
+        .robot-svg {
           position: relative;
-          width: 95px;
-          height: 115px;
+          width: 160px;
+          height: 160px;
           z-index: 2;
+          filter:
+            drop-shadow(0 0 9px rgba(114, 81, 255, 0.5))
+            drop-shadow(0 0 18px rgba(0, 210, 255, 0.16));
         }
 
-        .robot-head {
+        .robot-star {
           position: absolute;
-          width: 76px;
-          height: 61px;
-          left: 9px;
-          top: 4px;
-          border-radius: 31px 31px 27px 27px;
-          border: 2px solid #829aff;
-          background:
-            radial-gradient(
-              circle at 50% 35%,
-              #18275d,
-              #050918 72%
-            );
-          box-shadow:
-            0 0 10px #6347ff,
-            inset 0 0 14px rgba(0, 214, 255, 0.2);
-        }
-
-        .robot-face {
-          position: absolute;
-          inset: 10px;
-          border-radius: 22px;
-          border: 1px solid rgba(96, 203, 255, 0.5);
-          background: #030715;
-        }
-
-        .robot-eye {
-          position: absolute;
-          width: 9px;
-          height: 9px;
-          top: 22px;
-          border-radius: 50%;
-          background: #43e7ff;
-          box-shadow:
-            0 0 7px #00d9ff,
-            0 0 15px #8a5cff;
-        }
-
-        .left-eye {
-          left: 18px;
-        }
-
-        .right-eye {
-          right: 18px;
-        }
-
-        .robot-smile {
-          position: absolute;
-          width: 17px;
-          height: 8px;
-          left: 50%;
-          bottom: 12px;
-          transform: translateX(-50%);
-          border-bottom: 2px solid #5bdcff;
-          border-radius: 0 0 15px 15px;
-        }
-
-        .robot-ear {
-          position: absolute;
-          width: 14px;
-          height: 25px;
-          top: 18px;
-          border-radius: 8px;
-          border: 2px solid #6d68ff;
-          background: #10163a;
-        }
-
-        .robot-ear.left {
-          left: -9px;
-        }
-
-        .robot-ear.right {
-          right: -9px;
-        }
-
-        .robot-body {
-          position: absolute;
-          width: 72px;
-          height: 63px;
-          left: 11px;
-          top: 58px;
-          border-radius: 25px 25px 20px 20px;
-          background: linear-gradient(
-            145deg,
-            #11183b,
-            #060914
-          );
-          border: 1px solid rgba(118, 116, 255, 0.8);
-          box-shadow:
-            0 0 13px rgba(92, 68, 255, 0.6),
-            inset 0 0 12px rgba(0, 214, 255, 0.15);
-        }
-
-        .robot-chest {
-          position: absolute;
-          width: 22px;
-          height: 22px;
-          top: 19px;
-          left: 25px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid #56dfff;
-          box-shadow: 0 0 10px #634cff;
-        }
-
-        .robot-chest div {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #00d9ff;
-          box-shadow: 0 0 8px #00d9ff;
-        }
-
-        .robot-arm {
-          position: absolute;
-          width: 34px;
-          height: 10px;
-          top: 17px;
-          border-radius: 10px;
-          background: linear-gradient(
-            90deg,
-            #5446d9,
-            #8e6cff
-          );
-        }
-
-        .left-arm {
-          left: -26px;
-          transform: rotate(25deg);
-        }
-
-        .right-arm {
-          right: -27px;
-          transform: rotate(-40deg);
-        }
-
-        .robot-finger {
-          position: absolute;
-          width: 8px;
-          height: 20px;
-          right: -5px;
-          top: -9px;
-          border-radius: 8px;
-          background: #9b8aff;
-          transform: rotate(15deg);
-          box-shadow: 0 0 8px #816aff;
-        }
-
-        .robot-spark {
-          position: absolute;
-          z-index: 4;
-          color: #8f8cff;
+          z-index: 3;
+          color: #a77cff;
           text-shadow: 0 0 12px #00d9ff;
         }
 
-        .spark-one {
-          top: 14px;
-          right: 3px;
+        .rs-one {
+          top: 26px;
+          right: 18px;
         }
 
-        .spark-two {
-          bottom: 16px;
-          left: 3px;
-          color: #b66cff;
+        .rs-two {
+          bottom: 17px;
+          left: 25px;
         }
 
-        .spark-three {
-          top: 42px;
-          left: 0;
+        .rs-three {
+          top: 68px;
+          left: 10px;
           font-size: 9px;
         }
 
-        .welcome-block {
-          margin-top: -1px;
+        /* GREETING */
+
+        .greeting {
           text-align: center;
+          margin-top: -5px;
         }
 
-        .hello-line {
-          direction: rtl;
+        .hello {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
-          font-size: 34px;
+          gap: 9px;
+          font-size: 39px;
           line-height: 1;
-          font-weight: 900;
+          font-weight: 950;
           text-shadow:
-            0 0 12px rgba(255, 255, 255, 0.24),
-            0 0 25px rgba(133, 68, 255, 0.4);
+            0 0 15px rgba(255, 255, 255, 0.3),
+            0 0 30px rgba(150, 74, 255, 0.4);
         }
 
-        .hand-sticker {
-          display: inline-flex;
-          font-size: 31px;
-          transform: rotate(-8deg);
+        .hello-hand {
+          font-size: 34px;
           filter:
-            drop-shadow(0 0 7px rgba(168, 85, 247, 0.8))
-            drop-shadow(0 0 13px rgba(0, 212, 255, 0.35));
-          animation: handWave 2.4s ease-in-out infinite;
+            drop-shadow(0 0 7px rgba(180, 85, 255, 0.8))
+            drop-shadow(0 0 13px rgba(0, 214, 255, 0.3));
+          animation: wave 2.3s ease-in-out infinite;
         }
 
-        .welcome-block h1 {
+        .greeting h1 {
           margin: 12px 0 0;
-          font-size: 29px;
-          line-height: 1.2;
+          font-size: 31px;
+          line-height: 1.15;
           font-weight: 950;
         }
 
-        .welcome-block h1 span {
+        .greeting h1 span {
           background: linear-gradient(
             90deg,
-            #e88cff,
-            #a855f7,
-            #6d8cff
+            #b867ff,
+            #9354ff,
+            #8d6dff
           );
           -webkit-background-clip: text;
           color: transparent;
         }
 
-        .welcome-block h1 strong {
+        .greeting h1 strong {
           background: linear-gradient(
             90deg,
-            #8b5cf6,
-            #22d3ee
+            #9259ff,
+            #19d8ff
           );
           -webkit-background-clip: text;
           color: transparent;
         }
 
-        .welcome-line {
-          width: 105px;
-          height: 2px;
-          margin: 11px auto 0;
+        .under-line {
+          width: 145px;
+          height: 4px;
+          margin: 14px auto 0;
           border-radius: 999px;
           background: linear-gradient(
             90deg,
             transparent,
-            #a855f7,
-            #22d3ee,
+            #b04cff,
+            #23dfff,
             transparent
           );
-          box-shadow: 0 0 9px rgba(129, 76, 255, 0.8);
+          box-shadow:
+            0 0 8px #913eff,
+            0 0 16px rgba(0, 207, 255, 0.35);
+        }
+
+        .under-line i {
+          display: block;
+          width: 45px;
+          height: 2px;
+          margin: auto;
+          background: white;
+          filter: blur(1px);
         }
 
         .intro {
-          margin: 14px auto 0;
-          max-width: 430px;
+          margin: 17px 0 0;
           text-align: center;
           font-size: 14px;
           line-height: 2;
-          color: rgba(232, 235, 255, 0.86);
+          color: rgba(239, 239, 255, 0.86);
         }
 
         .intro span {
-          color: #9ba6e8;
+          color: #a5afe8;
         }
 
-        .suggestions {
+        /* CARDS */
+
+        .cards {
           width: 100%;
-          max-width: 590px;
+          max-width: 620px;
+          margin-top: 19px;
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 9px;
-          margin-top: 18px;
+          direction: ltr;
         }
 
-        .suggestion-card {
-          min-width: 0;
-          min-height: 106px;
+        .card {
           position: relative;
+          min-width: 0;
+          height: 112px;
+          border-radius: 19px;
+          padding: 10px 5px 15px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          border-radius: 18px;
-          padding: 10px 6px 8px;
-          overflow: hidden;
           color: white;
-          cursor: pointer;
+          background: rgba(20, 15, 60, 0.42);
           backdrop-filter: blur(15px);
+          cursor: pointer;
           transition:
             transform 0.2s ease,
             box-shadow 0.2s ease;
         }
 
-        .suggestion-card:hover {
+        .card:hover {
           transform: translateY(-3px);
         }
 
-        .purple-card {
-          border: 1px solid rgba(184, 70, 255, 0.7);
-          background: rgba(60, 12, 105, 0.3);
-          box-shadow:
-            0 0 18px rgba(165, 57, 255, 0.22),
-            inset 0 0 20px rgba(165, 57, 255, 0.09);
+        .card-icon {
+          width: 28px;
+          height: 28px;
+          margin-bottom: 5px;
         }
 
-        .blue-card {
-          border: 1px solid rgba(0, 191, 255, 0.75);
-          background: rgba(5, 56, 105, 0.3);
-          box-shadow:
-            0 0 18px rgba(0, 191, 255, 0.2),
-            inset 0 0 20px rgba(0, 191, 255, 0.08);
-        }
-
-        .violet-card {
-          border: 1px solid rgba(143, 66, 255, 0.75);
-          background: rgba(66, 14, 120, 0.28);
-          box-shadow:
-            0 0 18px rgba(143, 66, 255, 0.22),
-            inset 0 0 20px rgba(143, 66, 255, 0.08);
-        }
-
-        .suggestion-icon {
-          width: 27px;
-          height: 27px;
-          margin-bottom: 4px;
-        }
-
-        .suggestion-icon svg {
+        .card-icon svg {
           width: 100%;
           height: 100%;
         }
 
-        .purple-card .suggestion-icon,
-        .purple-card .suggestion-title {
-          color: #d36cff;
-        }
-
-        .blue-card .suggestion-icon,
-        .blue-card .suggestion-title {
-          color: #2ed9ff;
-        }
-
-        .violet-card .suggestion-icon,
-        .violet-card .suggestion-title {
-          color: #bd6cff;
-        }
-
-        .suggestion-content {
-          display: flex;
-          min-width: 0;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-
-        .suggestion-title {
+        .card b {
           direction: ltr;
           font-size: 10px;
-          line-height: 1;
-          font-weight: 900;
-          letter-spacing: 1px;
+          letter-spacing: 0.8px;
         }
 
-        .suggestion-text {
+        .card span {
           margin-top: 5px;
-          color: rgba(245, 245, 255, 0.9);
           font-size: 10px;
-          line-height: 1.5;
           white-space: nowrap;
         }
 
-        .card-arrow {
+        .card small {
           position: absolute;
           bottom: 5px;
-          left: 50%;
-          transform: translateX(-50%);
-          font-size: 13px;
-          opacity: 0.8;
+          font-size: 14px;
+          opacity: 0.9;
         }
 
-        .empty-space {
-          min-height: 10px;
-          flex: 1;
+        .create {
+          border: 1px solid rgba(196, 73, 255, 0.8);
+          box-shadow:
+            0 0 20px rgba(188, 64, 255, 0.18),
+            inset 0 0 22px rgba(179, 60, 255, 0.08);
+        }
+
+        .create .card-icon,
+        .create b {
+          color: #cf70ff;
+        }
+
+        .learn {
+          border: 1px solid rgba(0, 206, 255, 0.82);
+          box-shadow:
+            0 0 20px rgba(0, 199, 255, 0.17),
+            inset 0 0 22px rgba(0, 199, 255, 0.08);
+        }
+
+        .learn .card-icon,
+        .learn b {
+          color: #27dfff;
+        }
+
+        .idea {
+          border: 1px solid rgba(165, 74, 255, 0.8);
+          box-shadow:
+            0 0 20px rgba(147, 68, 255, 0.18),
+            inset 0 0 22px rgba(147, 68, 255, 0.08);
+        }
+
+        .idea .card-icon,
+        .idea b {
+          color: #c06cff;
+        }
+
+        /* MESSAGES */
+
+        .messages {
+          width: 100%;
+          max-width: 750px;
+          margin: 0 auto;
+          padding: 28px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 13px;
+        }
+
+        .message {
+          display: flex;
+          width: 100%;
+        }
+
+        .user-message {
+          justify-content: flex-start;
+        }
+
+        .ai-message {
+          justify-content: flex-end;
+        }
+
+        .bubble {
+          max-width: 82%;
+          padding: 12px 15px;
+          border-radius: 18px;
+          font-size: 14px;
+          line-height: 1.9;
+          white-space: pre-wrap;
+        }
+
+        .user-message .bubble {
+          background: rgba(91, 35, 155, 0.35);
+          border: 1px solid rgba(157, 78, 255, 0.55);
+        }
+
+        .ai-message .bubble {
+          background: rgba(8, 39, 77, 0.5);
+          border: 1px solid rgba(32, 196, 255, 0.4);
+        }
+
+        .cursor {
+          color: #a76bff;
+          animation: blink 0.7s infinite;
+        }
+
+        /* COMPOSER */
+
+        .composer-zone {
+          position: relative;
+          z-index: 20;
+          flex: 0 0 auto;
+          width: 100%;
+          padding: 8px 18px 12px;
+          background: linear-gradient(
+            180deg,
+            transparent,
+            rgba(2, 3, 11, 0.25)
+          );
         }
 
         .composer {
           width: 100%;
           max-width: 760px;
-          min-height: 62px;
+          min-height: 64px;
           margin: 0 auto;
           display: flex;
-          direction: rtl;
           align-items: center;
           gap: 9px;
-          border-radius: 22px;
-          border: 1px solid rgba(65, 118, 255, 0.72);
-          padding: 7px 8px 7px 10px;
-          background:
-            linear-gradient(
-              110deg,
-              rgba(29, 17, 70, 0.86),
-              rgba(4, 17, 48, 0.88)
-            );
+          padding: 7px 8px;
+          border-radius: 23px;
+          border: 1px solid rgba(67, 119, 255, 0.75);
+          background: rgba(9, 18, 49, 0.78);
           box-shadow:
-            0 0 24px rgba(67, 60, 255, 0.2),
-            inset 0 0 25px rgba(0, 183, 255, 0.07);
-          backdrop-filter: blur(22px);
+            0 0 25px rgba(76, 61, 255, 0.2),
+            inset 0 0 25px rgba(0, 185, 255, 0.05);
+          backdrop-filter: blur(20px);
         }
 
-        .composer-input {
+        .composer textarea {
           flex: 1;
           min-width: 0;
-          min-height: 42px;
-          max-height: 120px;
+          min-height: 44px;
+          max-height: 110px;
           resize: none;
-          border: 0;
           outline: none;
+          border: 0;
           background: transparent;
           color: white;
-          padding: 9px 8px;
+          padding: 9px;
+          text-align: right;
           font-family: inherit;
           font-size: 14px;
           line-height: 1.6;
-          text-align: right;
         }
 
-        .composer-input::placeholder {
-          color: rgba(179, 188, 235, 0.72);
+        .composer textarea::placeholder {
+          color: rgba(173, 183, 230, 0.72);
         }
 
-        .send-button {
-          width: 49px;
-          height: 49px;
-          flex: 0 0 49px;
+        .send {
+          width: 51px;
+          height: 51px;
+          flex: 0 0 51px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(171, 100, 255, 0.8);
+          border: 1px solid rgba(188, 101, 255, 0.85);
           border-radius: 50%;
-          color: white;
           background:
             radial-gradient(
               circle at 30% 25%,
-              #b875ff,
-              #6937e8 48%,
-              #315aff
+              #bd78ff,
+              #7139eb 48%,
+              #3260ff
             );
+          color: white;
           box-shadow:
-            0 0 16px rgba(145, 72, 255, 0.7),
-            0 0 28px rgba(0, 180, 255, 0.2);
+            0 0 16px rgba(146, 70, 255, 0.7),
+            0 0 27px rgba(0, 186, 255, 0.18);
           cursor: pointer;
-          transition: 0.2s ease;
         }
 
-        .send-button:hover:not(:disabled) {
-          transform: scale(1.06);
-          box-shadow:
-            0 0 20px rgba(145, 72, 255, 0.9),
-            0 0 32px rgba(0, 180, 255, 0.3);
-        }
-
-        .send-button:disabled {
+        .send:disabled {
           opacity: 0.45;
           cursor: not-allowed;
         }
 
-        .send-button svg {
-          width: 22px;
-          height: 22px;
+        .send svg {
+          width: 23px;
+          height: 23px;
           transform: rotate(180deg);
         }
 
-        .footer-note {
+        .footer {
           width: 100%;
           max-width: 760px;
-          margin: 7px auto 0;
-          display: flex;
-          justify-content: space-between;
+          margin: 6px auto 0;
           padding: 0 7px;
-          color: rgba(129, 143, 197, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: rgba(132, 143, 193, 0.72);
           font-size: 8px;
         }
 
-        .footer-note span:first-child {
-          color: rgba(166, 118, 255, 0.78);
+        .footer span:first-child {
+          color: rgba(166, 104, 255, 0.85);
         }
 
-        .message-row {
-          display: flex;
-          width: 100%;
-        }
+        @keyframes wave {
+          0%,
+          100% {
+            transform: rotate(-8deg);
+          }
 
-        .user-row {
-          justify-content: flex-start;
-        }
-
-        .assistant-row {
-          justify-content: flex-end;
-        }
-
-        .message-bubble {
-          max-width: min(82%, 650px);
-          border-radius: 18px;
-          padding: 12px 15px;
-          white-space: pre-wrap;
-          line-height: 1.9;
-          font-size: 14px;
-        }
-
-        .user-bubble {
-          border: 1px solid rgba(136, 77, 255, 0.55);
-          background: rgba(87, 37, 150, 0.32);
-          box-shadow: 0 0 18px rgba(115, 58, 255, 0.1);
-        }
-
-        .assistant-bubble {
-          border: 1px solid rgba(22, 178, 255, 0.38);
-          background: rgba(9, 35, 73, 0.48);
-          box-shadow: 0 0 18px rgba(22, 178, 255, 0.08);
-        }
-
-        .typing-cursor {
-          display: inline-block;
-          margin-right: 3px;
-          color: #8b5cf6;
-          animation: blink 0.7s infinite;
+          50% {
+            transform: rotate(8deg) translateY(-2px);
+          }
         }
 
         @keyframes blink {
@@ -1452,144 +1577,152 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes handWave {
-          0%,
-          100% {
-            transform: rotate(-8deg);
+        /* MOBILE */
+
+        @media (max-width: 500px) {
+          .header {
+            height: 72px;
+            padding: 16px 18px 0;
           }
 
-          50% {
-            transform: rotate(7deg) translateY(-2px);
-          }
-        }
-
-        @media (max-width: 430px) {
-          .logo-zone {
-            height: 157px;
+          .wordmark {
+            font-size: 17px;
+            letter-spacing: 4px;
           }
 
-          .logo-orbit {
-            transform: scale(0.86);
+          .back {
+            height: 41px;
+            padding: 0 14px;
+            font-size: 12px;
           }
 
-          .robot-wrap {
-            transform: scale(0.88);
-            margin-top: -10px;
+          .page-content {
+            height: calc(100svh - 72px);
           }
 
-          .hello-line {
+          .message-area {
+            padding: 0 12px;
+          }
+
+          .hero-logo {
+            width: 190px;
+            height: 158px;
+            transform: scale(0.92);
+            margin-top: -5px;
+          }
+
+          .robot-stage {
+            width: 190px;
+            height: 138px;
+            margin-top: -27px;
+          }
+
+          .robot-svg {
+            width: 145px;
+            height: 145px;
+          }
+
+          .hello {
+            font-size: 35px;
+          }
+
+          .hello-hand {
             font-size: 31px;
           }
 
-          .welcome-block h1 {
-            font-size: 26px;
-          }
-
-          .intro {
-            margin-top: 10px;
-            font-size: 12px;
-            line-height: 1.85;
-          }
-
-          .suggestions {
-            gap: 6px;
-            margin-top: 13px;
-          }
-
-          .suggestion-card {
-            min-height: 96px;
-            border-radius: 15px;
-            padding: 7px 3px;
-          }
-
-          .suggestion-icon {
-            width: 23px;
-            height: 23px;
-          }
-
-          .suggestion-title {
-            font-size: 8px;
-            letter-spacing: 0.6px;
-          }
-
-          .suggestion-text {
-            font-size: 8px;
-            margin-top: 4px;
-          }
-
-          .card-arrow {
-            font-size: 11px;
-            bottom: 4px;
-          }
-
-          .composer {
-            min-height: 58px;
-            border-radius: 19px;
-          }
-
-          .send-button {
-            width: 45px;
-            height: 45px;
-            flex-basis: 45px;
-          }
-
-          .footer-note {
-            font-size: 7px;
-          }
-        }
-
-        @media (max-height: 740px) {
-          .logo-zone {
-            height: 130px;
-          }
-
-          .logo-orbit {
-            transform: scale(0.72);
-          }
-
-          .robot-wrap {
-            transform: scale(0.7);
-            margin-top: -22px;
-          }
-
-          .welcome-block h1 {
-            margin-top: 5px;
-            font-size: 23px;
-          }
-
-          .hello-line {
+          .greeting h1 {
             font-size: 27px;
           }
 
           .intro {
-            margin-top: 7px;
-            line-height: 1.6;
+            margin-top: 13px;
+            font-size: 12px;
+            line-height: 1.85;
           }
 
-          .suggestions {
-            margin-top: 9px;
+          .cards {
+            gap: 6px;
+            margin-top: 15px;
           }
 
-          .suggestion-card {
-            min-height: 83px;
+          .card {
+            height: 98px;
+            border-radius: 16px;
+            padding: 7px 3px 14px;
+          }
+
+          .card-icon {
+            width: 24px;
+            height: 24px;
+          }
+
+          .card b {
+            font-size: 8px;
+            letter-spacing: 0.5px;
+          }
+
+          .card span {
+            font-size: 8px;
+            margin-top: 4px;
+          }
+
+          .card small {
+            font-size: 11px;
+            bottom: 4px;
+          }
+
+          .composer-zone {
+            padding: 7px 12px 10px;
+          }
+
+          .composer {
+            min-height: 59px;
+            border-radius: 20px;
+          }
+
+          .send {
+            width: 47px;
+            height: 47px;
+            flex-basis: 47px;
+          }
+
+          .footer {
+            font-size: 7px;
           }
         }
 
-        @media (min-width: 700px) {
-          .suggestions {
-            gap: 13px;
+        @media (max-height: 760px) and (max-width: 500px) {
+          .hero-logo {
+            height: 130px;
+            transform: scale(0.76);
+            margin-top: -17px;
           }
 
-          .suggestion-card {
-            min-height: 116px;
+          .robot-stage {
+            height: 112px;
+            transform: scale(0.78);
+            margin-top: -36px;
           }
 
-          .suggestion-title {
-            font-size: 11px;
+          .hello {
+            font-size: 31px;
           }
 
-          .suggestion-text {
-            font-size: 11px;
+          .greeting h1 {
+            margin-top: 8px;
+            font-size: 24px;
+          }
+
+          .intro {
+            margin-top: 9px;
+          }
+
+          .cards {
+            margin-top: 10px;
+          }
+
+          .card {
+            height: 86px;
           }
         }
       `}</style>
