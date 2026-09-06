@@ -4,47 +4,31 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Message = {
-  id: string;
   role: "user" | "assistant";
   content: string;
 };
 
-/* =========================
-   ICONS
-========================= */
-
 function BackIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      width="30"
+      height="30"
+      viewBox="0 0 30 30"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
-        d="M19 12H5M11 6l-6 6 6 6"
-        fill="none"
+        d="M18 6L9 15L18 24"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
-        d="M21 3 10 14"
-        fill="none"
+        d="M10 15H24"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
-      />
-      <path
-        d="m21 3-7 18-3.5-7.5L3 10l18-7Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );
@@ -52,17 +36,27 @@ function SendIcon() {
 
 function CreateIcon() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      width="38"
+      height="38"
+      viewBox="0 0 48 48"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
-        d="m5 27 5.5-1.5L25 11l-4-4L6.5 21.5 5 27Z"
-        fill="none"
+        d="M13 35L16.5 24.5L32.5 8.5C34.2 6.8 36.9 6.8 38.6 8.5C40.3 10.2 40.3 12.9 38.6 14.6L22.6 30.6L13 35Z"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinejoin="round"
       />
       <path
-        d="m18 8 4 4M22 4v4M20 6h4"
-        fill="none"
+        d="M29 12L36 19"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M34 7L41 14"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -73,19 +67,30 @@ function CreateIcon() {
 
 function LearnIcon() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      width="38"
+      height="38"
+      viewBox="0 0 48 48"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
-        d="M4 7 16 3l12 4v18l-12 4-12-4V7Z"
-        fill="none"
+        d="M7 13L24 7L41 13L24 19L7 13Z"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinejoin="round"
       />
       <path
-        d="M16 3v26M4 7l12 4 12-4"
-        fill="none"
+        d="M13 16V29L24 34L35 29V16"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M41 14V27"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -93,295 +98,271 @@ function LearnIcon() {
 
 function IdeaIcon() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      width="38"
+      height="38"
+      viewBox="0 0 48 48"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
-        d="M10 23c-2-1.7-3-4.1-3-6.8C7 10.6 11 7 16 7s9 3.6 9 9.2c0 2.7-1 5.1-3 6.8-1.2 1-1.8 2.2-2 3.5H12c-.2-1.3-.8-2.5-2-3.5Z"
-        fill="none"
+        d="M16 29C13.5 26.8 12 23.7 12 20C12 13.4 17.4 8 24 8C30.6 8 36 13.4 36 20C36 23.7 34.5 26.8 32 29C30.2 30.6 29 32.4 29 35H19C19 32.4 17.8 30.6 16 29Z"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
       />
       <path
-        d="M12 30h8M14 26h4"
-        fill="none"
+        d="M19 40H29"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
       <path
-        d="M16 2v2M28 10h-2M6 10H4"
-        fill="none"
+        d="M20 35H28"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M24 3V1"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9 8L7 6"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M39 8L41 6"
+        stroke="currentColor"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
     </svg>
   );
 }
 
-/* =========================
-   MOBIXA LOGO
-========================= */
+/* فقط آیکون ارسال عوض شده */
+function SpaceSendIcon() {
+  return (
+    <svg
+      width="38"
+      height="38"
+      viewBox="0 0 48 48"
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="spaceStarGradient" x1="8" y1="8" x2="40" y2="40">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="45%" stopColor="#d9c7ff" />
+          <stop offset="100%" stopColor="#63eaff" />
+        </linearGradient>
+      </defs>
+
+      {/* orbit */}
+      <ellipse
+        cx="24"
+        cy="24"
+        rx="17"
+        ry="8"
+        transform="rotate(-28 24 24)"
+        stroke="rgba(255,255,255,0.55)"
+        strokeWidth="1.2"
+      />
+
+      {/* small orbit dot */}
+      <circle cx="38" cy="15" r="2" fill="#63eaff" />
+
+      {/* central custom star */}
+      <path
+        d="M24 9L26.7 20.9L39 24L26.7 27.1L24 39L21.3 27.1L9 24L21.3 20.9L24 9Z"
+        fill="url(#spaceStarGradient)"
+      />
+
+      {/* center glow */}
+      <circle cx="24" cy="24" r="3.2" fill="white" />
+    </svg>
+  );
+}
 
 function MobixaLogo() {
   return (
-    <div className="hero-logo">
-      <div className="hero-orbit orbit-a" />
-      <div className="hero-orbit orbit-b" />
-      <div className="hero-orbit orbit-c" />
+    <svg
+      className="mobixa-logo"
+      viewBox="0 0 220 220"
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="logoGradient" x1="40" y1="40" x2="180" y2="180">
+          <stop offset="0%" stopColor="#9f4cff" />
+          <stop offset="48%" stopColor="#5e8cff" />
+          <stop offset="100%" stopColor="#00eaff" />
+        </linearGradient>
 
-      <div className="hero-glass">
-        <div className="hero-m">
-          <span className="m1" />
-          <span className="m2" />
-          <span className="m3" />
-        </div>
+        <filter id="logoGlow">
+          <feGaussianBlur stdDeviation="7" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
 
-        <span className="hero-star hero-star-one">✦</span>
-        <span className="hero-star hero-star-two">✦</span>
-      </div>
+      <ellipse
+        cx="110"
+        cy="110"
+        rx="82"
+        ry="32"
+        transform="rotate(-25 110 110)"
+        stroke="rgba(132,82,255,0.75)"
+        strokeWidth="2"
+      />
 
-      <span className="logo-spark spark-a">✦</span>
-      <span className="logo-spark spark-b">✧</span>
-      <span className="logo-spark spark-c">✦</span>
-    </div>
+      <ellipse
+        cx="110"
+        cy="110"
+        rx="76"
+        ry="27"
+        transform="rotate(35 110 110)"
+        stroke="rgba(0,224,255,0.5)"
+        strokeWidth="2"
+      />
+
+      <circle
+        cx="110"
+        cy="110"
+        r="62"
+        fill="rgba(20,10,55,0.82)"
+        stroke="url(#logoGradient)"
+        strokeWidth="3"
+        filter="url(#logoGlow)"
+      />
+
+      <path
+        d="M67 148V74L110 116L153 74V148"
+        stroke="url(#logoGradient)"
+        strokeWidth="12"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        filter="url(#logoGlow)"
+      />
+
+      <circle cx="110" cy="45" r="4" fill="#fff" />
+      <circle cx="169" cy="116" r="3" fill="#64eaff" />
+      <circle cx="54" cy="95" r="3" fill="#bd72ff" />
+    </svg>
   );
 }
-
-/* =========================
-   ROBOT
-========================= */
 
 function MobixaRobot() {
   return (
-    <div className="robot-stage">
-      <div className="robot-aura" />
+    <svg
+      width="70"
+      height="70"
+      viewBox="0 0 100 100"
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="robotGradient" x1="20" y1="20" x2="80" y2="90">
+          <stop offset="0%" stopColor="#b866ff" />
+          <stop offset="55%" stopColor="#635cff" />
+          <stop offset="100%" stopColor="#00dcff" />
+        </linearGradient>
 
-      <svg
-        className="robot-svg"
-        viewBox="0 0 240 240"
-        role="img"
-        aria-label="Mobixa AI robot"
-      >
-        <defs>
-          <linearGradient id="robotHead" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a975ff" />
-            <stop offset="45%" stopColor="#372a86" />
-            <stop offset="100%" stopColor="#080a22" />
-          </linearGradient>
+        <filter id="robotGlow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
 
-          <linearGradient id="robotBody" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#6950db" />
-            <stop offset="50%" stopColor="#17164d" />
-            <stop offset="100%" stopColor="#070918" />
-          </linearGradient>
+      <path
+        d="M27 47C27 34 37 25 50 25C63 25 73 34 73 47V66C73 73 67 79 60 79H40C33 79 27 73 27 66V47Z"
+        fill="rgba(25,12,62,0.95)"
+        stroke="url(#robotGradient)"
+        strokeWidth="3"
+        filter="url(#robotGlow)"
+      />
 
-          <linearGradient id="robotBlue" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#e3d4ff" />
-            <stop offset="50%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#19d9ff" />
-          </linearGradient>
+      <rect
+        x="34"
+        y="38"
+        width="32"
+        height="24"
+        rx="10"
+        fill="#09051b"
+        stroke="#8c6bff"
+        strokeWidth="2"
+      />
 
-          <filter id="robotGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+      <circle cx="44" cy="49" r="3" fill="#00eaff" />
+      <circle cx="56" cy="49" r="3" fill="#00eaff" />
 
-        {/* antenna */}
-        <line
-          x1="120"
-          y1="29"
-          x2="120"
-          y2="14"
-          stroke="#6deaff"
-          strokeWidth="4"
-        />
-        <circle
-          cx="120"
-          cy="10"
-          r="7"
-          fill="#c18cff"
-          filter="url(#robotGlow)"
-        />
+      <path
+        d="M44 55C47 58 53 58 56 55"
+        stroke="#b77cff"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
 
-        {/* ears */}
-        <rect
-          x="45"
-          y="83"
-          width="22"
-          height="53"
-          rx="11"
-          fill="#151747"
-          stroke="#735cff"
-          strokeWidth="4"
-        />
-        <rect
-          x="173"
-          y="83"
-          width="22"
-          height="53"
-          rx="11"
-          fill="#151747"
-          stroke="#735cff"
-          strokeWidth="4"
-        />
+      <path
+        d="M27 51L18 45"
+        stroke="#9a6cff"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
 
-        {/* head */}
-        <rect
-          x="58"
-          y="34"
-          width="124"
-          height="112"
-          rx="48"
-          fill="url(#robotHead)"
-          stroke="#a98aff"
-          strokeWidth="4"
-        />
+      <path
+        d="M73 51L83 43"
+        stroke="#9a6cff"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
 
-        {/* face */}
-        <rect
-          x="72"
-          y="53"
-          width="96"
-          height="73"
-          rx="32"
-          fill="#030716"
-          stroke="#27cfff"
-          strokeOpacity=".45"
-          strokeWidth="2"
-        />
+      <path
+        d="M84 43L88 37"
+        stroke="#00eaff"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
 
-        {/* eyes */}
-        <path
-          d="M89 83c4-8 12-8 16 0"
-          fill="none"
-          stroke="#49eaff"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
+      <circle
+        cx="50"
+        cy="70"
+        r="5"
+        fill="#0b0924"
+        stroke="#00eaff"
+        strokeWidth="2"
+      />
 
-        <path
-          d="M135 83c4-8 12-8 16 0"
-          fill="none"
-          stroke="#49eaff"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
+      <path
+        d="M39 79L33 89"
+        stroke="#8c65ff"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
 
-        {/* smile */}
-        <path
-          d="M105 101c9 9 21 9 30 0"
-          fill="none"
-          stroke="#9a7cff"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-
-        {/* neck */}
-        <rect
-          x="106"
-          y="139"
-          width="28"
-          height="14"
-          rx="7"
-          fill="#292469"
-        />
-
-        {/* body */}
-        <path
-          d="M77 148c8-12 23-17 43-17s35 5 43 17l17 55H60l17-55Z"
-          fill="url(#robotBody)"
-          stroke="#7967ff"
-          strokeWidth="4"
-        />
-
-        {/* chest */}
-        <circle
-          cx="120"
-          cy="170"
-          r="17"
-          fill="#090d2b"
-          stroke="#42ddff"
-          strokeWidth="3"
-        />
-
-        <circle
-          cx="120"
-          cy="170"
-          r="7"
-          fill="#32dcff"
-          filter="url(#robotGlow)"
-        />
-
-        {/* left arm */}
-        <path
-          d="M77 157c-18 4-27 15-35 29"
-          fill="none"
-          stroke="url(#robotBlue)"
-          strokeWidth="15"
-          strokeLinecap="round"
-        />
-
-        {/* right raised arm */}
-        <path
-          d="M164 157c18-3 27-14 34-30"
-          fill="none"
-          stroke="url(#robotBlue)"
-          strokeWidth="15"
-          strokeLinecap="round"
-        />
-
-        {/* hand */}
-        <circle
-          cx="199"
-          cy="119"
-          r="13"
-          fill="#b99cff"
-          filter="url(#robotGlow)"
-        />
-
-        {/* pointing finger */}
-        <path
-          d="M199 111v-27"
-          stroke="#d0c2ff"
-          strokeWidth="9"
-          strokeLinecap="round"
-        />
-
-        {/* little gesture lines */}
-        <path
-          d="M214 98l8-7M215 108l10-2"
-          stroke="#34dfff"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <span className="robot-star rs-one">✦</span>
-      <span className="robot-star rs-two">✧</span>
-      <span className="robot-star rs-three">✦</span>
-    </div>
+      <path
+        d="M61 79L67 89"
+        stroke="#8c65ff"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
-
-/* =========================
-   HAND
-========================= */
 
 function Hand() {
-  return (
-    <span className="hello-hand" aria-hidden="true">
-      👋
-    </span>
-  );
+  return <span className="hand">👋</span>;
 }
-
-/* =========================
-   PAGE
-========================= */
 
 export default function ChatPage() {
   const router = useRouter();
@@ -390,48 +371,29 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  function goBack() {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-  }
-
-  function putSuggestion(text: string) {
-    setInput(text);
-
-    requestAnimationFrame(() => {
-      textareaRef.current?.focus();
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
     });
-  }
+  }, [messages]);
 
-  async function sendMessage(custom?: string) {
-    const message = (custom ?? input).trim();
+  async function sendMessage(text?: string) {
+    const messageToSend = (text ?? input).trim();
 
-    if (!message || loading) return;
+    if (!messageToSend || loading) return;
 
     setInput("");
 
-    const userId = crypto.randomUUID();
-    const assistantId = crypto.randomUUID();
+    const userMessage: Message = {
+      role: "user",
+      content: messageToSend,
+    };
 
-    setMessages((old) => [
-      ...old,
-      {
-        id: userId,
-        role: "user",
-        content: message,
-      },
-      {
-        id: assistantId,
-        role: "assistant",
-        content: "",
-      },
-    ]);
+    setMessages((prev) => [...prev, userMessage]);
 
     setLoading(true);
 
@@ -442,24 +404,40 @@ export default function ChatPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message,
+          message: messageToSend,
         }),
       });
 
       if (!response.ok) {
-        let errorMessage = "خطا در ارتباط با Gemini";
+        let errorText = "خطایی در ارتباط با هوش مصنوعی رخ داد.";
 
         try {
           const data = await response.json();
-          errorMessage = data?.error || errorMessage;
+          errorText = data?.error || errorText;
         } catch {}
 
-        throw new Error(errorMessage);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: errorText,
+          },
+        ]);
+
+        return;
       }
 
       if (!response.body) {
         throw new Error("پاسخ Streaming دریافت نشد.");
       }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "",
+        },
+      ]);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -468,7 +446,7 @@ export default function ChatPage() {
       let assistantText = "";
 
       while (true) {
-        const { value, done } = await reader.read();
+        const { done, value } = await reader.read();
 
         if (done) break;
 
@@ -481,294 +459,253 @@ export default function ChatPage() {
         buffer = events.pop() || "";
 
         for (const event of events) {
-          for (const line of event.split("\n")) {
+          const lines = event.split("\n");
+
+          for (const line of lines) {
             if (!line.startsWith("data:")) continue;
 
-            const raw = line.slice(5).trim();
+            const dataText = line.slice(5).trim();
 
-            if (!raw || raw === "[DONE]") continue;
+            if (!dataText || dataText === "[DONE]") continue;
 
             try {
-              const parsed = JSON.parse(raw);
+              const parsed = JSON.parse(dataText);
 
-              const text =
-                parsed?.candidates?.[0]?.content?.parts?.find(
-                  (part: { text?: string }) =>
-                    typeof part.text === "string"
-                )?.text ?? "";
+              const parts =
+                parsed?.candidates?.[0]?.content?.parts || [];
 
-              if (!text) continue;
-
-              assistantText += text;
-
-              setMessages((old) =>
-                old.map((item) =>
-                  item.id === assistantId
-                    ? {
-                        ...item,
-                        content: assistantText,
-                      }
-                    : item
-                )
+              const textPart = parts.find(
+                (part: { text?: string }) =>
+                  typeof part?.text === "string"
               );
-            } catch {}
+
+              if (textPart?.text) {
+                assistantText += textPart.text;
+
+                const currentText = assistantText;
+
+                setMessages((prev) => {
+                  const copy = [...prev];
+
+                  const lastIndex = copy.length - 1;
+
+                  if (
+                    lastIndex >= 0 &&
+                    copy[lastIndex].role === "assistant"
+                  ) {
+                    copy[lastIndex] = {
+                      ...copy[lastIndex],
+                      content: currentText,
+                    };
+                  }
+
+                  return copy;
+                });
+              }
+            } catch {
+              // بعضی chunkها ممکن است JSON کامل نباشند.
+            }
           }
         }
       }
     } catch (error) {
-      const errorText =
-        error instanceof Error
-          ? error.message
-          : "خطایی رخ داد.";
+      console.error(error);
 
-      setMessages((old) =>
-        old.map((item) =>
-          item.id === assistantId
-            ? {
-                ...item,
-                content: `⚠️ ${errorText}`,
-              }
-            : item
-        )
-      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "یه خطایی پیش اومد. دوباره امتحان کن.",
+        },
+      ]);
     } finally {
       setLoading(false);
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
     }
   }
 
-  function keyDown(
-    event: React.KeyboardEvent<HTMLTextAreaElement>
-  ) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
-    }
-  }
-
-  useEffect(() => {
-    if (!scrollRef.current) return;
-
-    scrollRef.current.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages.length]);
+  /*
+   * مهم:
+   * این سه متن دقیقاً همان متن پیشنهادها هستند.
+   * با کلیک، بدون تغییر مستقیماً ارسال می‌شوند.
+   */
+  const suggestions = [
+    {
+      title: "CREATE",
+      text: "متنت رو حرفه‌ای کن",
+      icon: <CreateIcon />,
+      className: "create-card",
+    },
+    {
+      title: "LEARN MODE",
+      text: "هر چیزی رو ساده یاد بگیر",
+      icon: <LearnIcon />,
+      className: "learn-card",
+    },
+    {
+      title: "IDEA LAB",
+      text: "یه ایده خفن بساز",
+      icon: <IdeaIcon />,
+      className: "idea-card",
+    },
+  ];
 
   return (
-    <main dir="rtl" className="mobixa">
-      {/* BACKGROUND */}
+    <main className="page">
+      <div className="background-glow glow-one" />
+      <div className="background-glow glow-two" />
 
-      <div className="background">
-        <div className="purple-cloud cloud-one" />
-        <div className="purple-cloud cloud-two" />
-        <div className="blue-cloud cloud-three" />
+      <div className="stars stars-one">✦</div>
+      <div className="stars stars-two">✦</div>
+      <div className="stars stars-three">✦</div>
+      <div className="stars stars-four">✦</div>
+      <div className="stars stars-five">✦</div>
 
-        <div className="neon-wave wave-one" />
-        <div className="neon-wave wave-two" />
-
-        <div className="starfield">
-          <span>✦</span>
-          <span>✧</span>
-          <span>·</span>
-          <span>✦</span>
-          <span>·</span>
-          <span>✧</span>
-          <span>✦</span>
-          <span>·</span>
-        </div>
-      </div>
-
-      {/* HEADER */}
-
-      <header className="header">
+      <header className="topbar">
         <button
-          className="back"
-          onClick={goBack}
-          type="button"
+          className="back-button"
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/");
+            }
+          }}
+          aria-label="بازگشت"
         >
           <BackIcon />
           <span>بازگشت</span>
         </button>
 
         <div className="wordmark">
-          <span>MOBIXA</span>
-          <b>AI</b>
+          <span>M O B I X A</span>
+          <span className="wordmark-ai"> A I</span>
         </div>
       </header>
 
-      {/* CONTENT */}
+      <section className="hero">
+        <div className="sparkle-top">✦</div>
 
-      <section className="page-content">
-        <div
-          ref={scrollRef}
-          className="message-area"
-        >
-          {messages.length === 0 ? (
-            <div className="home-content">
-              {/* BIG LOGO */}
-
-              <MobixaLogo />
-
-              {/* ROBOT */}
-
-              <MobixaRobot />
-
-              {/* GREETING */}
-
-              <div className="greeting">
-                <div className="hello">
-                  <span>سلام</span>
-                  <Hand />
-                </div>
-
-                <h1>
-                  <span>بزن بریم</span>{" "}
-                  <strong>مهندس</strong>
-                </h1>
-
-                <div className="under-line">
-                  <i />
-                </div>
-              </div>
-
-              {/* INTRO */}
-
-              <p className="intro">
-                اینجا هر چیزی که توی ذهنت داری،
-                <br />
-                می‌تونه شروع یک چیز بزرگ باشه.
-                <br />
-                <span>ایده بده، سؤال بپرس، بساز.</span>
-              </p>
-
-              {/* CARDS */}
-
-              <div className="cards">
-                <button
-                  type="button"
-                  className="card create"
-                  onClick={() =>
-                    putSuggestion(
-                      "این متن رو برای من حرفه‌ای و جذاب‌تر کن:"
-                    )
-                  }
-                >
-                  <div className="card-icon">
-                    <CreateIcon />
-                  </div>
-
-                  <b>CREATE</b>
-
-                  <span>متنت رو حرفه‌ای کن</span>
-
-                  <small>↗</small>
-                </button>
-
-                <button
-                  type="button"
-                  className="card learn"
-                  onClick={() =>
-                    putSuggestion(
-                      "این موضوع رو خیلی ساده و قابل فهم برام توضیح بده:"
-                    )
-                  }
-                >
-                  <div className="card-icon">
-                    <LearnIcon />
-                  </div>
-
-                  <b>LEARN MODE</b>
-
-                  <span>هر چیزی رو ساده یاد بگیر</span>
-
-                  <small>↗</small>
-                </button>
-
-                <button
-                  type="button"
-                  className="card idea"
-                  onClick={() =>
-                    putSuggestion(
-                      "برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
-                    )
-                  }
-                >
-                  <div className="card-icon">
-                    <IdeaIcon />
-                  </div>
-
-                  <b>IDEA LAB</b>
-
-                  <span>یه ایده خفن بساز</span>
-
-                  <small>↗</small>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="messages">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={
-                    message.role === "user"
-                      ? "message user-message"
-                      : "message ai-message"
-                  }
-                >
-                  <div className="bubble">
-                    {message.content}
-
-                    {message.role === "assistant" &&
-                      loading &&
-                      message.id ===
-                        messages[messages.length - 1]?.id && (
-                        <span className="cursor">
-                          ▋
-                        </span>
-                      )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="logo-wrap">
+          <MobixaLogo />
         </div>
 
-        {/* COMPOSER */}
+        <div className="robot-wrap">
+          <MobixaRobot />
+        </div>
 
-        <div className="composer-zone">
-          <form
-            className="composer"
-            onSubmit={(event) => {
-              event.preventDefault();
-              sendMessage();
-            }}
+        <div className="sparkle-bottom">✦</div>
+
+        <h1 className="greeting">
+          <span>سلام</span>
+          <Hand />
+        </h1>
+
+        <h2 className="hero-title">
+          بزن بریم مهندس
+        </h2>
+
+        <div className="neon-line" />
+
+        <p className="intro">
+          اینجا هر چیزی که توی ذهنت داری،
+          <br />
+          می‌تونه شروع یک چیز بزرگ باشه.
+          <br />
+          ایده بده، سؤال بپرس، بساز.
+        </p>
+      </section>
+
+      <section className="suggestions">
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion.title}
+            type="button"
+            className={`suggestion-card ${suggestion.className}`}
+            onClick={() => sendMessage(suggestion.text)}
+            disabled={loading}
           >
-            <textarea
-              ref={textareaRef}
-              value={input}
-              disabled={loading}
-              onChange={(event) =>
-                setInput(event.target.value)
-              }
-              onKeyDown={keyDown}
-              rows={1}
-              placeholder="پیامت رو برای موبیکسا بنویس..."
-            />
+            <div className="suggestion-icon">
+              {suggestion.icon}
+            </div>
 
-            <button
-              type="submit"
-              className="send"
-              disabled={!input.trim() || loading}
-            >
-              <SendIcon />
-            </button>
-          </form>
+            <div className="suggestion-title">
+              {suggestion.title}
+            </div>
 
-          <div className="footer">
-            <span>✦ Mobixa AI</span>
-            <span>ممکن است گاهی پاسخ نادرست باشد.</span>
+            <div className="suggestion-text">
+              {suggestion.text}
+            </div>
+          </button>
+        ))}
+      </section>
+
+      <div className="orbital-bg orbital-one" />
+      <div className="orbital-bg orbital-two" />
+
+      <section className="chat-area">
+        {messages.length > 0 && (
+          <div className="messages">
+            {messages.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                className={`message ${
+                  message.role === "user"
+                    ? "user-message"
+                    : "assistant-message"
+                }`}
+              >
+                {message.content}
+              </div>
+            ))}
+
+            {loading &&
+              messages[messages.length - 1]?.role === "user" && (
+                <div className="message assistant-message typing">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              )}
+
+            <div ref={messagesEndRef} />
           </div>
+        )}
+      </section>
+
+      <section className="composer-section">
+        <form
+          className="composer"
+          onSubmit={(event) => {
+            event.preventDefault();
+            sendMessage();
+          }}
+        >
+          <button
+            type="submit"
+            className="send-button"
+            disabled={!input.trim() || loading}
+            aria-label="ارسال پیام"
+          >
+            <SpaceSendIcon />
+          </button>
+
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
+            dir="rtl"
+            disabled={loading}
+          />
+        </form>
+
+        <div className="footer-note">
+          ممکن است گاهی پاسخ نادرست باشد.
+          <span>Mobixa AI ✦</span>
         </div>
       </section>
 
@@ -777,952 +714,711 @@ export default function ChatPage() {
           box-sizing: border-box;
         }
 
-        .mobixa {
+        .page {
+          min-height: 100svh;
           position: relative;
-          width: 100%;
-          height: 100svh;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: auto;
           background:
             radial-gradient(
-              circle at 15% 45%,
-              rgba(89, 21, 180, 0.35),
-              transparent 30%
-            ),
-            radial-gradient(
-              circle at 90% 75%,
-              rgba(0, 84, 190, 0.3),
+              circle at 50% 38%,
+              rgba(91, 29, 174, 0.2),
               transparent 34%
             ),
-            #02030b;
+            linear-gradient(
+              180deg,
+              #02020a 0%,
+              #050318 42%,
+              #10063b 72%,
+              #031c55 100%
+            );
           color: white;
           font-family:
             Arial,
+            "Segoe UI",
             Tahoma,
             sans-serif;
+          padding-bottom: 125px;
         }
 
-        .background {
-          position: absolute;
-          inset: 0;
-          overflow: hidden;
+        .background-glow {
+          position: fixed;
           pointer-events: none;
-        }
-
-        .purple-cloud {
-          position: absolute;
           border-radius: 50%;
-          filter: blur(75px);
-          opacity: 0.4;
+          filter: blur(70px);
+          opacity: 0.45;
         }
 
-        .cloud-one {
-          width: 330px;
-          height: 330px;
-          left: -190px;
-          top: 270px;
-          background: #681cff;
+        .glow-one {
+          width: 280px;
+          height: 280px;
+          left: -140px;
+          top: 42%;
+          background: #6b1cff;
         }
 
-        .cloud-two {
-          width: 270px;
-          height: 270px;
-          left: 30%;
-          bottom: -160px;
-          background: #4f18d6;
-        }
-
-        .cloud-three {
-          position: absolute;
-          width: 300px;
-          height: 300px;
-          right: -190px;
-          top: 500px;
-          border-radius: 50%;
-          background: #006cff;
-          filter: blur(90px);
-          opacity: 0.28;
-        }
-
-        .neon-wave {
-          position: absolute;
-          width: 850px;
+        .glow-two {
+          width: 260px;
           height: 260px;
-          border: 1px solid rgba(122, 77, 255, 0.35);
-          border-radius: 50%;
-          filter: blur(0.2px);
+          right: -130px;
+          bottom: 5%;
+          background: #005cff;
         }
 
-        .wave-one {
-          left: -480px;
-          top: 550px;
-          transform: rotate(-22deg);
-          box-shadow: 0 0 14px rgba(91, 58, 255, 0.3);
-        }
-
-        .wave-two {
-          right: -500px;
-          top: 690px;
-          transform: rotate(25deg);
-          border-color: rgba(0, 194, 255, 0.28);
-        }
-
-        .starfield span {
-          position: absolute;
-          color: rgba(164, 140, 255, 0.7);
-          font-size: 10px;
-        }
-
-        .starfield span:nth-child(1) {
-          top: 25%;
-          left: 12%;
-        }
-
-        .starfield span:nth-child(2) {
-          top: 40%;
-          right: 12%;
-        }
-
-        .starfield span:nth-child(3) {
-          top: 53%;
-          left: 8%;
-        }
-
-        .starfield span:nth-child(4) {
-          top: 65%;
-          right: 8%;
-        }
-
-        .starfield span:nth-child(5) {
-          top: 73%;
-          left: 15%;
-        }
-
-        .starfield span:nth-child(6) {
-          top: 83%;
-          right: 18%;
-        }
-
-        .starfield span:nth-child(7) {
-          top: 31%;
-          left: 47%;
-        }
-
-        .starfield span:nth-child(8) {
-          top: 58%;
-          right: 31%;
-        }
-
-        /* HEADER */
-
-        .header {
+        .topbar {
           position: relative;
-          z-index: 10;
-          width: 100%;
-          max-width: 1100px;
-          margin: 0 auto;
-          height: 82px;
-          padding: 20px 24px 0;
+          z-index: 5;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          direction: ltr;
+          padding: 42px 34px 0;
+        }
+
+        .back-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          height: 80px;
+          min-width: 145px;
+          padding: 0 22px;
+          border-radius: 45px;
+          border: 2px solid #984cff;
+          color: white;
+          background: rgba(23, 8, 55, 0.48);
+          box-shadow:
+            0 0 15px rgba(139, 61, 255, 0.5),
+            inset 0 0 18px rgba(139, 61, 255, 0.1);
+          font-size: 20px;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .back-button:active {
+          transform: scale(0.96);
         }
 
         .wordmark {
-          direction: ltr;
-          font-size: 21px;
-          font-weight: 900;
-          letter-spacing: 5px;
-          text-shadow: 0 0 15px rgba(255, 255, 255, 0.18);
-        }
-
-        .wordmark b {
-          margin-left: 6px;
-          background: linear-gradient(
-            90deg,
-            #b05cff,
-            #20dfff
-          );
-          -webkit-background-clip: text;
-          color: transparent;
-        }
-
-        .back {
-          direction: rtl;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          height: 44px;
-          padding: 0 16px;
-          border-radius: 999px;
-          border: 1px solid rgba(155, 73, 255, 0.95);
-          background: rgba(55, 16, 111, 0.25);
-          color: white;
-          box-shadow:
-            0 0 15px rgba(144, 59, 255, 0.42),
-            inset 0 0 18px rgba(94, 70, 255, 0.13);
-          backdrop-filter: blur(18px);
-          font-size: 13px;
+          font-size: 26px;
           font-weight: 800;
-          cursor: pointer;
-        }
-
-        .back svg {
-          width: 20px;
-          height: 20px;
-        }
-
-        /* CONTENT */
-
-        .page-content {
-          position: relative;
-          z-index: 5;
-          width: 100%;
-          max-width: 900px;
-          height: calc(100svh - 82px);
-          margin: 0 auto;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .message-area {
-          min-height: 0;
-          flex: 1;
-          overflow-y: auto;
-          scrollbar-width: none;
-          padding: 0 18px;
-        }
-
-        .message-area::-webkit-scrollbar {
-          display: none;
-        }
-
-        .home-content {
-          min-height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding-bottom: 10px;
-        }
-
-        /* LOGO */
-
-        .hero-logo {
-          position: relative;
-          width: 210px;
-          height: 185px;
-          flex: 0 0 auto;
-          margin-top: -5px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .hero-glass {
-          position: relative;
-          width: 112px;
-          height: 112px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background:
-            radial-gradient(
-              circle at 35% 25%,
-              rgba(181, 122, 255, 0.85),
-              rgba(42, 14, 100, 0.48) 42%,
-              rgba(3, 5, 25, 0.92) 76%
-            );
-          border: 1px solid rgba(132, 89, 255, 0.8);
-          box-shadow:
-            0 0 25px rgba(134, 63, 255, 0.75),
-            inset 0 0 30px rgba(0, 194, 255, 0.2);
-        }
-
-        .hero-orbit {
-          position: absolute;
-          border-radius: 50%;
-          border: 1px solid;
-        }
-
-        .orbit-a {
-          width: 205px;
-          height: 65px;
-          transform: rotate(-18deg);
-          border-color: rgba(170, 79, 255, 0.8);
-          box-shadow: 0 0 12px rgba(161, 74, 255, 0.4);
-        }
-
-        .orbit-b {
-          width: 205px;
-          height: 72px;
-          transform: rotate(46deg);
-          border-color: rgba(0, 209, 255, 0.65);
-          box-shadow: 0 0 12px rgba(0, 209, 255, 0.35);
-        }
-
-        .orbit-c {
-          width: 150px;
-          height: 150px;
-          border-color: rgba(118, 75, 255, 0.2);
-        }
-
-        .hero-m {
-          position: relative;
-          width: 65px;
-          height: 66px;
-          filter:
-            drop-shadow(0 0 7px #ae63ff)
-            drop-shadow(0 0 17px #00d9ff);
-        }
-
-        .hero-m span {
-          position: absolute;
-          top: 6px;
-          display: block;
-          width: 20px;
-          height: 54px;
-          border-radius: 5px;
-          background: linear-gradient(
-            180deg,
-            #f0c5ff,
-            #974cff 45%,
-            #25dfff
-          );
-        }
-
-        .m1 {
-          left: 2px;
-          transform: skewY(27deg);
-        }
-
-        .m2 {
-          left: 22px;
-          top: 18px !important;
-          width: 19px !important;
-          height: 35px !important;
-          transform: rotate(45deg);
-        }
-
-        .m3 {
-          right: 2px;
-          transform: skewY(-27deg);
-        }
-
-        .hero-star {
-          position: absolute;
-          color: white;
-          text-shadow:
-            0 0 8px #b566ff,
-            0 0 16px #00d9ff;
-        }
-
-        .hero-star-one {
-          top: -3px;
-          right: 43px;
-          font-size: 21px;
-        }
-
-        .hero-star-two {
-          bottom: 26px;
-          left: 45px;
-          font-size: 13px;
-        }
-
-        .logo-spark {
-          position: absolute;
-          color: #d6caff;
-          text-shadow: 0 0 10px #00cfff;
-        }
-
-        .spark-a {
-          top: 35px;
-          left: 10px;
-        }
-
-        .spark-b {
-          bottom: 22px;
-          right: 15px;
-        }
-
-        .spark-c {
-          top: 55px;
-          right: 5px;
-        }
-
-        /* ROBOT */
-
-        .robot-stage {
-          position: relative;
-          width: 210px;
-          height: 155px;
-          flex: 0 0 auto;
-          margin-top: -30px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .robot-aura {
-          position: absolute;
-          width: 125px;
-          height: 90px;
-          border-radius: 50%;
-          background: #7040ff;
-          filter: blur(45px);
-          opacity: 0.38;
-        }
-
-        .robot-svg {
-          position: relative;
-          width: 160px;
-          height: 160px;
-          z-index: 2;
-          filter:
-            drop-shadow(0 0 9px rgba(114, 81, 255, 0.5))
-            drop-shadow(0 0 18px rgba(0, 210, 255, 0.16));
-        }
-
-        .robot-star {
-          position: absolute;
-          z-index: 3;
-          color: #a77cff;
-          text-shadow: 0 0 12px #00d9ff;
-        }
-
-        .rs-one {
-          top: 26px;
-          right: 18px;
-        }
-
-        .rs-two {
-          bottom: 17px;
-          left: 25px;
-        }
-
-        .rs-three {
-          top: 68px;
-          left: 10px;
-          font-size: 9px;
-        }
-
-        /* GREETING */
-
-        .greeting {
-          text-align: center;
-          margin-top: -5px;
-        }
-
-        .hello {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          font-size: 39px;
-          line-height: 1;
-          font-weight: 950;
-          text-shadow:
-            0 0 15px rgba(255, 255, 255, 0.3),
-            0 0 30px rgba(150, 74, 255, 0.4);
-        }
-
-        .hello-hand {
-          font-size: 34px;
-          filter:
-            drop-shadow(0 0 7px rgba(180, 85, 255, 0.8))
-            drop-shadow(0 0 13px rgba(0, 214, 255, 0.3));
-          animation: wave 2.3s ease-in-out infinite;
-        }
-
-        .greeting h1 {
-          margin: 12px 0 0;
-          font-size: 31px;
-          line-height: 1.15;
-          font-weight: 950;
-        }
-
-        .greeting h1 span {
-          background: linear-gradient(
-            90deg,
-            #b867ff,
-            #9354ff,
-            #8d6dff
-          );
-          -webkit-background-clip: text;
-          color: transparent;
-        }
-
-        .greeting h1 strong {
-          background: linear-gradient(
-            90deg,
-            #9259ff,
-            #19d8ff
-          );
-          -webkit-background-clip: text;
-          color: transparent;
-        }
-
-        .under-line {
-          width: 145px;
-          height: 4px;
-          margin: 14px auto 0;
-          border-radius: 999px;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            #b04cff,
-            #23dfff,
-            transparent
-          );
-          box-shadow:
-            0 0 8px #913eff,
-            0 0 16px rgba(0, 207, 255, 0.35);
-        }
-
-        .under-line i {
-          display: block;
-          width: 45px;
-          height: 2px;
-          margin: auto;
-          background: white;
-          filter: blur(1px);
-        }
-
-        .intro {
-          margin: 17px 0 0;
-          text-align: center;
-          font-size: 14px;
-          line-height: 2;
-          color: rgba(239, 239, 255, 0.86);
-        }
-
-        .intro span {
-          color: #a5afe8;
-        }
-
-        /* CARDS */
-
-        .cards {
-          width: 100%;
-          max-width: 620px;
-          margin-top: 19px;
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 9px;
-          direction: ltr;
-        }
-
-        .card {
-          position: relative;
-          min-width: 0;
-          height: 112px;
-          border-radius: 19px;
-          padding: 10px 5px 15px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          background: rgba(20, 15, 60, 0.42);
-          backdrop-filter: blur(15px);
-          cursor: pointer;
-          transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .card:hover {
-          transform: translateY(-3px);
-        }
-
-        .card-icon {
-          width: 28px;
-          height: 28px;
-          margin-bottom: 5px;
-        }
-
-        .card-icon svg {
-          width: 100%;
-          height: 100%;
-        }
-
-        .card b {
-          direction: ltr;
-          font-size: 10px;
-          letter-spacing: 0.8px;
-        }
-
-        .card span {
-          margin-top: 5px;
-          font-size: 10px;
+          letter-spacing: 8px;
           white-space: nowrap;
         }
 
-        .card small {
-          position: absolute;
-          bottom: 5px;
+        .wordmark-ai {
+          background: linear-gradient(
+            90deg,
+            #b16cff,
+            #00dcff
+          );
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+
+        .hero {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          flex-direction: column;
+          text-align: center;
+          padding-top: 18px;
+        }
+
+        .logo-wrap {
+          width: 150px;
+          height: 150px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .mobixa-logo {
+          width: 100%;
+          height: 100%;
+          filter:
+            drop-shadow(0 0 12px rgba(146, 71, 255, 0.6))
+            drop-shadow(0 0 24px rgba(0, 220, 255, 0.18));
+        }
+
+        .robot-wrap {
+          height: 74px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: -5px;
+        }
+
+        .sparkle-top,
+        .sparkle-bottom {
+          color: white;
+          font-size: 29px;
+          line-height: 1;
+          text-shadow: 0 0 12px white;
+        }
+
+        .sparkle-bottom {
+          margin-top: -1px;
+        }
+
+        .greeting {
+          margin: 8px 0 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          direction: rtl;
+          gap: 13px;
+          font-size: 54px;
+          font-weight: 700;
+          text-shadow: 0 0 20px rgba(255, 255, 255, 0.35);
+        }
+
+        .hand {
+          font-size: 48px;
+          line-height: 1;
+          filter: drop-shadow(0 0 12px rgba(255, 183, 77, 0.45));
+        }
+
+        .hero-title {
+          margin: 6px 0 0;
+          font-size: 40px;
+          font-weight: 900;
+          background: linear-gradient(
+            90deg,
+            #784eff,
+            #00d9ff,
+            #a75bff
+          );
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          text-shadow: 0 0 25px rgba(111, 69, 255, 0.25);
+        }
+
+        .neon-line {
+          width: 280px;
+          height: 7px;
+          margin-top: 22px;
+          border-radius: 999px;
+          background: linear-gradient(
+            90deg,
+            #25104c,
+            #a24cff,
+            #ffffff,
+            #16e5ff,
+            #11152f
+          );
+          box-shadow:
+            0 0 8px #963cff,
+            0 0 18px rgba(0, 225, 255, 0.5);
+        }
+
+        .intro {
+          margin: 22px 0 0;
+          color: rgba(241, 236, 255, 0.85);
+          font-size: 20px;
+          line-height: 2;
+          direction: rtl;
+        }
+
+        .suggestions {
+          position: relative;
+          z-index: 3;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+          padding: 25px 24px 0;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .suggestion-card {
+          min-height: 165px;
+          border-radius: 30px;
+          background: rgba(13, 7, 44, 0.72);
+          padding: 19px 12px 15px;
+          cursor: pointer;
+          transition:
+            transform 0.18s ease,
+            background 0.18s ease;
+        }
+
+        .suggestion-card:active {
+          transform: scale(0.97);
+        }
+
+        .suggestion-card:disabled {
+          opacity: 0.7;
+          cursor: default;
+        }
+
+        .create-card {
+          border: 2px solid #a94cff;
+          box-shadow:
+            0 0 16px rgba(171, 74, 255, 0.16),
+            inset 0 0 22px rgba(133, 47, 255, 0.07);
+        }
+
+        .learn-card {
+          border: 2px solid #00d8ff;
+          box-shadow:
+            0 0 16px rgba(0, 216, 255, 0.13),
+            inset 0 0 22px rgba(0, 190, 255, 0.05);
+        }
+
+        .idea-card {
+          border: 2px solid #9b4cff;
+          box-shadow:
+            0 0 16px rgba(155, 76, 255, 0.14),
+            inset 0 0 22px rgba(155, 76, 255, 0.05);
+        }
+
+        .suggestion-icon {
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 7px;
+        }
+
+        .create-card .suggestion-icon {
+          color: #be67ff;
+        }
+
+        .learn-card .suggestion-icon {
+          color: #00e5ff;
+        }
+
+        .idea-card .suggestion-icon {
+          color: #bb66ff;
+        }
+
+        .suggestion-title {
+          font-size: 17px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+        }
+
+        .create-card .suggestion-title {
+          color: #c064ff;
+        }
+
+        .learn-card .suggestion-title {
+          color: #00ddff;
+        }
+
+        .idea-card .suggestion-title {
+          color: #c064ff;
+        }
+
+        .suggestion-text {
+          margin-top: 10px;
+          color: white;
           font-size: 14px;
-          opacity: 0.9;
+          line-height: 1.8;
+          direction: rtl;
         }
 
-        .create {
-          border: 1px solid rgba(196, 73, 255, 0.8);
-          box-shadow:
-            0 0 20px rgba(188, 64, 255, 0.18),
-            inset 0 0 22px rgba(179, 60, 255, 0.08);
+        .orbital-bg {
+          position: absolute;
+          pointer-events: none;
+          border: 1px solid rgba(92, 60, 255, 0.32);
+          border-radius: 50%;
+          transform: rotate(-18deg);
+          filter: drop-shadow(0 0 9px rgba(94, 70, 255, 0.22));
         }
 
-        .create .card-icon,
-        .create b {
-          color: #cf70ff;
+        .orbital-one {
+          width: 760px;
+          height: 270px;
+          left: -160px;
+          top: 780px;
         }
 
-        .learn {
-          border: 1px solid rgba(0, 206, 255, 0.82);
-          box-shadow:
-            0 0 20px rgba(0, 199, 255, 0.17),
-            inset 0 0 22px rgba(0, 199, 255, 0.08);
+        .orbital-two {
+          width: 600px;
+          height: 190px;
+          right: -200px;
+          top: 1050px;
+          border-color: rgba(0, 213, 255, 0.2);
         }
 
-        .learn .card-icon,
-        .learn b {
-          color: #27dfff;
+        .chat-area {
+          position: relative;
+          z-index: 4;
+          width: min(94%, 850px);
+          margin: 360px auto 0;
         }
-
-        .idea {
-          border: 1px solid rgba(165, 74, 255, 0.8);
-          box-shadow:
-            0 0 20px rgba(147, 68, 255, 0.18),
-            inset 0 0 22px rgba(147, 68, 255, 0.08);
-        }
-
-        .idea .card-icon,
-        .idea b {
-          color: #c06cff;
-        }
-
-        /* MESSAGES */
 
         .messages {
-          width: 100%;
-          max-width: 750px;
-          margin: 0 auto;
-          padding: 28px 0;
           display: flex;
           flex-direction: column;
-          gap: 13px;
+          gap: 12px;
+          max-height: 45vh;
+          overflow-y: auto;
+          padding: 10px;
         }
 
         .message {
-          display: flex;
-          width: 100%;
-        }
-
-        .user-message {
-          justify-content: flex-start;
-        }
-
-        .ai-message {
-          justify-content: flex-end;
-        }
-
-        .bubble {
-          max-width: 82%;
-          padding: 12px 15px;
+          max-width: 85%;
+          padding: 13px 17px;
           border-radius: 18px;
-          font-size: 14px;
-          line-height: 1.9;
+          font-size: 16px;
+          line-height: 1.8;
+          direction: rtl;
           white-space: pre-wrap;
         }
 
-        .user-message .bubble {
-          background: rgba(91, 35, 155, 0.35);
-          border: 1px solid rgba(157, 78, 255, 0.55);
+        .user-message {
+          align-self: flex-end;
+          background: rgba(100, 55, 220, 0.25);
+          border: 1px solid rgba(155, 94, 255, 0.55);
         }
 
-        .ai-message .bubble {
-          background: rgba(8, 39, 77, 0.5);
-          border: 1px solid rgba(32, 196, 255, 0.4);
+        .assistant-message {
+          align-self: flex-start;
+          background: rgba(5, 22, 58, 0.7);
+          border: 1px solid rgba(0, 214, 255, 0.4);
         }
 
-        .cursor {
-          color: #a76bff;
-          animation: blink 0.7s infinite;
+        .typing {
+          display: flex;
+          gap: 5px;
+          align-items: center;
+          height: 44px;
         }
 
-        /* COMPOSER */
+        .typing span {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #a965ff;
+          animation: typing 1s infinite ease-in-out;
+        }
 
-        .composer-zone {
-          position: relative;
+        .typing span:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .typing span:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+
+        @keyframes typing {
+          0%,
+          100% {
+            transform: translateY(0);
+            opacity: 0.45;
+          }
+
+          50% {
+            transform: translateY(-5px);
+            opacity: 1;
+          }
+        }
+
+        .composer-section {
+          position: fixed;
           z-index: 20;
-          flex: 0 0 auto;
-          width: 100%;
-          padding: 8px 18px 12px;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          padding: 0 24px 17px;
           background: linear-gradient(
             180deg,
             transparent,
-            rgba(2, 3, 11, 0.25)
+            rgba(3, 3, 20, 0.12) 20%,
+            rgba(3, 3, 20, 0.8) 60%,
+            rgba(3, 3, 20, 0.95)
           );
         }
 
         .composer {
-          width: 100%;
-          max-width: 760px;
-          min-height: 64px;
+          width: min(100%, 850px);
+          height: 90px;
           margin: 0 auto;
           display: flex;
           align-items: center;
-          gap: 9px;
-          padding: 7px 8px;
-          border-radius: 23px;
-          border: 1px solid rgba(67, 119, 255, 0.75);
-          background: rgba(9, 18, 49, 0.78);
+          gap: 13px;
+          padding: 8px 15px;
+          direction: ltr;
+          border: 2px solid #4c75ff;
+          border-radius: 30px;
+          background: rgba(5, 15, 45, 0.92);
           box-shadow:
-            0 0 25px rgba(76, 61, 255, 0.2),
-            inset 0 0 25px rgba(0, 185, 255, 0.05);
-          backdrop-filter: blur(20px);
+            0 0 16px rgba(41, 93, 255, 0.18),
+            inset 0 0 25px rgba(46, 61, 160, 0.12);
         }
 
-        .composer textarea {
+        .composer input {
           flex: 1;
           min-width: 0;
-          min-height: 44px;
-          max-height: 110px;
-          resize: none;
-          outline: none;
+          height: 100%;
           border: 0;
+          outline: none;
           background: transparent;
           color: white;
-          padding: 9px;
+          font-size: 19px;
           text-align: right;
+          direction: rtl;
           font-family: inherit;
-          font-size: 14px;
-          line-height: 1.6;
         }
 
-        .composer textarea::placeholder {
-          color: rgba(173, 183, 230, 0.72);
+        .composer input::placeholder {
+          color: rgba(255, 255, 255, 0.92);
+          opacity: 1;
         }
 
-        .send {
-          width: 51px;
-          height: 51px;
-          flex: 0 0 51px;
+        .send-button {
+          flex: 0 0 auto;
+          width: 68px;
+          height: 68px;
+          border: 0;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(188, 101, 255, 0.85);
-          border-radius: 50%;
+          color: white;
           background:
             radial-gradient(
-              circle at 30% 25%,
-              #bd78ff,
-              #7139eb 48%,
-              #3260ff
+              circle at 35% 30%,
+              #b975ff 0%,
+              #7537e9 42%,
+              #3e5cff 75%,
+              #132a9e 100%
             );
-          color: white;
           box-shadow:
-            0 0 16px rgba(146, 70, 255, 0.7),
-            0 0 27px rgba(0, 186, 255, 0.18);
+            0 0 14px rgba(145, 73, 255, 0.75),
+            0 0 25px rgba(0, 135, 255, 0.25),
+            inset 0 0 13px rgba(255, 255, 255, 0.2);
           cursor: pointer;
+          transition: transform 0.18s ease;
         }
 
-        .send:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
+        .send-button:active {
+          transform: scale(0.94);
         }
 
-        .send svg {
-          width: 23px;
-          height: 23px;
-          transform: rotate(180deg);
+        .send-button:disabled {
+          opacity: 0.55;
+          cursor: default;
         }
 
-        .footer {
-          width: 100%;
-          max-width: 760px;
-          margin: 6px auto 0;
-          padding: 0 7px;
+        .footer-note {
+          width: min(100%, 850px);
+          margin: 7px auto 0;
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          color: rgba(132, 143, 193, 0.72);
-          font-size: 8px;
+          align-items: center;
+          color: rgba(255, 255, 255, 0.28);
+          font-size: 11px;
+          direction: rtl;
         }
 
-        .footer span:first-child {
-          color: rgba(166, 104, 255, 0.85);
+        .footer-note span {
+          color: rgba(179, 101, 255, 0.7);
         }
 
-        @keyframes wave {
-          0%,
-          100% {
-            transform: rotate(-8deg);
-          }
-
-          50% {
-            transform: rotate(8deg) translateY(-2px);
-          }
+        .stars {
+          position: absolute;
+          z-index: 1;
+          color: #9f83ff;
+          text-shadow: 0 0 10px #8d5fff;
+          font-size: 17px;
+          pointer-events: none;
         }
 
-        @keyframes blink {
-          0%,
-          45% {
-            opacity: 1;
-          }
-
-          46%,
-          100% {
-            opacity: 0;
-          }
+        .stars-one {
+          left: 12%;
+          top: 34%;
         }
 
-        /* MOBILE */
+        .stars-two {
+          right: 12%;
+          top: 47%;
+        }
 
-        @media (max-width: 500px) {
-          .header {
-            height: 72px;
-            padding: 16px 18px 0;
+        .stars-three {
+          right: 7%;
+          top: 68%;
+        }
+
+        .stars-four {
+          left: 8%;
+          top: 77%;
+          font-size: 10px;
+        }
+
+        .stars-five {
+          right: 19%;
+          top: 86%;
+          font-size: 12px;
+        }
+
+        @media (max-width: 650px) {
+          .topbar {
+            padding: 34px 24px 0;
+          }
+
+          .back-button {
+            min-width: 145px;
+            height: 78px;
           }
 
           .wordmark {
-            font-size: 17px;
-            letter-spacing: 4px;
+            font-size: 23px;
+            letter-spacing: 5px;
           }
 
-          .back {
-            height: 41px;
-            padding: 0 14px;
-            font-size: 12px;
+          .logo-wrap {
+            width: 105px;
+            height: 105px;
           }
 
-          .page-content {
-            height: calc(100svh - 72px);
+          .robot-wrap {
+            height: 62px;
           }
 
-          .message-area {
-            padding: 0 12px;
+          .greeting {
+            font-size: 47px;
           }
 
-          .hero-logo {
-            width: 190px;
-            height: 158px;
-            transform: scale(0.92);
-            margin-top: -5px;
+          .hand {
+            font-size: 42px;
           }
 
-          .robot-stage {
-            width: 190px;
-            height: 138px;
-            margin-top: -27px;
-          }
-
-          .robot-svg {
-            width: 145px;
-            height: 145px;
-          }
-
-          .hello {
-            font-size: 35px;
-          }
-
-          .hello-hand {
-            font-size: 31px;
-          }
-
-          .greeting h1 {
-            font-size: 27px;
+          .hero-title {
+            font-size: 34px;
           }
 
           .intro {
-            margin-top: 13px;
+            font-size: 17px;
+            line-height: 1.95;
+          }
+
+          .suggestions {
+            gap: 10px;
+            padding-left: 22px;
+            padding-right: 22px;
+          }
+
+          .suggestion-card {
+            min-height: 165px;
+            border-radius: 27px;
+            padding-left: 8px;
+            padding-right: 8px;
+          }
+
+          .suggestion-icon {
+            transform: scale(0.88);
+          }
+
+          .suggestion-title {
+            font-size: 14px;
+          }
+
+          .suggestion-text {
             font-size: 12px;
-            line-height: 1.85;
           }
 
-          .cards {
-            gap: 6px;
-            margin-top: 15px;
+          .chat-area {
+            margin-top: 330px;
           }
 
-          .card {
-            height: 98px;
-            border-radius: 16px;
-            padding: 7px 3px 14px;
-          }
-
-          .card-icon {
-            width: 24px;
-            height: 24px;
-          }
-
-          .card b {
-            font-size: 8px;
-            letter-spacing: 0.5px;
-          }
-
-          .card span {
-            font-size: 8px;
-            margin-top: 4px;
-          }
-
-          .card small {
-            font-size: 11px;
-            bottom: 4px;
-          }
-
-          .composer-zone {
-            padding: 7px 12px 10px;
+          .composer-section {
+            padding: 0 23px 15px;
           }
 
           .composer {
-            min-height: 59px;
-            border-radius: 20px;
+            height: 86px;
+            border-radius: 29px;
           }
 
-          .send {
-            width: 47px;
-            height: 47px;
-            flex-basis: 47px;
+          .send-button {
+            width: 64px;
+            height: 64px;
           }
 
-          .footer {
-            font-size: 7px;
+          .composer input {
+            font-size: 16px;
           }
         }
 
-        @media (max-height: 760px) and (max-width: 500px) {
-          .hero-logo {
-            height: 130px;
-            transform: scale(0.76);
-            margin-top: -17px;
+        @media (max-width: 430px) {
+          .topbar {
+            padding-left: 20px;
+            padding-right: 20px;
           }
 
-          .robot-stage {
-            height: 112px;
-            transform: scale(0.78);
-            margin-top: -36px;
+          .back-button {
+            min-width: 128px;
+            height: 72px;
+            font-size: 18px;
+            padding: 0 16px;
           }
 
-          .hello {
+          .wordmark {
+            font-size: 19px;
+            letter-spacing: 4px;
+          }
+
+          .greeting {
+            font-size: 43px;
+          }
+
+          .hero-title {
             font-size: 31px;
           }
 
-          .greeting h1 {
-            margin-top: 8px;
-            font-size: 24px;
+          .neon-line {
+            width: 250px;
           }
 
-          .intro {
-            margin-top: 9px;
+          .suggestions {
+            padding-left: 20px;
+            padding-right: 20px;
+            gap: 9px;
           }
 
-          .cards {
-            margin-top: 10px;
+          .suggestion-card {
+            min-height: 155px;
+            padding-top: 15px;
           }
 
-          .card {
-            height: 86px;
+          .suggestion-icon {
+            height: 43px;
+          }
+
+          .suggestion-title {
+            font-size: 12px;
+          }
+
+          .suggestion-text {
+            font-size: 10.5px;
+            line-height: 1.7;
+          }
+
+          .composer-section {
+            padding-left: 20px;
+            padding-right: 20px;
+          }
+
+          .composer {
+            height: 82px;
+          }
+
+          .send-button {
+            width: 60px;
+            height: 60px;
+          }
+
+          .composer input {
+            font-size: 14px;
+          }
+
+          .footer-note {
+            font-size: 9px;
           }
         }
       `}</style>
