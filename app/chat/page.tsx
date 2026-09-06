@@ -8,6 +8,239 @@ type Message = {
   content: string;
 };
 
+/* ---------- Custom Mobixa Icons ---------- */
+
+function MobixaMark() {
+  return (
+    <div className="relative flex h-24 w-24 items-center justify-center">
+      <div className="absolute inset-0 rounded-[30px] border border-violet-400/30 bg-violet-500/[0.06] shadow-[0_0_50px_rgba(139,92,246,0.18)]" />
+
+      <div className="absolute h-16 w-16 rounded-full border border-cyan-300/20 shadow-[0_0_35px_rgba(34,211,238,0.12)]" />
+
+      <div className="absolute h-3 w-3 -translate-y-[38px] rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,0.9)]" />
+
+      <svg
+        viewBox="0 0 80 80"
+        className="relative z-10 h-16 w-16"
+        fill="none"
+      >
+        <defs>
+          <linearGradient
+            id="mobixaGradient"
+            x1="10"
+            y1="10"
+            x2="70"
+            y2="70"
+          >
+            <stop offset="0%" stopColor="#c084fc" />
+            <stop offset="48%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#22d3ee" />
+          </linearGradient>
+        </defs>
+
+        <path
+          d="M15 58V23L25 16L40 31L55 16L65 23V58"
+          stroke="url(#mobixaGradient)"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <path
+          d="M25 43L40 56L55 43"
+          stroke="url(#mobixaGradient)"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.9"
+        />
+
+        <circle
+          cx="40"
+          cy="40"
+          r="4"
+          fill="#ffffff"
+          className="animate-pulse"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function WaveSticker() {
+  return (
+    <div className="relative inline-flex h-12 w-12 items-center justify-center">
+      <div className="absolute inset-0 rounded-2xl border border-cyan-300/20 bg-cyan-400/[0.05] shadow-[0_0_30px_rgba(34,211,238,0.12)]" />
+
+      <div className="absolute inset-1 rounded-[14px] border border-violet-400/20" />
+
+      <svg
+        viewBox="0 0 64 64"
+        className="relative h-9 w-9"
+        fill="none"
+      >
+        <defs>
+          <linearGradient
+            id="waveGradient"
+            x1="10"
+            y1="10"
+            x2="55"
+            y2="55"
+          >
+            <stop offset="0%" stopColor="#c084fc" />
+            <stop offset="100%" stopColor="#22d3ee" />
+          </linearGradient>
+        </defs>
+
+        <path
+          d="M17 31V19C17 17 18.5 15.5 20.5 15.5C22.5 15.5 24 17 24 19V29"
+          stroke="url(#waveGradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+
+        <path
+          d="M24 29V14C24 12 25.5 10.5 27.5 10.5C29.5 10.5 31 12 31 14V29"
+          stroke="url(#waveGradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+
+        <path
+          d="M31 29V16C31 14 32.5 12.5 34.5 12.5C36.5 12.5 38 14 38 16V30"
+          stroke="url(#waveGradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+
+        <path
+          d="M38 30V21C38 19 39.5 17.5 41.5 17.5C43.5 17.5 45 19 45 21V37C45 47 39 53 30 53C22 53 16 48 13 40L10 32C9.2 30 10.2 28 12.2 27.4C14.2 26.8 16 28 17 31Z"
+          stroke="url(#waveGradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        <path
+          d="M47 13L49 17L53 19L49 21L47 25L45 21L41 19L45 17L47 13Z"
+          fill="#c084fc"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
+      <path d="M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 3L10.5 13.5" />
+      <path d="M21 3L14.5 21L10.5 13.5L3 9.5L21 3Z" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 12H5" />
+      <path d="M11 18L5 12L11 6" />
+    </svg>
+  );
+}
+
+function IdeaIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 18h6" />
+      <path d="M10 22h4" />
+      <path d="M8.5 14.5C7.2 13.3 6.5 11.7 6.5 10A5.5 5.5 0 0112 4.5 5.5 5.5 0 0117.5 10c0 1.7-.7 3.3-2 4.5-.8.8-1.5 1.5-1.5 2.5h-4c0-1-.7-1.7-1.5-2.5Z" />
+      <path d="M12 1v1" />
+      <path d="M4.5 3.5l.8.8" />
+      <path d="M19.5 3.5l-.8.8" />
+    </svg>
+  );
+}
+
+function LearnIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 5.5A2.5 2.5 0 016.5 3H11v16H6.5A2.5 2.5 0 014 16.5v-11Z" />
+      <path d="M20 5.5A2.5 2.5 0 0017.5 3H13v16h4.5a2.5 2.5 0 002.5-2.5v-11Z" />
+      <path d="M7 7h2" />
+      <path d="M15 7h2" />
+      <path d="M7 10h2" />
+      <path d="M15 10h2" />
+    </svg>
+  );
+}
+
+function CreateIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4Z" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M14 20h6" />
+    </svg>
+  );
+}
+
 export default function ChatPage() {
   const router = useRouter();
 
@@ -19,37 +252,37 @@ export default function ChatPage() {
   const previousMessageCount = useRef(0);
 
   const suggestions = [
-    "💡 یه ایده خلاقانه بهم بده",
-    "📚 یه موضوع رو ساده توضیح بده",
-    "✍️ کمکم کن یه متن بنویسم",
+    {
+      title: "IDEA LAB",
+      text: "یه ایده خفن بساز",
+      icon: <IdeaIcon />,
+      accent: "violet",
+      prompt: "یه ایده خلاقانه و خفن بهم بده",
+    },
+    {
+      title: "LEARN MODE",
+      text: "هر چیزی رو ساده یاد بگیر",
+      icon: <LearnIcon />,
+      accent: "cyan",
+      prompt: "یه موضوع رو خیلی ساده برام توضیح بده",
+    },
+    {
+      title: "CREATE",
+      text: "متنت رو حرفه‌ای کن",
+      icon: <CreateIcon />,
+      accent: "fuchsia",
+      prompt: "کمکم کن یه متن حرفه‌ای بنویسم",
+    },
   ];
 
-  /*
-   * چت عمداً در localStorage ذخیره نمی‌شود.
-   *
-   * بنابراین:
-   * Refresh → چت جدید و خالی
-   *
-   * همچنین اگر نسخه قبلی برنامه تاریخچه‌ای در localStorage
-   * ذخیره کرده باشد، آن تاریخچه دیگر استفاده نمی‌شود.
-   */
   useEffect(() => {
     try {
       localStorage.removeItem("mobixa-chat-history");
     } catch {
-      // اگر localStorage در دسترس نبود، مشکلی نیست.
+      // مشکلی نیست.
     }
   }, []);
 
-  /*
-   * وقتی تعداد پیام‌ها تغییر می‌کند، فقط در همان لحظه
-   * به انتهای چت می‌رویم.
-   *
-   * این باعث می‌شود:
-   * - هنگام ورود به چت → انتها دیده شود
-   * - بعد از فرستادن پیام → انتها دیده شود
-   * - هنگام اسکرول دستی به وسط چت → صفحه خودکار برنگردد
-   */
   useEffect(() => {
     if (messages.length === 0) {
       previousMessageCount.current = 0;
@@ -58,7 +291,8 @@ export default function ChatPage() {
 
     if (messages.length !== previousMessageCount.current) {
       bottomRef.current?.scrollIntoView({
-        behavior: previousMessageCount.current === 0 ? "auto" : "smooth",
+        behavior:
+          previousMessageCount.current === 0 ? "auto" : "smooth",
         block: "end",
       });
 
@@ -163,15 +397,6 @@ export default function ChatPage() {
             try {
               const parsed = JSON.parse(data);
 
-              /*
-               * Gemini GenerateContent Streaming
-               *
-               * پاسخ متن در این مسیر قرار دارد:
-               * candidates[0]
-               *   → content
-               *     → parts
-               *       → text
-               */
               const text =
                 parsed?.candidates?.[0]?.content?.parts?.find(
                   (part: { text?: string }) =>
@@ -227,54 +452,151 @@ export default function ChatPage() {
     }
   }
 
+  function handleBack() {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
+
   return (
-    <main className="h-screen overflow-hidden px-4 py-5 sm:px-6">
-      <header className="mx-auto flex max-w-5xl items-center justify-between">
+    <main className="relative h-screen overflow-hidden bg-[#03030a] px-4 py-5 text-white sm:px-6">
+      {/* Background atmosphere */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-violet-600/[0.08] blur-[120px]" />
+        <div className="absolute -right-40 bottom-20 h-96 w-96 rounded-full bg-cyan-500/[0.07] blur-[120px]" />
+
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(124,58,237,0.08),transparent_35%)]" />
+
+        <div
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(255,255,255,0.16) 0.6px, transparent 0.6px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+      </div>
+
+      <header className="relative z-20 mx-auto flex max-w-5xl items-center justify-between">
         <button
           type="button"
-          onClick={() => router.back()}
-          className="text-sm text-white/45 transition hover:text-white"
+          onClick={handleBack}
+          className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-2 text-xs text-white/55 backdrop-blur-xl transition duration-300 hover:border-violet-400/40 hover:bg-violet-500/[0.08] hover:text-white hover:shadow-[0_0_30px_rgba(139,92,246,0.14)]"
         >
-          ← بازگشت
+          <BackIcon />
+
+          <span>بازگشت</span>
         </button>
 
-        <div className="text-xl font-black tracking-[0.16em]">
+        <div className="text-lg font-black tracking-[0.18em] sm:text-xl">
           MOBIXA
-          <span className="text-violet-400"> AI</span>
+          <span className="ml-1 bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent">
+            AI
+          </span>
         </div>
       </header>
 
-      <section className="mx-auto flex h-[calc(100vh-90px)] min-h-0 max-w-4xl flex-col">
-        {/* Chat messages */}
-        <div className="min-h-0 flex-1 overflow-y-auto py-8">
+      <section className="relative z-10 mx-auto flex h-[calc(100vh-90px)] min-h-0 max-w-4xl flex-col">
+        {/* Messages */}
+        <div className="min-h-0 flex-1 overflow-y-auto py-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {messages.length === 0 ? (
-            <div className="flex min-h-full flex-col items-center justify-center text-center">
-              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] border border-violet-400/20 bg-violet-500/10 text-4xl shadow-[0_0_50px_rgba(139,92,246,0.15)]">
-                🤖
+            <div className="flex min-h-full flex-col items-center justify-center pb-6 text-center">
+              {/* Custom Mobixa mark */}
+              <div className="mb-4">
+                <MobixaMark />
               </div>
 
-              <div className="text-sm text-violet-300">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80">
                 MOBIXA AI
               </div>
 
-              <h1 className="mt-3 text-3xl font-black sm:text-5xl">
-                سلام بنیامین 👋
-              </h1>
+              {/* Greeting */}
+              <div className="mt-5 flex flex-col items-center">
+                <div className="flex items-center gap-3">
+                  <WaveSticker />
 
-              <p className="mt-4 max-w-xl text-sm leading-7 text-white/45 sm:text-base">
-                من دستیار هوش مصنوعی موبیکسا هستم.
+                  <h1 className="bg-gradient-to-r from-white via-white to-violet-200 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-6xl">
+                    سلام
+                  </h1>
+                </div>
+
+                <h2 className="mt-2 bg-gradient-to-r from-violet-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-3xl font-black tracking-tight text-transparent sm:text-5xl">
+                  بزن بریم مهندس
+                </h2>
+
+                <div className="mt-3 h-[2px] w-32 rounded-full bg-gradient-to-r from-transparent via-violet-400 to-transparent opacity-70" />
+              </div>
+
+              <p className="mt-7 max-w-xl text-sm leading-8 text-white/55 sm:text-base">
+                اینجا هر چیزی که توی ذهنت داری،
                 <br />
-                هر چیزی می‌خوای بپرس یا از پیشنهادهای زیر شروع کن.
+                می‌تونه شروع یک چیز بزرگ باشه.
               </p>
 
-              <div className="mt-8 grid w-full max-w-2xl gap-3 sm:grid-cols-3">
+              <p className="mt-1 text-xs text-white/30 sm:text-sm">
+                ایده بده، سؤال بپرس، بساز.
+              </p>
+
+              {/* Suggestions */}
+              <div className="mt-8 grid w-full max-w-3xl gap-3 sm:grid-cols-3">
                 {suggestions.map((item) => (
                   <button
-                    key={item}
-                    onClick={() => sendMessage(item.slice(2))}
-                    className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-white/65 backdrop-blur-xl transition hover:-translate-y-1 hover:border-violet-400/30 hover:bg-white/[0.07]"
+                    key={item.title}
+                    type="button"
+                    onClick={() => sendMessage(item.prompt)}
+                    className={`group relative overflow-hidden rounded-[24px] border bg-white/[0.025] p-5 text-right backdrop-blur-2xl transition duration-300 hover:-translate-y-1 ${
+                      item.accent === "violet"
+                        ? "border-violet-400/15 hover:border-violet-400/45 hover:shadow-[0_20px_60px_rgba(139,92,246,0.12)]"
+                        : item.accent === "cyan"
+                          ? "border-cyan-400/15 hover:border-cyan-400/45 hover:shadow-[0_20px_60px_rgba(34,211,238,0.1)]"
+                          : "border-fuchsia-400/15 hover:border-fuchsia-400/45 hover:shadow-[0_20px_60px_rgba(217,70,239,0.12)]"
+                    }`}
                   >
-                    {item}
+                    <div
+                      className={`absolute -right-10 -top-10 h-24 w-24 rounded-full blur-3xl ${
+                        item.accent === "violet"
+                          ? "bg-violet-500/15"
+                          : item.accent === "cyan"
+                            ? "bg-cyan-500/15"
+                            : "bg-fuchsia-500/15"
+                      }`}
+                    />
+
+                    <div className="relative">
+                      <div
+                        className={`mb-5 flex h-11 w-11 items-center justify-center rounded-2xl border ${
+                          item.accent === "violet"
+                            ? "border-violet-400/20 bg-violet-500/10 text-violet-300"
+                            : item.accent === "cyan"
+                              ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-300"
+                              : "border-fuchsia-400/20 bg-fuchsia-500/10 text-fuchsia-300"
+                        }`}
+                      >
+                        {item.icon}
+                      </div>
+
+                      <div className="text-[10px] font-bold tracking-[0.2em] text-white/40">
+                        {item.title}
+                      </div>
+
+                      <div className="mt-2 text-sm font-semibold text-white/80">
+                        {item.text}
+                      </div>
+
+                      <div
+                        className={`mt-5 flex h-8 w-8 items-center justify-center rounded-full border transition duration-300 group-hover:translate-x-1 ${
+                          item.accent === "violet"
+                            ? "border-violet-400/30 text-violet-300"
+                            : item.accent === "cyan"
+                              ? "border-cyan-400/30 text-cyan-300"
+                              : "border-fuchsia-400/30 text-fuchsia-300"
+                        }`}
+                      >
+                        <ArrowIcon />
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -302,7 +624,7 @@ export default function ChatPage() {
                     {loading &&
                       msg.role === "assistant" &&
                       index === messages.length - 1 && (
-                        <span className="ml-1 inline-block animate-pulse">
+                        <span className="ml-1 inline-block animate-pulse text-violet-300">
                           ▋
                         </span>
                       )}
@@ -315,9 +637,9 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* همیشه در دسترس */}
+        {/* Input */}
         <div className="shrink-0 pb-5 pt-2">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.055] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+          <div className="group relative rounded-[28px] border border-white/10 bg-white/[0.045] p-2 shadow-[0_20px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl transition duration-300 focus-within:border-violet-400/25 focus-within:shadow-[0_20px_80px_rgba(124,58,237,0.12)]">
             <div className="flex items-end gap-2">
               <textarea
                 value={message}
@@ -330,11 +652,17 @@ export default function ChatPage() {
               />
 
               <button
+                type="button"
                 onClick={() => sendMessage()}
                 disabled={!message.trim() || loading}
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-xl text-black transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label="ارسال پیام"
+                className="group/send relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_0_25px_rgba(139,92,246,0.22)] transition duration-300 hover:scale-105 hover:shadow-[0_0_35px_rgba(139,92,246,0.38)] disabled:cursor-not-allowed disabled:opacity-25 disabled:shadow-none"
               >
-                ↑
+                <span className="absolute inset-0 bg-white/20 opacity-0 transition group-hover/send:opacity-100" />
+
+                <span className="relative z-10 transition duration-300 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5">
+                  <SendIcon />
+                </span>
               </button>
             </div>
 
@@ -343,7 +671,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="mt-4 text-center text-[11px] text-white/20">
+          <div className="mt-4 text-center text-[10px] tracking-wide text-white/20">
             Crafted by BENYAMIN
           </div>
         </div>
