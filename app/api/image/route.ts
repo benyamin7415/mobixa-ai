@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
       {
         prompt: prompt.trim(),
         steps: 4,
-        seed: Math.floor(Math.random() * 2147483647),
       }
     );
 
