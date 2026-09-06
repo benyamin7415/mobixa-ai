@@ -30,21 +30,34 @@ function BackIcon() {
 
 function SendIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      className="send-icon"
+    >
       <path
-        d="M21 3 10 14"
+        d="M5 16h20"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.2"
         strokeLinecap="round"
       />
+
       <path
-        d="m21 3-7 18-3.5-7.5L3 10l18-7Z"
+        d="M18 8l8 8-8 8"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+
+      <path
+        d="M6 11.5c2.2-1.8 4.8-2.7 7.5-2.7"
+        fill="none"
+        stroke="rgba(255,255,255,.65)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -1310,7 +1323,6 @@ export default function ChatPage() {
           white-space: nowrap;
         }
 
-        /* حذف قطعی هر فلش/محتوای اضافه از کارت‌ها */
         .card::before,
         .card::after,
         .card small {
@@ -1454,38 +1466,181 @@ export default function ChatPage() {
           color: rgba(173, 183, 230, 0.72);
         }
 
+        /* =========================
+           FUTURISTIC SEND BUTTON
+        ========================= */
+
         .send {
-          width: 51px;
-          height: 51px;
-          flex: 0 0 51px;
+          position: relative;
+          width: 54px;
+          height: 54px;
+          flex: 0 0 54px;
+
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(188, 101, 255, 0.85);
+
+          border: 1px solid rgba(201, 127, 255, 0.95);
           border-radius: 50%;
+
+          color: white;
+
           background:
             radial-gradient(
-              circle at 30% 25%,
-              #bd78ff,
-              #7139eb 48%,
-              #3260ff
+              circle at 31% 24%,
+              rgba(255, 255, 255, 0.4),
+              transparent 22%
+            ),
+            radial-gradient(
+              circle at 34% 28%,
+              #c477ff 0%,
+              #883ff2 35%,
+              #4c35cf 67%,
+              #142d87 100%
             );
-          color: white;
+
           box-shadow:
-            0 0 16px rgba(146, 70, 255, 0.7),
-            0 0 27px rgba(0, 186, 255, 0.18);
+            0 0 8px rgba(190, 94, 255, 0.95),
+            0 0 18px rgba(144, 63, 255, 0.75),
+            0 0 34px rgba(0, 211, 255, 0.25),
+            inset 0 1px 3px rgba(255, 255, 255, 0.48),
+            inset 0 -8px 16px rgba(10, 7, 55, 0.48);
+
           cursor: pointer;
+
+          isolation: isolate;
+
+          transition:
+            transform 0.22s cubic-bezier(.2,.8,.2,1),
+            box-shadow 0.22s ease,
+            filter 0.22s ease;
+        }
+
+        .send::before {
+          content: "";
+          position: absolute;
+          inset: -5px;
+
+          border-radius: 50%;
+
+          background:
+            conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              rgba(190, 91, 255, 0.95) 65deg,
+              rgba(35, 225, 255, 0.95) 145deg,
+              transparent 215deg,
+              rgba(173, 76, 255, 0.9) 300deg,
+              transparent 360deg
+            );
+
+          z-index: -1;
+
+          filter: blur(1px);
+
+          opacity: 0.8;
+
+          animation: sendRing 4s linear infinite;
+        }
+
+        .send::after {
+          content: "";
+
+          position: absolute;
+          inset: 2px;
+
+          border-radius: 50%;
+
+          border: 1px solid rgba(255, 255, 255, 0.17);
+
+          box-shadow:
+            inset 0 0 10px rgba(255, 255, 255, 0.08),
+            inset 0 0 18px rgba(0, 220, 255, 0.09);
+
+          pointer-events: none;
+        }
+
+        .send:hover {
+          transform: translateY(-2px) scale(1.045);
+
+          filter: brightness(1.12);
+
+          box-shadow:
+            0 0 10px rgba(195, 103, 255, 1),
+            0 0 26px rgba(157, 66, 255, 0.9),
+            0 0 48px rgba(0, 215, 255, 0.4),
+            inset 0 1px 3px rgba(255, 255, 255, 0.52),
+            inset 0 -8px 16px rgba(13, 10, 62, 0.38);
+        }
+
+        .send:active {
+          transform: scale(0.91);
+
+          box-shadow:
+            0 0 8px rgba(177, 83, 255, 0.8),
+            0 0 18px rgba(0, 208, 255, 0.25),
+            inset 0 4px 12px rgba(11, 8, 48, 0.58);
+        }
+
+        .send:focus-visible {
+          outline: 2px solid rgba(42, 222, 255, 0.9);
+          outline-offset: 4px;
         }
 
         .send:disabled {
           opacity: 0.45;
           cursor: not-allowed;
+          transform: none;
+          filter: grayscale(0.15);
+
+          box-shadow:
+            0 0 8px rgba(126, 78, 190, 0.22),
+            inset 0 1px 2px rgba(255, 255, 255, 0.15);
         }
 
-        .send svg {
-          width: 23px;
-          height: 23px;
-          transform: rotate(180deg);
+        .send:disabled::before {
+          animation: none;
+          opacity: 0.25;
+        }
+
+        .send-icon {
+          position: relative;
+          z-index: 3;
+
+          width: 25px;
+          height: 25px;
+
+          filter:
+            drop-shadow(0 0 4px rgba(255, 255, 255, 0.7))
+            drop-shadow(0 0 9px rgba(28, 224, 255, 0.38));
+
+          transform: translateX(1px);
+
+          transition:
+            transform 0.22s ease,
+            filter 0.22s ease;
+        }
+
+        .send:hover .send-icon {
+          transform: translateX(3px) scale(1.07);
+
+          filter:
+            drop-shadow(0 0 5px rgba(255, 255, 255, 0.95))
+            drop-shadow(0 0 13px rgba(31, 225, 255, 0.58));
+        }
+
+        .send:active .send-icon {
+          transform: translateX(4px) scale(0.94);
+        }
+
+        @keyframes sendRing {
+          from {
+            transform: rotate(0deg);
+          }
+
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         .footer {
@@ -1624,9 +1779,14 @@ export default function ChatPage() {
           }
 
           .send {
-            width: 47px;
-            height: 47px;
-            flex-basis: 47px;
+            width: 49px;
+            height: 49px;
+            flex-basis: 49px;
+          }
+
+          .send-icon {
+            width: 23px;
+            height: 23px;
           }
 
           .footer {
