@@ -51,6 +51,7 @@ export default function ImagePage() {
     const link = document.createElement("a");
     link.href = image;
     link.download = "mobixa-image.jpg";
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -58,12 +59,14 @@ export default function ImagePage() {
 
   const retryImage = () => {
     if (!prompt.trim() || loading) return;
+
     generateImage(prompt);
   };
 
   return (
     <main className="image-page">
 
+      {/* Background */}
       <div className="bg-glow bg-glow-1" />
       <div className="bg-glow bg-glow-2" />
 
@@ -87,7 +90,7 @@ export default function ImagePage() {
 
         </header>
 
-        {/* Prompt Box */}
+        {/* Prompt */}
         <section className="prompt-box">
 
           <textarea
@@ -108,6 +111,7 @@ export default function ImagePage() {
             {/* Send Button */}
             <div className="send-button-wrapper">
 
+              {/* Rotating Light */}
               <div className="rotating-border" />
 
               <button
@@ -116,6 +120,7 @@ export default function ImagePage() {
                 disabled={!prompt.trim() || loading}
                 aria-label="ساخت تصویر"
               >
+
                 {loading ? (
                   <span className="button-spinner" />
                 ) : (
@@ -133,11 +138,13 @@ export default function ImagePage() {
                     <path d="m22 2-7 20-4-9-9-4Z" />
                   </svg>
                 )}
+
               </button>
 
             </div>
 
           </div>
+
         </section>
 
         {/* Error */}
@@ -147,7 +154,7 @@ export default function ImagePage() {
           </div>
         )}
 
-        {/* Result */}
+        {/* Generated Image */}
         {image && (
           <section className="result">
 
@@ -158,13 +165,15 @@ export default function ImagePage() {
               />
             </div>
 
-            {/* فقط دو دکمه کوچک */}
+            {/* Small Actions */}
             <div className="image-actions">
 
+              {/* Download */}
               <button
                 className="small-action"
                 onClick={downloadImage}
               >
+
                 <svg
                   viewBox="0 0 24 24"
                   width="16"
@@ -180,14 +189,19 @@ export default function ImagePage() {
                   <path d="M5 21h14" />
                 </svg>
 
-                <span>دانلود</span>
+                <span>
+                  دانلود
+                </span>
+
               </button>
 
+              {/* Retry */}
               <button
                 className="small-action"
                 onClick={retryImage}
                 disabled={loading}
               >
+
                 <svg
                   viewBox="0 0 24 24"
                   width="16"
@@ -204,7 +218,10 @@ export default function ImagePage() {
                   <path d="M20 20v-5h-5" />
                 </svg>
 
-                <span>تلاش مجدد</span>
+                <span>
+                  تلاش مجدد
+                </span>
+
               </button>
 
             </div>
@@ -220,9 +237,14 @@ export default function ImagePage() {
           box-sizing: border-box;
         }
 
+        /* =========================
+           PAGE
+        ========================= */
+
         .image-page {
           min-height: 100vh;
           width: 100%;
+
           position: relative;
           overflow-x: hidden;
 
@@ -235,57 +257,75 @@ export default function ImagePage() {
             #050507;
 
           color: white;
+
           direction: rtl;
 
-          padding: 75px 20px 100px;
+          padding:
+            70px 20px 100px;
         }
 
         .image-wrapper {
           width: min(850px, 100%);
+
           margin: 0 auto;
+
           position: relative;
+
           z-index: 2;
         }
 
-        /* Background */
+        /* =========================
+           BACKGROUND GLOW
+        ========================= */
 
         .bg-glow {
           position: absolute;
+
           width: 420px;
           height: 420px;
+
           border-radius: 50%;
+
           filter: blur(125px);
+
           opacity: 0.09;
+
           pointer-events: none;
         }
 
         .bg-glow-1 {
           top: -180px;
           right: -160px;
+
           background: #735cff;
         }
 
         .bg-glow-2 {
           bottom: -200px;
           left: -160px;
+
           background: #00bfff;
         }
 
-        /* Header */
+        /* =========================
+           HEADER
+        ========================= */
 
         .image-header {
           text-align: center;
 
           /*
-            فاصله بیشتر بین عنوان
-            و کادر
+            فاصله زیاد بین هدر
+            و کادر پرامپت
           */
-          margin-bottom: 62px;
+          margin-bottom: 120px;
         }
 
         .image-label {
           font-size: 10px;
+
           font-weight: 700;
+
           letter-spacing: 3px;
 
           color:
@@ -319,11 +359,13 @@ export default function ImagePage() {
             );
 
           -webkit-background-clip: text;
+
           -webkit-text-fill-color: transparent;
         }
 
         .image-header p {
-          margin: 15px auto 0;
+          margin:
+            15px auto 0;
 
           max-width: 500px;
 
@@ -335,15 +377,14 @@ export default function ImagePage() {
           line-height: 1.9;
         }
 
-        /* Prompt Box */
+        /* =========================
+           PROMPT BOX
+        ========================= */
 
         .prompt-box {
           width: 100%;
 
-          /*
-            کادر عمداً بزرگ‌تر شده
-          */
-          min-height: 205px;
+          min-height: 210px;
 
           border-radius: 25px;
 
@@ -373,11 +414,12 @@ export default function ImagePage() {
         .prompt-box textarea {
           width: 100%;
 
-          height: 145px;
+          height: 150px;
 
           resize: none;
 
           border: none;
+
           outline: none;
 
           background: transparent;
@@ -408,6 +450,10 @@ export default function ImagePage() {
           opacity: 0.55;
         }
 
+        /* =========================
+           PROMPT FOOTER
+        ========================= */
+
         .prompt-footer {
           height: 42px;
 
@@ -432,7 +478,9 @@ export default function ImagePage() {
           direction: ltr;
         }
 
-        /* Send */
+        /* =========================
+           SEND BUTTON
+        ========================= */
 
         .send-button-wrapper {
           position: relative;
@@ -446,26 +494,29 @@ export default function ImagePage() {
           justify-content: center;
         }
 
-        /*
-          فقط نور چرخان دور دکمه
-        */
+        /* فقط حاشیه نورانی چرخان */
 
         .rotating-border {
           position: absolute;
 
-          width: 64px;
-          height: 64px;
+          width: 65px;
+          height: 65px;
 
           border-radius: 21px;
 
           background:
             conic-gradient(
               from 0deg,
+
               transparent 0deg,
               transparent 220deg,
+
               rgba(156, 137, 255, 0.05) 245deg,
+
               rgba(156, 137, 255, 0.95) 300deg,
+
               rgba(111, 217, 255, 0.9) 330deg,
+
               transparent 360deg
             );
 
@@ -520,7 +571,8 @@ export default function ImagePage() {
             );
 
           box-shadow:
-            0 8px 30px rgba(101, 76, 255, 0.32);
+            0 8px 30px
+            rgba(101, 76, 255, 0.32);
 
           transition:
             transform 0.2s ease,
@@ -528,7 +580,8 @@ export default function ImagePage() {
         }
 
         .send-button:hover:not(:disabled) {
-          transform: translateY(-1px);
+          transform:
+            translateY(-1px);
         }
 
         .send-button:disabled {
@@ -546,6 +599,8 @@ export default function ImagePage() {
           }
         }
 
+        /* Loading */
+
         .button-spinner {
           width: 19px;
           height: 19px;
@@ -553,12 +608,14 @@ export default function ImagePage() {
           border-radius: 50%;
 
           border:
-            2px solid rgba(255, 255, 255, 0.3);
+            2px solid
+            rgba(255, 255, 255, 0.3);
 
           border-top-color: white;
 
           animation:
-            button-spin 0.75s linear infinite;
+            button-spin
+            0.75s linear infinite;
         }
 
         @keyframes button-spin {
@@ -568,12 +625,15 @@ export default function ImagePage() {
           }
         }
 
-        /* Error */
+        /* =========================
+           ERROR
+        ========================= */
 
         .error-message {
           margin-top: 15px;
 
-          padding: 12px 15px;
+          padding:
+            12px 15px;
 
           border-radius: 13px;
 
@@ -581,7 +641,8 @@ export default function ImagePage() {
             rgba(255, 70, 70, 0.07);
 
           border:
-            1px solid rgba(255, 70, 70, 0.15);
+            1px solid
+            rgba(255, 70, 70, 0.15);
 
           color: #ff9b9b;
 
@@ -590,7 +651,9 @@ export default function ImagePage() {
           text-align: center;
         }
 
-        /* Result */
+        /* =========================
+           RESULT
+        ========================= */
 
         .result {
           margin-top: 40px;
@@ -607,10 +670,12 @@ export default function ImagePage() {
             rgba(255, 255, 255, 0.03);
 
           border:
-            1px solid rgba(255, 255, 255, 0.09);
+            1px solid
+            rgba(255, 255, 255, 0.09);
 
           box-shadow:
-            0 30px 80px rgba(0, 0, 0, 0.42);
+            0 30px 80px
+            rgba(0, 0, 0, 0.42);
         }
 
         .image-card img {
@@ -621,12 +686,15 @@ export default function ImagePage() {
           height: auto;
         }
 
-        /* Small Actions */
+        /* =========================
+           SMALL ACTION BUTTONS
+        ========================= */
 
         .image-actions {
           display: flex;
 
           justify-content: center;
+
           align-items: center;
 
           gap: 8px;
@@ -639,11 +707,13 @@ export default function ImagePage() {
 
           height: 34px;
 
-          padding: 0 12px;
+          padding:
+            0 12px;
 
           display: flex;
 
           align-items: center;
+
           justify-content: center;
 
           gap: 7px;
@@ -651,7 +721,8 @@ export default function ImagePage() {
           border-radius: 10px;
 
           border:
-            1px solid rgba(255, 255, 255, 0.08);
+            1px solid
+            rgba(255, 255, 255, 0.08);
 
           background:
             rgba(255, 255, 255, 0.045);
@@ -689,10 +760,13 @@ export default function ImagePage() {
 
         .small-action:disabled {
           opacity: 0.4;
+
           cursor: not-allowed;
         }
 
-        /* Mobile */
+        /* =========================
+           MOBILE
+        ========================= */
 
         @media (max-width: 600px) {
 
@@ -702,7 +776,11 @@ export default function ImagePage() {
           }
 
           .image-header {
-            margin-bottom: 48px;
+            /*
+              روی موبایل هم کادر
+              پایین‌تر باقی می‌ماند
+            */
+            margin-bottom: 85px;
           }
 
           .image-header h1 {
@@ -714,7 +792,7 @@ export default function ImagePage() {
           }
 
           .prompt-box {
-            min-height: 190px;
+            min-height: 195px;
 
             border-radius: 21px;
 
@@ -722,18 +800,20 @@ export default function ImagePage() {
           }
 
           .prompt-box textarea {
-            height: 132px;
+            height: 135px;
 
             font-size: 14px;
           }
 
           .small-action {
             min-width: 100px;
+
             height: 33px;
           }
         }
 
       `}</style>
+
     </main>
   );
 }
