@@ -8,8 +8,8 @@ export default function ImagePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function generateImage(customPrompt?: string) {
-    const finalPrompt = (customPrompt ?? prompt).trim();
+  const generateImage = async (retryPrompt?: string) => {
+    const finalPrompt = (retryPrompt ?? prompt).trim();
 
     if (!finalPrompt || loading) return;
 
@@ -30,24 +30,22 @@ export default function ImagePage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "ساخت تصویر با خطا مواجه شد.");
+        throw new Error(
+          data.error || "ساخت تصویر با خطا مواجه شد."
+        );
       }
 
       setImage(data.image);
     } catch (err: any) {
-      setError(err?.message || "خطایی هنگام ساخت تصویر رخ داد.");
+      setError(
+        err?.message || "خطایی هنگام ساخت تصویر رخ داد."
+      );
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  function retry() {
-    if (prompt.trim()) {
-      generateImage(prompt);
-    }
-  }
-
-  function downloadImage() {
+  const downloadImage = () => {
     if (!image) return;
 
     const link = document.createElement("a");
@@ -55,139 +53,127 @@ export default function ImagePage() {
     link.download = "mobixa-image.jpg";
     document.body.appendChild(link);
     link.click();
-    link.remove();
-  }
+    document.body.removeChild(link);
+  };
+
+  const retryImage = () => {
+    if (!prompt.trim() || loading) return;
+
+    generateImage(prompt);
+  };
 
   return (
     <main className="image-page">
-      <div className="background-glow glow-one" />
-      <div className="background-glow glow-two" />
 
-      <section className="image-container">
+      {/* Background */}
+      <div className="bg-glow bg-glow-1" />
+      <div className="bg-glow bg-glow-2" />
 
-        {/* AI Orb */}
-        <div className="ai-orb-wrap">
-          <div className="ai-orbit orbit-one" />
-          <div className="ai-orbit orbit-two" />
-
-          <div className="ai-orb">
-            <span>M</span>
-          </div>
-        </div>
+      <div className="image-wrapper">
 
         {/* Header */}
-        <div className="header">
-          <div className="eyebrow">
+        <div className="image-header">
+
+          <div className="image-label">
             MOBIXA IMAGE LAB
           </div>
 
           <h1>
-            ایده بده،{" "}
-            <span>تصویر تحویل بگیر</span>
+            ایده بده و{" "}
+            <span>عکس تحویل بگیر</span>
           </h1>
 
           <p>
-            ایده‌ات را بنویس؛ موبیکسا آن را به یک تصویر تبدیل می‌کند.
+            ایده‌ات را بنویس و بگذار موبیکسا آن را به تصویر تبدیل کند.
           </p>
+
         </div>
 
         {/* Prompt Box */}
-        <div className={`prompt-box ${loading ? "is-loading" : ""}`}>
+        <div className="prompt-box">
 
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="مثلاً: یک شهر آینده‌نگر در شب، با نورهای نئونی و باران..."
+            placeholder="ایده‌ی تصویرت رو اینجا بنویس..."
             maxLength={2048}
             disabled={loading}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                generateImage();
-              }
-            }}
           />
 
-          <div className="prompt-bottom">
+          <div className="prompt-footer">
 
-            <span className="counter">
+            <div className="counter">
               {prompt.length}/2048
-            </span>
+            </div>
 
-            {/* Send Button */}
-            <button
-              className={`send-button ${loading ? "loading" : ""}`}
-              onClick={() => generateImage()}
-              disabled={!prompt.trim() || loading}
-              aria-label="ساخت تصویر"
-            >
-              <span className="send-ring" />
+            {/* SEND BUTTON */}
+            <div className="send-button-wrapper">
 
-              {loading ? (
-                <span className="spinner" />
-              ) : (
-                <svg
-                  viewBox="0 0 24 24"
-                  width="21"
-                  height="21"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M22 2 11 13" />
-                  <path d="m22 2-7 20-4-9-9-4Z" />
-                </svg>
-              )}
-            </button>
+              {/* فقط حاشیه نوری چرخان */}
+              <div className="rotating-border" />
+
+              <button
+                className="send-button"
+                onClick={() => generateImage()}
+                disabled={!prompt.trim() || loading}
+                aria-label="ساخت تصویر"
+              >
+                {loading ? (
+                  <span className="button-spinner" />
+                ) : (
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="21"
+                    height="21"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 2 11 13" />
+                    <path d="m22 2-7 20-4-9-9-4Z" />
+                  </svg>
+                )}
+              </button>
+
+            </div>
 
           </div>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="error-box">
-            <span>{error}</span>
+          <div className="error-message">
+            {error}
           </div>
         )}
 
-        {/* Result */}
+        {/* Generated Image */}
         {image && (
-          <section className="result-section">
-
-            <div className="result-header">
-              <div>
-                <div className="result-label">
-                  GENERATED IMAGE
-                </div>
-
-                <h2>
-                  تصویرت آماده است
-                </h2>
-              </div>
-            </div>
+          <div className="result">
 
             <div className="image-card">
               <img
                 src={image}
-                alt="Generated by Mobixa AI"
+                alt="تصویر ساخته شده توسط موبیکسا"
               />
             </div>
 
-            <div className="result-actions">
+            {/* فقط دو گزینه کوچک زیر عکس */}
+            <div className="image-actions">
 
               <button
-                className="action-button primary"
+                className="small-action"
                 onClick={downloadImage}
               >
                 <svg
                   viewBox="0 0 24 24"
-                  width="19"
-                  height="19"
+                  width="16"
+                  height="16"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="1.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
@@ -196,264 +182,310 @@ export default function ImagePage() {
                   <path d="M5 21h14" />
                 </svg>
 
-                دانلود تصویر
+                <span>دانلود</span>
               </button>
 
               <button
-                className="action-button"
-                onClick={retry}
+                className="small-action"
+                onClick={retryImage}
                 disabled={loading}
               >
                 <svg
                   viewBox="0 0 24 24"
-                  width="19"
-                  height="19"
+                  width="16"
+                  height="16"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="1.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <path d="M20 11a8.1 8.1 0 0 0-15.5-2" />
+                  <path d="M20 11a8 8 0 0 0-15.5-2" />
                   <path d="M4 4v5h5" />
-                  <path d="M4 13a8.1 8.1 0 0 0 15.5 2" />
+                  <path d="M4 13a8 8 0 0 0 15.5 2" />
                   <path d="M20 20v-5h-5" />
                 </svg>
 
-                ساخت دوباره
+                <span>تلاش مجدد</span>
               </button>
 
             </div>
-          </section>
+
+          </div>
         )}
 
-      </section>
+      </div>
 
       <style jsx>{`
+
+        * {
+          box-sizing: border-box;
+        }
+
         .image-page {
           min-height: 100vh;
+          width: 100%;
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
+
           background:
             radial-gradient(
-              circle at 50% 15%,
-              rgba(124, 92, 255, 0.13),
-              transparent 32%
+              circle at 50% 10%,
+              rgba(112, 88, 255, 0.10),
+              transparent 35%
             ),
             #050507;
-          color: #fff;
-          font-family: inherit;
+
+          color: white;
           direction: rtl;
           padding: 70px 20px 100px;
         }
 
-        .image-container {
-          width: min(900px, 100%);
+        .image-wrapper {
+          width: min(850px, 100%);
           margin: 0 auto;
           position: relative;
           z-index: 2;
         }
 
-        .background-glow {
+        /* Background glow */
+
+        .bg-glow {
           position: absolute;
-          width: 420px;
-          height: 420px;
+          width: 400px;
+          height: 400px;
           border-radius: 50%;
           filter: blur(120px);
-          opacity: 0.12;
+          opacity: 0.10;
           pointer-events: none;
         }
 
-        .glow-one {
-          top: 0;
-          right: -180px;
-          background: #765cff;
+        .bg-glow-1 {
+          top: -180px;
+          right: -150px;
+          background: #735cff;
         }
 
-        .glow-two {
-          bottom: 0;
-          left: -180px;
-          background: #00c6ff;
-        }
-
-        /* AI Orb */
-
-        .ai-orb-wrap {
-          width: 72px;
-          height: 72px;
-          margin: 0 auto 25px;
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .ai-orb {
-          width: 52px;
-          height: 52px;
-          border-radius: 17px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          z-index: 3;
-
-          background:
-            linear-gradient(
-              145deg,
-              rgba(255, 255, 255, 0.15),
-              rgba(255, 255, 255, 0.035)
-            );
-
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          box-shadow:
-            0 0 35px rgba(125, 92, 255, 0.3),
-            inset 0 0 20px rgba(255, 255, 255, 0.04);
-
-          backdrop-filter: blur(15px);
-        }
-
-        .ai-orb span {
-          font-size: 22px;
-          font-weight: 800;
-          background: linear-gradient(135deg, #fff, #9f8cff);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .ai-orbit {
-          position: absolute;
-          border: 1px solid rgba(145, 125, 255, 0.28);
-          border-radius: 50%;
-          transform: rotate(-25deg);
-        }
-
-        .orbit-one {
-          width: 70px;
-          height: 30px;
-        }
-
-        .orbit-two {
-          width: 30px;
-          height: 70px;
+        .bg-glow-2 {
+          bottom: -200px;
+          left: -150px;
+          background: #00bfff;
         }
 
         /* Header */
 
-        .header {
+        .image-header {
           text-align: center;
-          margin-bottom: 38px;
+          margin-bottom: 35px;
         }
 
-        .eyebrow {
-          display: inline-block;
-          font-size: 11px;
-          letter-spacing: 3px;
+        .image-label {
+          font-size: 10px;
           font-weight: 700;
-          color: rgba(190, 180, 255, 0.75);
-          margin-bottom: 14px;
+          letter-spacing: 3px;
+          color: rgba(170, 155, 255, 0.7);
           direction: ltr;
+          margin-bottom: 13px;
         }
 
-        h1 {
+        .image-header h1 {
           margin: 0;
-          font-size: clamp(32px, 6vw, 55px);
-          line-height: 1.2;
+          font-size: clamp(32px, 6vw, 52px);
           font-weight: 850;
           letter-spacing: -1.5px;
+          line-height: 1.25;
         }
 
-        h1 span {
-          background: linear-gradient(
-            110deg,
-            #ffffff,
-            #a493ff,
-            #6ddcff
-          );
+        .image-header h1 span {
+          background:
+            linear-gradient(
+              110deg,
+              #ffffff,
+              #a393ff,
+              #6edcff
+            );
+
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
 
-        .header p {
-          margin: 16px auto 0;
-          max-width: 530px;
-          color: rgba(255, 255, 255, 0.48);
-          font-size: 14px;
+        .image-header p {
+          margin: 14px auto 0;
+          max-width: 500px;
+          color: rgba(255, 255, 255, 0.43);
+          font-size: 13px;
           line-height: 1.9;
         }
 
         /* Prompt */
 
         .prompt-box {
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.045);
-          border-radius: 25px;
-          padding: 17px;
-          backdrop-filter: blur(22px);
+          width: 100%;
+          border-radius: 24px;
+
+          background:
+            rgba(255, 255, 255, 0.045);
+
+          border: 1px solid rgba(255, 255, 255, 0.09);
+
+          padding: 15px;
+
+          backdrop-filter: blur(20px);
+
           box-shadow:
             0 25px 70px rgba(0, 0, 0, 0.35),
-            inset 0 1px rgba(255, 255, 255, 0.04);
+            inset 0 1px rgba(255, 255, 255, 0.035);
+
           transition: border-color 0.25s ease;
         }
 
         .prompt-box:focus-within {
-          border-color: rgba(145, 125, 255, 0.38);
+          border-color: rgba(135, 115, 255, 0.32);
         }
 
         .prompt-box textarea {
           width: 100%;
-          min-height: 145px;
+          min-height: 135px;
+
           resize: vertical;
-          border: 0;
-          outline: 0;
+
+          border: none;
+          outline: none;
+
           background: transparent;
-          color: #fff;
+
+          color: white;
+
           font-family: inherit;
-          font-size: 16px;
+          font-size: 15px;
           line-height: 2;
-          padding: 8px 7px;
+
+          padding: 8px;
+
           direction: rtl;
         }
 
         .prompt-box textarea::placeholder {
-          color: rgba(255, 255, 255, 0.28);
+          color: rgba(255, 255, 255, 0.25);
         }
 
         .prompt-box textarea:disabled {
           opacity: 0.55;
         }
 
-        .prompt-bottom {
+        .prompt-footer {
           display: flex;
           align-items: center;
           justify-content: space-between;
+
           direction: ltr;
-          padding-top: 9px;
+
+          padding: 7px 5px 2px;
         }
 
         .counter {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.25);
           direction: ltr;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.28);
         }
 
-        /* Send */
+        /* Send button */
 
-        .send-button {
+        .send-button-wrapper {
+          position: relative;
           width: 53px;
           height: 53px;
-          border-radius: 17px;
-          border: 0;
-          position: relative;
+
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+
+        /*
+          این فقط همان حاشیه نوری است.
+          خود دکمه دست نخورده باقی می‌ماند.
+        */
+
+        .rotating-border {
+          position: absolute;
+
+          width: 63px;
+          height: 63px;
+
+          border-radius: 21px;
+
+          background:
+            conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              transparent 220deg,
+              rgba(156, 137, 255, 0.05) 245deg,
+              rgba(156, 137, 255, 0.95) 300deg,
+              rgba(111, 217, 255, 0.9) 330deg,
+              transparent 360deg
+            );
+
+          animation: rotate-light 1.7s linear infinite;
+
+          filter: blur(1px);
+
+          pointer-events: none;
+
+          z-index: 0;
+        }
+
+        /*
+          وسط حاشیه را خالی می‌کنیم تا فقط
+          یک حلقه نور دور دکمه دیده شود.
+        */
+
+        .rotating-border::after {
+          content: "";
+
+          position: absolute;
+
+          inset: 2px;
+
+          border-radius: 19px;
+
+          background: #050507;
+        }
+
+        .send-button {
+          position: relative;
+          z-index: 2;
+
+          width: 53px;
+          height: 53px;
+
+          border: none;
+          border-radius: 17px;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          color: white;
+
           cursor: pointer;
-          color: #fff;
-          background: linear-gradient(145deg, #735cff, #4d3ad9);
+
+          background:
+            linear-gradient(
+              145deg,
+              #735cff,
+              #4d3ad9
+            );
+
           box-shadow:
             0 8px 30px rgba(101, 76, 255, 0.32);
-          overflow: visible;
+
+          transition:
+            transform 0.2s ease,
+            opacity 0.2s ease;
+        }
+
+        .send-button:hover:not(:disabled) {
+          transform: translateY(-1px);
         }
 
         .send-button:disabled {
@@ -462,84 +494,69 @@ export default function ImagePage() {
           box-shadow: none;
         }
 
-        .send-button:not(:disabled):hover {
-          transform: translateY(-1px);
-        }
-
-        .send-ring {
-          position: absolute;
-          inset: -5px;
-          border-radius: 20px;
-          border: 2px solid transparent;
-          border-top-color: rgba(166, 150, 255, 0.95);
-          border-right-color: rgba(115, 92, 255, 0.35);
-          animation: rotate-ring 1.5s linear infinite;
-          pointer-events: none;
-        }
-
-        @keyframes rotate-ring {
+        @keyframes rotate-light {
           to {
             transform: rotate(360deg);
           }
         }
 
-        .spinner {
-          width: 20px;
-          height: 20px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top-color: #fff;
+        .button-spinner {
+          width: 19px;
+          height: 19px;
+
           border-radius: 50%;
-          animation: spinner 0.75s linear infinite;
+
+          border:
+            2px solid rgba(255, 255, 255, 0.3);
+
+          border-top-color: white;
+
+          animation:
+            button-spin 0.75s linear infinite;
         }
 
-        @keyframes spinner {
+        @keyframes button-spin {
           to {
             transform: rotate(360deg);
           }
+        }
+
+        /* Error */
+
+        .error-message {
+          margin-top: 15px;
+          padding: 12px 15px;
+
+          border-radius: 13px;
+
+          background: rgba(255, 70, 70, 0.07);
+          border: 1px solid rgba(255, 70, 70, 0.15);
+
+          color: #ff9b9b;
+
+          font-size: 12px;
+          text-align: center;
         }
 
         /* Result */
 
-        .result-section {
-          margin-top: 55px;
-          animation: appear 0.45s ease both;
-        }
-
-        @keyframes appear {
-          from {
-            opacity: 0;
-            transform: translateY(15px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .result-header {
-          margin-bottom: 18px;
-        }
-
-        .result-label {
-          direction: ltr;
-          font-size: 10px;
-          letter-spacing: 2px;
-          color: rgba(170, 155, 255, 0.7);
-          margin-bottom: 6px;
-        }
-
-        .result-header h2 {
-          margin: 0;
-          font-size: 22px;
+        .result {
+          margin-top: 40px;
         }
 
         .image-card {
+          width: 100%;
           overflow: hidden;
-          border-radius: 25px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.035);
-          box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+
+          border-radius: 23px;
+
+          background: rgba(255, 255, 255, 0.03);
+
+          border:
+            1px solid rgba(255, 255, 255, 0.09);
+
+          box-shadow:
+            0 30px 80px rgba(0, 0, 0, 0.42);
         }
 
         .image-card img {
@@ -548,79 +565,108 @@ export default function ImagePage() {
           height: auto;
         }
 
-        .result-actions {
+        /* Small buttons */
+
+        .image-actions {
           display: flex;
-          gap: 12px;
-          margin-top: 16px;
+          justify-content: center;
+          align-items: center;
+
+          gap: 8px;
+
+          margin-top: 10px;
         }
 
-        .action-button {
-          flex: 1;
-          min-height: 52px;
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.055);
-          color: #fff;
+        .small-action {
+          min-width: 105px;
+          height: 34px;
+
+          padding: 0 12px;
+
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 9px;
-          cursor: pointer;
+
+          gap: 7px;
+
+          border-radius: 10px;
+
+          border:
+            1px solid rgba(255, 255, 255, 0.08);
+
+          background:
+            rgba(255, 255, 255, 0.045);
+
+          color:
+            rgba(255, 255, 255, 0.72);
+
           font-family: inherit;
-          font-size: 14px;
-          font-weight: 700;
+          font-size: 11px;
+          font-weight: 600;
+
+          cursor: pointer;
+
           transition:
-            transform 0.2s ease,
             background 0.2s ease,
-            border-color 0.2s ease;
+            border-color 0.2s ease,
+            color 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .action-button:hover {
+        .small-action:hover:not(:disabled) {
+          background:
+            rgba(255, 255, 255, 0.085);
+
+          border-color:
+            rgba(255, 255, 255, 0.16);
+
+          color: white;
+
           transform: translateY(-1px);
-          background: rgba(255, 255, 255, 0.09);
-          border-color: rgba(255, 255, 255, 0.18);
         }
 
-        .action-button.primary {
-          background: linear-gradient(
-            135deg,
-            rgba(115, 92, 255, 0.95),
-            rgba(82, 63, 210, 0.95)
-          );
-          border-color: transparent;
+        .small-action:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
         }
+
+        /* Mobile */
 
         @media (max-width: 600px) {
+
           .image-page {
-            padding: 45px 14px 70px;
+            padding:
+              45px 14px 70px;
           }
 
-          h1 {
-            font-size: 32px;
+          .image-header {
+            margin-bottom: 27px;
           }
 
-          .header p {
-            font-size: 13px;
+          .image-header h1 {
+            font-size: 31px;
+          }
+
+          .image-header p {
+            font-size: 12px;
           }
 
           .prompt-box {
             border-radius: 21px;
-            padding: 13px;
+            padding: 12px;
           }
 
           .prompt-box textarea {
-            min-height: 125px;
-            font-size: 15px;
+            min-height: 120px;
+            font-size: 14px;
           }
 
-          .result-actions {
-            flex-direction: column;
-          }
-
-          .action-button {
-            flex: none;
+          .small-action {
+            min-width: 100px;
+            height: 33px;
           }
         }
+
       `}</style>
     </main>
   );
