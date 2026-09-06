@@ -660,8 +660,6 @@ export default function ChatPage() {
                   <b>CREATE</b>
 
                   <span>متنت رو حرفه‌ای کن</span>
-
-                  <small>↗</small>
                 </button>
 
                 <button
@@ -680,8 +678,6 @@ export default function ChatPage() {
                   <b>LEARN MODE</b>
 
                   <span>هر چیزی رو ساده یاد بگیر</span>
-
-                  <small>↗</small>
                 </button>
 
                 <button
@@ -700,8 +696,6 @@ export default function ChatPage() {
                   <b>IDEA LAB</b>
 
                   <span>یه ایده خفن بساز</span>
-
-                  <small>↗</small>
                 </button>
               </div>
             </div>
