@@ -30,34 +30,21 @@ function BackIcon() {
 
 function SendIcon() {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-      className="send-icon"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
-        d="M5 16h20"
+        d="M21 3 10 14"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2"
         strokeLinecap="round"
       />
-
       <path
-        d="M18 8l8 8-8 8"
+        d="m21 3-7 18-3.5-7.5L3 10l18-7Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.2"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-
-      <path
-        d="M6 11.5c2.2-1.8 4.8-2.7 7.5-2.7"
-        fill="none"
-        stroke="rgba(255,255,255,.65)"
-        strokeWidth="1.4"
-        strokeLinecap="round"
       />
     </svg>
   );
@@ -161,7 +148,7 @@ function MobixaLogo() {
 }
 
 /* =========================
-   ROBOT
+   MODERN ROBOT
 ========================= */
 
 function MobixaRobot() {
@@ -171,199 +158,329 @@ function MobixaRobot() {
 
       <svg
         className="robot-svg"
-        viewBox="0 0 240 240"
+        viewBox="0 0 260 260"
         role="img"
         aria-label="Mobixa AI robot"
       >
         <defs>
-          <linearGradient id="robotHead" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a975ff" />
-            <stop offset="45%" stopColor="#372a86" />
-            <stop offset="100%" stopColor="#080a22" />
+          <linearGradient
+            id="robotHead"
+            x1="20"
+            y1="15"
+            x2="235"
+            y2="245"
+          >
+            <stop offset="0%" stopColor="#c7a0ff" />
+            <stop offset="28%" stopColor="#7655dc" />
+            <stop offset="62%" stopColor="#211d65" />
+            <stop offset="100%" stopColor="#07091c" />
           </linearGradient>
 
-          <linearGradient id="robotBody" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#6950db" />
-            <stop offset="50%" stopColor="#17164d" />
-            <stop offset="100%" stopColor="#070918" />
+          <linearGradient
+            id="robotBody"
+            x1="35"
+            y1="120"
+            x2="225"
+            y2="255"
+          >
+            <stop offset="0%" stopColor="#7661df" />
+            <stop offset="35%" stopColor="#30266f" />
+            <stop offset="72%" stopColor="#121437" />
+            <stop offset="100%" stopColor="#050716" />
           </linearGradient>
 
-          <linearGradient id="robotBlue" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#e3d4ff" />
-            <stop offset="50%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#19d9ff" />
+          <linearGradient
+            id="robotMetal"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+          >
+            <stop offset="0%" stopColor="#f0eaff" />
+            <stop offset="35%" stopColor="#b9a5f5" />
+            <stop offset="70%" stopColor="#6357a7" />
+            <stop offset="100%" stopColor="#28284f" />
+          </linearGradient>
+
+          <linearGradient
+            id="robotBlue"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+          >
+            <stop offset="0%" stopColor="#eee6ff" />
+            <stop offset="38%" stopColor="#9b67ff" />
+            <stop offset="100%" stopColor="#20ddff" />
+          </linearGradient>
+
+          <linearGradient
+            id="screenGlow"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+          >
+            <stop offset="0%" stopColor="#07152e" />
+            <stop offset="50%" stopColor="#050a20" />
+            <stop offset="100%" stopColor="#07182a" />
           </linearGradient>
 
           <filter id="robotGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="7" />
+          </filter>
         </defs>
 
-        <line
-          x1="120"
-          y1="29"
-          x2="120"
-          y2="14"
+        {/* antenna */}
+        <path
+          d="M130 35V19"
           stroke="#6deaff"
           strokeWidth="4"
+          strokeLinecap="round"
         />
 
         <circle
-          cx="120"
-          cy="10"
-          r="7"
-          fill="#c18cff"
+          cx="130"
+          cy="13"
+          r="8"
+          fill="#c48cff"
+          filter="url(#robotGlow)"
+        />
+
+        {/* rear ear modules */}
+        <rect
+          x="38"
+          y="91"
+          width="28"
+          height="70"
+          rx="14"
+          fill="#11143b"
+          stroke="#705dce"
+          strokeWidth="4"
+        />
+
+        <rect
+          x="194"
+          y="91"
+          width="28"
+          height="70"
+          rx="14"
+          fill="#11143b"
+          stroke="#705dce"
+          strokeWidth="4"
+        />
+
+        {/* head outer shell */}
+        <rect
+          x="52"
+          y="39"
+          width="156"
+          height="133"
+          rx="57"
+          fill="url(#robotHead)"
+          stroke="#b69cff"
+          strokeWidth="4"
+        />
+
+        {/* head highlight */}
+        <path
+          d="M82 58c17-12 43-18 72-12"
+          fill="none"
+          stroke="rgba(255,255,255,.35)"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        {/* face screen */}
+        <rect
+          x="67"
+          y="65"
+          width="126"
+          height="82"
+          rx="35"
+          fill="url(#screenGlow)"
+          stroke="#32d9ff"
+          strokeOpacity=".65"
+          strokeWidth="2.5"
+        />
+
+        {/* screen shine */}
+        <path
+          d="M86 76c24-9 56-11 86 1"
+          fill="none"
+          stroke="#7eecff"
+          strokeOpacity=".18"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+
+        {/* eyes */}
+        <rect
+          x="87"
+          y="91"
+          width="21"
+          height="11"
+          rx="5.5"
+          fill="#4eeaff"
           filter="url(#robotGlow)"
         />
 
         <rect
-          x="45"
-          y="83"
-          width="22"
-          height="53"
-          rx="11"
-          fill="#151747"
-          stroke="#735cff"
-          strokeWidth="4"
+          x="152"
+          y="91"
+          width="21"
+          height="11"
+          rx="5.5"
+          fill="#4eeaff"
+          filter="url(#robotGlow)"
         />
 
-        <rect
-          x="173"
-          y="83"
-          width="22"
-          height="53"
-          rx="11"
-          fill="#151747"
-          stroke="#735cff"
+        {/* smile */}
+        <path
+          d="M111 119c12 10 26 10 38 0"
+          fill="none"
+          stroke="#aa8cff"
           strokeWidth="4"
+          strokeLinecap="round"
         />
 
+        {/* neck */}
         <rect
-          x="58"
-          y="34"
-          width="124"
-          height="112"
-          rx="48"
-          fill="url(#robotHead)"
-          stroke="#a98aff"
-          strokeWidth="4"
-        />
-
-        <rect
-          x="72"
-          y="53"
-          width="96"
-          height="73"
-          rx="32"
-          fill="#030716"
-          stroke="#27cfff"
-          strokeOpacity=".45"
+          x="112"
+          y="166"
+          width="36"
+          height="18"
+          rx="9"
+          fill="#29265e"
+          stroke="#7565c9"
           strokeWidth="2"
         />
 
+        {/* body */}
         <path
-          d="M89 83c4-8 12-8 16 0"
-          fill="none"
-          stroke="#49eaff"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M135 83c4-8 12-8 16 0"
-          fill="none"
-          stroke="#49eaff"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M105 101c9 9 21 9 30 0"
-          fill="none"
-          stroke="#9a7cff"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-
-        <rect
-          x="106"
-          y="139"
-          width="28"
-          height="14"
-          rx="7"
-          fill="#292469"
-        />
-
-        <path
-          d="M77 148c8-12 23-17 43-17s35 5 43 17l17 55H60l17-55Z"
+          d="M79 174c10-12 29-18 51-18s41 6 51 18l20 64H59l20-64Z"
           fill="url(#robotBody)"
-          stroke="#7967ff"
+          stroke="#8071dc"
           strokeWidth="4"
         />
 
+        {/* shoulder lights */}
+        <path
+          d="M83 183c8-7 17-11 27-13"
+          fill="none"
+          stroke="#a981ff"
+          strokeOpacity=".55"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        <path
+          d="M177 183c-8-7-17-11-27-13"
+          fill="none"
+          stroke="#24dfff"
+          strokeOpacity=".55"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        {/* chest core */}
         <circle
-          cx="120"
-          cy="170"
-          r="17"
-          fill="#090d2b"
-          stroke="#42ddff"
+          cx="130"
+          cy="201"
+          r="22"
+          fill="#070b25"
+          stroke="#4ce4ff"
           strokeWidth="3"
         />
 
         <circle
-          cx="120"
-          cy="170"
-          r="7"
-          fill="#32dcff"
+          cx="130"
+          cy="201"
+          r="10"
+          fill="#34ddff"
           filter="url(#robotGlow)"
-        />
-
-        <path
-          d="M77 157c-18 4-27 15-35 29"
-          fill="none"
-          stroke="url(#robotBlue)"
-          strokeWidth="15"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M164 157c18-3 27-14 34-30"
-          fill="none"
-          stroke="url(#robotBlue)"
-          strokeWidth="15"
-          strokeLinecap="round"
         />
 
         <circle
-          cx="199"
-          cy="119"
-          r="13"
-          fill="#b99cff"
+          cx="130"
+          cy="201"
+          r="4"
+          fill="#ffffff"
+        />
+
+        {/* left arm */}
+        <path
+          d="M80 184c-20 4-29 16-38 34"
+          fill="none"
+          stroke="url(#robotBlue)"
+          strokeWidth="18"
+          strokeLinecap="round"
+        />
+
+        {/* right arm raised */}
+        <path
+          d="M180 184c19-4 30-17 38-38"
+          fill="none"
+          stroke="url(#robotBlue)"
+          strokeWidth="18"
+          strokeLinecap="round"
+        />
+
+        {/* raised hand */}
+        <circle
+          cx="218"
+          cy="132"
+          r="15"
+          fill="url(#robotMetal)"
+          stroke="#9f8af0"
+          strokeWidth="3"
           filter="url(#robotGlow)"
         />
 
+        {/* index finger */}
         <path
-          d="M199 111v-27"
-          stroke="#d0c2ff"
-          strokeWidth="9"
+          d="M218 122V91"
+          stroke="#ddd5ff"
+          strokeWidth="11"
           strokeLinecap="round"
         />
 
+        {/* hand accent */}
         <path
-          d="M214 98l8-7M215 108l10-2"
-          stroke="#34dfff"
+          d="M233 111l10-8M234 122l12-2"
+          stroke="#32ddff"
           strokeWidth="3"
           strokeLinecap="round"
+        />
+
+        {/* subtle body light */}
+        <path
+          d="M102 226h56"
+          stroke="#35dcff"
+          strokeOpacity=".35"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+
+        {/* small internal glow */}
+        <ellipse
+          cx="130"
+          cy="230"
+          rx="52"
+          ry="9"
+          fill="#6b4aff"
+          opacity=".18"
+          filter="url(#softGlow)"
         />
       </svg>
-
-      <span className="robot-star rs-one">✦</span>
-      <span className="robot-star rs-two">✧</span>
-      <span className="robot-star rs-three">✦</span>
     </div>
   );
 }
@@ -1121,10 +1238,11 @@ export default function ChatPage() {
           right: 5px;
         }
 
+        /* ربات فقط کمی بزرگ‌تر و حرفه‌ای‌تر شده */
         .robot-stage {
           position: relative;
-          width: 210px;
-          height: 155px;
+          width: 225px;
+          height: 170px;
           flex: 0 0 auto;
           margin-top: -30px;
           display: flex;
@@ -1134,8 +1252,8 @@ export default function ChatPage() {
 
         .robot-aura {
           position: absolute;
-          width: 125px;
-          height: 90px;
+          width: 145px;
+          height: 105px;
           border-radius: 50%;
           background: #7040ff;
           filter: blur(45px);
@@ -1144,35 +1262,12 @@ export default function ChatPage() {
 
         .robot-svg {
           position: relative;
-          width: 160px;
-          height: 160px;
+          width: 180px;
+          height: 180px;
           z-index: 2;
           filter:
-            drop-shadow(0 0 9px rgba(114, 81, 255, 0.5))
-            drop-shadow(0 0 18px rgba(0, 210, 255, 0.16));
-        }
-
-        .robot-star {
-          position: absolute;
-          z-index: 3;
-          color: #a77cff;
-          text-shadow: 0 0 12px #00d9ff;
-        }
-
-        .rs-one {
-          top: 26px;
-          right: 18px;
-        }
-
-        .rs-two {
-          bottom: 17px;
-          left: 25px;
-        }
-
-        .rs-three {
-          top: 68px;
-          left: 10px;
-          font-size: 9px;
+            drop-shadow(0 0 10px rgba(114, 81, 255, 0.55))
+            drop-shadow(0 0 20px rgba(0, 210, 255, 0.2));
         }
 
         .greeting {
@@ -1323,6 +1418,7 @@ export default function ChatPage() {
           white-space: nowrap;
         }
 
+        /* حذف قطعی هر فلش/محتوای اضافه از کارت‌ها */
         .card::before,
         .card::after,
         .card small {
@@ -1466,181 +1562,38 @@ export default function ChatPage() {
           color: rgba(173, 183, 230, 0.72);
         }
 
-        /* =========================
-           FUTURISTIC SEND BUTTON
-        ========================= */
-
         .send {
-          position: relative;
-          width: 54px;
-          height: 54px;
-          flex: 0 0 54px;
-
+          width: 51px;
+          height: 51px;
+          flex: 0 0 51px;
           display: flex;
           align-items: center;
           justify-content: center;
-
-          border: 1px solid rgba(201, 127, 255, 0.95);
+          border: 1px solid rgba(188, 101, 255, 0.85);
           border-radius: 50%;
-
+          background:
+            radial-gradient(
+              circle at 30% 25%,
+              #bd78ff,
+              #7139eb 48%,
+              #3260ff
+            );
           color: white;
-
-          background:
-            radial-gradient(
-              circle at 31% 24%,
-              rgba(255, 255, 255, 0.4),
-              transparent 22%
-            ),
-            radial-gradient(
-              circle at 34% 28%,
-              #c477ff 0%,
-              #883ff2 35%,
-              #4c35cf 67%,
-              #142d87 100%
-            );
-
           box-shadow:
-            0 0 8px rgba(190, 94, 255, 0.95),
-            0 0 18px rgba(144, 63, 255, 0.75),
-            0 0 34px rgba(0, 211, 255, 0.25),
-            inset 0 1px 3px rgba(255, 255, 255, 0.48),
-            inset 0 -8px 16px rgba(10, 7, 55, 0.48);
-
+            0 0 16px rgba(146, 70, 255, 0.7),
+            0 0 27px rgba(0, 186, 255, 0.18);
           cursor: pointer;
-
-          isolation: isolate;
-
-          transition:
-            transform 0.22s cubic-bezier(.2,.8,.2,1),
-            box-shadow 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .send::before {
-          content: "";
-          position: absolute;
-          inset: -5px;
-
-          border-radius: 50%;
-
-          background:
-            conic-gradient(
-              from 0deg,
-              transparent 0deg,
-              rgba(190, 91, 255, 0.95) 65deg,
-              rgba(35, 225, 255, 0.95) 145deg,
-              transparent 215deg,
-              rgba(173, 76, 255, 0.9) 300deg,
-              transparent 360deg
-            );
-
-          z-index: -1;
-
-          filter: blur(1px);
-
-          opacity: 0.8;
-
-          animation: sendRing 4s linear infinite;
-        }
-
-        .send::after {
-          content: "";
-
-          position: absolute;
-          inset: 2px;
-
-          border-radius: 50%;
-
-          border: 1px solid rgba(255, 255, 255, 0.17);
-
-          box-shadow:
-            inset 0 0 10px rgba(255, 255, 255, 0.08),
-            inset 0 0 18px rgba(0, 220, 255, 0.09);
-
-          pointer-events: none;
-        }
-
-        .send:hover {
-          transform: translateY(-2px) scale(1.045);
-
-          filter: brightness(1.12);
-
-          box-shadow:
-            0 0 10px rgba(195, 103, 255, 1),
-            0 0 26px rgba(157, 66, 255, 0.9),
-            0 0 48px rgba(0, 215, 255, 0.4),
-            inset 0 1px 3px rgba(255, 255, 255, 0.52),
-            inset 0 -8px 16px rgba(13, 10, 62, 0.38);
-        }
-
-        .send:active {
-          transform: scale(0.91);
-
-          box-shadow:
-            0 0 8px rgba(177, 83, 255, 0.8),
-            0 0 18px rgba(0, 208, 255, 0.25),
-            inset 0 4px 12px rgba(11, 8, 48, 0.58);
-        }
-
-        .send:focus-visible {
-          outline: 2px solid rgba(42, 222, 255, 0.9);
-          outline-offset: 4px;
         }
 
         .send:disabled {
           opacity: 0.45;
           cursor: not-allowed;
-          transform: none;
-          filter: grayscale(0.15);
-
-          box-shadow:
-            0 0 8px rgba(126, 78, 190, 0.22),
-            inset 0 1px 2px rgba(255, 255, 255, 0.15);
         }
 
-        .send:disabled::before {
-          animation: none;
-          opacity: 0.25;
-        }
-
-        .send-icon {
-          position: relative;
-          z-index: 3;
-
-          width: 25px;
-          height: 25px;
-
-          filter:
-            drop-shadow(0 0 4px rgba(255, 255, 255, 0.7))
-            drop-shadow(0 0 9px rgba(28, 224, 255, 0.38));
-
-          transform: translateX(1px);
-
-          transition:
-            transform 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .send:hover .send-icon {
-          transform: translateX(3px) scale(1.07);
-
-          filter:
-            drop-shadow(0 0 5px rgba(255, 255, 255, 0.95))
-            drop-shadow(0 0 13px rgba(31, 225, 255, 0.58));
-        }
-
-        .send:active .send-icon {
-          transform: translateX(4px) scale(0.94);
-        }
-
-        @keyframes sendRing {
-          from {
-            transform: rotate(0deg);
-          }
-
-          to {
-            transform: rotate(360deg);
-          }
+        .send svg {
+          width: 23px;
+          height: 23px;
+          transform: rotate(180deg);
         }
 
         .footer {
@@ -1715,14 +1668,14 @@ export default function ChatPage() {
           }
 
           .robot-stage {
-            width: 190px;
-            height: 138px;
+            width: 205px;
+            height: 150px;
             margin-top: -27px;
           }
 
           .robot-svg {
-            width: 145px;
-            height: 145px;
+            width: 165px;
+            height: 165px;
           }
 
           .hello {
@@ -1779,14 +1732,9 @@ export default function ChatPage() {
           }
 
           .send {
-            width: 49px;
-            height: 49px;
-            flex-basis: 49px;
-          }
-
-          .send-icon {
-            width: 23px;
-            height: 23px;
+            width: 47px;
+            height: 47px;
+            flex-basis: 47px;
           }
 
           .footer {
