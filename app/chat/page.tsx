@@ -4,239 +4,174 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Message = {
+  id: string;
   role: "user" | "assistant";
   content: string;
 };
 
-/* ---------- Custom Mobixa Icons ---------- */
-
-function MobixaMark() {
+function MobixaLogo() {
   return (
-    <div className="relative flex h-24 w-24 items-center justify-center">
-      <div className="absolute inset-0 rounded-[30px] border border-violet-400/30 bg-violet-500/[0.06] shadow-[0_0_50px_rgba(139,92,246,0.18)]" />
+    <div className="logo-orbit">
+      <div className="orbit orbit-one" />
+      <div className="orbit orbit-two" />
 
-      <div className="absolute h-16 w-16 rounded-full border border-cyan-300/20 shadow-[0_0_35px_rgba(34,211,238,0.12)]" />
+      <div className="logo-sphere">
+        <div className="logo-m">
+          <span className="m-left" />
+          <span className="m-center" />
+          <span className="m-right" />
+        </div>
 
-      <div className="absolute h-3 w-3 -translate-y-[38px] rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,0.9)]" />
-
-      <svg
-        viewBox="0 0 80 80"
-        className="relative z-10 h-16 w-16"
-        fill="none"
-      >
-        <defs>
-          <linearGradient
-            id="mobixaGradient"
-            x1="10"
-            y1="10"
-            x2="70"
-            y2="70"
-          >
-            <stop offset="0%" stopColor="#c084fc" />
-            <stop offset="48%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#22d3ee" />
-          </linearGradient>
-        </defs>
-
-        <path
-          d="M15 58V23L25 16L40 31L55 16L65 23V58"
-          stroke="url(#mobixaGradient)"
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        <path
-          d="M25 43L40 56L55 43"
-          stroke="url(#mobixaGradient)"
-          strokeWidth="5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.9"
-        />
-
-        <circle
-          cx="40"
-          cy="40"
-          r="4"
-          fill="#ffffff"
-          className="animate-pulse"
-        />
-      </svg>
+        <div className="logo-star star-one">✦</div>
+        <div className="logo-star star-two">✦</div>
+      </div>
     </div>
   );
 }
 
-function WaveSticker() {
+function Robot() {
   return (
-    <div className="relative inline-flex h-12 w-12 items-center justify-center">
-      <div className="absolute inset-0 rounded-2xl border border-cyan-300/20 bg-cyan-400/[0.05] shadow-[0_0_30px_rgba(34,211,238,0.12)]" />
+    <div className="robot-wrap">
+      <div className="robot-glow" />
 
-      <div className="absolute inset-1 rounded-[14px] border border-violet-400/20" />
+      <div className="robot">
+        <div className="robot-head">
+          <div className="robot-ear left" />
+          <div className="robot-ear right" />
 
-      <svg
-        viewBox="0 0 64 64"
-        className="relative h-9 w-9"
-        fill="none"
-      >
-        <defs>
-          <linearGradient
-            id="waveGradient"
-            x1="10"
-            y1="10"
-            x2="55"
-            y2="55"
-          >
-            <stop offset="0%" stopColor="#c084fc" />
-            <stop offset="100%" stopColor="#22d3ee" />
-          </linearGradient>
-        </defs>
+          <div className="robot-face">
+            <div className="robot-eye left-eye" />
+            <div className="robot-eye right-eye" />
 
-        <path
-          d="M17 31V19C17 17 18.5 15.5 20.5 15.5C22.5 15.5 24 17 24 19V29"
-          stroke="url(#waveGradient)"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
+            <div className="robot-smile" />
+          </div>
+        </div>
 
-        <path
-          d="M24 29V14C24 12 25.5 10.5 27.5 10.5C29.5 10.5 31 12 31 14V29"
-          stroke="url(#waveGradient)"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
+        <div className="robot-body">
+          <div className="robot-chest">
+            <div />
+          </div>
 
-        <path
-          d="M31 29V16C31 14 32.5 12.5 34.5 12.5C36.5 12.5 38 14 38 16V30"
-          stroke="url(#waveGradient)"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
+          <div className="robot-arm left-arm" />
+          <div className="robot-arm right-arm">
+            <div className="robot-finger" />
+          </div>
+        </div>
+      </div>
 
-        <path
-          d="M38 30V21C38 19 39.5 17.5 41.5 17.5C43.5 17.5 45 19 45 21V37C45 47 39 53 30 53C22 53 16 48 13 40L10 32C9.2 30 10.2 28 12.2 27.4C14.2 26.8 16 28 17 31Z"
-          stroke="url(#waveGradient)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        <path
-          d="M47 13L49 17L53 19L49 21L47 25L45 21L41 19L45 17L47 13Z"
-          fill="#c084fc"
-        />
-      </svg>
+      <div className="robot-spark spark-one">✦</div>
+      <div className="robot-spark spark-two">✧</div>
+      <div className="robot-spark spark-three">✦</div>
     </div>
   );
 }
 
-function ArrowIcon() {
+function HandSticker() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14" />
-      <path d="M13 6l6 6-6 6" />
+    <span className="hand-sticker" aria-hidden="true">
+      👋
+    </span>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M19 12H5M11 6l-6 6 6 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 function SendIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 3L10.5 13.5" />
-      <path d="M21 3L14.5 21L10.5 13.5L3 9.5L21 3Z" />
-    </svg>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 12H5" />
-      <path d="M11 18L5 12L11 6" />
-    </svg>
-  );
-}
-
-function IdeaIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 18h6" />
-      <path d="M10 22h4" />
-      <path d="M8.5 14.5C7.2 13.3 6.5 11.7 6.5 10A5.5 5.5 0 0112 4.5 5.5 5.5 0 0117.5 10c0 1.7-.7 3.3-2 4.5-.8.8-1.5 1.5-1.5 2.5h-4c0-1-.7-1.7-1.5-2.5Z" />
-      <path d="M12 1v1" />
-      <path d="M4.5 3.5l.8.8" />
-      <path d="M19.5 3.5l-.8.8" />
-    </svg>
-  );
-}
-
-function LearnIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 5.5A2.5 2.5 0 016.5 3H11v16H6.5A2.5 2.5 0 014 16.5v-11Z" />
-      <path d="M20 5.5A2.5 2.5 0 0017.5 3H13v16h4.5a2.5 2.5 0 002.5-2.5v-11Z" />
-      <path d="M7 7h2" />
-      <path d="M15 7h2" />
-      <path d="M7 10h2" />
-      <path d="M15 10h2" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M21 3 10.5 13.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="m21 3-7 18-3.5-7.5L3 10l18-7Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 function CreateIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4Z" />
-      <path d="M13.5 6.5l4 4" />
-      <path d="M14 20h6" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="m4 20 4.5-1 10-10-3.5-3.5-10 10L4 20Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m13.5 6.5 3.5 3.5M7 17l3 3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18.5 3v3M17 4.5h3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function LearnIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M3 5.5 12 3l9 2.5v13L12 21l-9-2.5v-13Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 3v18M3 5.5l9 2.7 9-2.7"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function IdeaIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M9 18h6M10 21h4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 14.5c-1.2-1-2-2.5-2-4.2A6 6 0 0 1 18 10.3c0 1.7-.8 3.2-2 4.2-.8.7-1.3 1.5-1.4 2.5h-5.2c-.1-1-.6-1.8-1.4-2.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M20 4v2M19 5h2M4 5v2M3 6h2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -244,81 +179,55 @@ function CreateIcon() {
 export default function ChatPage() {
   const router = useRouter();
 
-  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-  const previousMessageCount = useRef(0);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
 
-  const suggestions = [
-    {
-      title: "IDEA LAB",
-      text: "یه ایده خفن بساز",
-      icon: <IdeaIcon />,
-      accent: "violet",
-      prompt: "یه ایده خلاقانه و خفن بهم بده",
-    },
-    {
-      title: "LEARN MODE",
-      text: "هر چیزی رو ساده یاد بگیر",
-      icon: <LearnIcon />,
-      accent: "cyan",
-      prompt: "یه موضوع رو خیلی ساده برام توضیح بده",
-    },
-    {
-      title: "CREATE",
-      text: "متنت رو حرفه‌ای کن",
-      icon: <CreateIcon />,
-      accent: "fuchsia",
-      prompt: "کمکم کن یه متن حرفه‌ای بنویسم",
-    },
-  ];
-
-  useEffect(() => {
-    try {
-      localStorage.removeItem("mobixa-chat-history");
-    } catch {
-      // مشکلی نیست.
+  function handleBack() {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
     }
-  }, []);
+  }
 
-  useEffect(() => {
-    if (messages.length === 0) {
-      previousMessageCount.current = 0;
-      return;
-    }
+  function useSuggestion(text: string) {
+    setInput(text);
 
-    if (messages.length !== previousMessageCount.current) {
-      bottomRef.current?.scrollIntoView({
-        behavior:
-          previousMessageCount.current === 0 ? "auto" : "smooth",
-        block: "end",
-      });
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+  }
 
-      previousMessageCount.current = messages.length;
-    }
-  }, [messages.length]);
+  async function sendMessage(customMessage?: string) {
+    const message = (customMessage ?? input).trim();
 
-  async function sendMessage(text?: string) {
-    const userMessage = (text ?? message).trim();
+    if (!message || loading) return;
 
-    if (!userMessage || loading) return;
+    setInput("");
 
-    setMessage("");
-    setLoading(true);
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: message,
+    };
+
+    const assistantId = crypto.randomUUID();
 
     setMessages((prev) => [
       ...prev,
+      userMessage,
       {
-        role: "user",
-        content: userMessage,
-      },
-      {
+        id: assistantId,
         role: "assistant",
         content: "",
       },
     ]);
+
+    setLoading(true);
 
     try {
       const response = await fetch("/api/chat", {
@@ -327,22 +236,19 @@ export default function ChatPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: userMessage,
+          message,
         }),
       });
 
       if (!response.ok) {
-        let errorMessage = "خطایی در ارتباط با سرور رخ داد.";
+        let errorText = "خطایی در ارتباط با هوش مصنوعی رخ داد.";
 
         try {
-          const data = await response.json();
-
-          if (data?.error) {
-            errorMessage = data.error;
-          }
+          const errorData = await response.json();
+          errorText = errorData?.error || errorText;
         } catch {}
 
-        throw new Error(errorMessage);
+        throw new Error(errorText);
       }
 
       if (!response.body) {
@@ -355,34 +261,18 @@ export default function ChatPage() {
       let buffer = "";
       let assistantText = "";
 
-      const updateAssistant = (content: string) => {
-        setMessages((prev) => {
-          const updated = [...prev];
-
-          if (
-            updated.length > 0 &&
-            updated[updated.length - 1].role === "assistant"
-          ) {
-            updated[updated.length - 1] = {
-              role: "assistant",
-              content,
-            };
-          }
-
-          return updated;
-        });
-      };
-
       while (true) {
         const { value, done } = await reader.read();
 
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, {
+          stream: true,
+        });
 
         const events = buffer.split("\n\n");
 
-        buffer = events.pop() ?? "";
+        buffer = events.pop() || "";
 
         for (const event of events) {
           const lines = event.split("\n");
@@ -390,12 +280,12 @@ export default function ChatPage() {
           for (const line of lines) {
             if (!line.startsWith("data:")) continue;
 
-            const data = line.slice(5).trim();
+            const rawData = line.slice(5).trim();
 
-            if (!data || data === "[DONE]") continue;
+            if (!rawData || rawData === "[DONE]") continue;
 
             try {
-              const parsed = JSON.parse(data);
+              const parsed = JSON.parse(rawData);
 
               const text =
                 parsed?.candidates?.[0]?.content?.parts?.find(
@@ -403,279 +293,1306 @@ export default function ChatPage() {
                     typeof part.text === "string"
                 )?.text ?? "";
 
-              if (text) {
-                assistantText += text;
-                updateAssistant(assistantText);
-              }
+              if (!text) continue;
+
+              assistantText += text;
+
+              setMessages((prev) =>
+                prev.map((item) =>
+                  item.id === assistantId
+                    ? {
+                        ...item,
+                        content: assistantText,
+                      }
+                    : item
+                )
+              );
             } catch {
-              // منتظر کامل شدن قطعه بعدی می‌مانیم.
+              // بعضی eventها ممکن است JSON کامل نباشند.
             }
           }
         }
-      }
-
-      if (!assistantText) {
-        updateAssistant("متأسفانه پاسخی دریافت نشد.");
       }
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "متأسفانه خطایی رخ داد.";
+          : "خطایی رخ داد.";
 
-      setMessages((prev) => {
-        const updated = [...prev];
-
-        if (
-          updated.length > 0 &&
-          updated[updated.length - 1].role === "assistant"
-        ) {
-          updated[updated.length - 1] = {
-            role: "assistant",
-            content: errorMessage,
-          };
-        }
-
-        return updated;
-      });
+      setMessages((prev) =>
+        prev.map((item) =>
+          item.id === assistantId
+            ? {
+                ...item,
+                content: `⚠️ ${errorMessage}`,
+              }
+            : item
+        )
+      );
     } finally {
       setLoading(false);
     }
   }
 
   function handleKeyDown(
-    e: React.KeyboardEvent<HTMLTextAreaElement>
+    event: React.KeyboardEvent<HTMLTextAreaElement>
   ) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       sendMessage();
     }
   }
 
-  function handleBack() {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-  }
+  useEffect(() => {
+    const element = messagesRef.current;
+
+    if (!element) return;
+
+    element.scrollTo({
+      top: element.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages.length]);
 
   return (
-    <main className="relative h-screen overflow-hidden bg-[#03030a] px-4 py-5 text-white sm:px-6">
-      {/* Background atmosphere */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-violet-600/[0.08] blur-[120px]" />
-        <div className="absolute -right-40 bottom-20 h-96 w-96 rounded-full bg-cyan-500/[0.07] blur-[120px]" />
+    <main
+      dir="rtl"
+      className="mobixa-page min-h-[100svh] overflow-hidden bg-[#02030b] text-white"
+    >
+      {/* Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="bg-glow glow-purple" />
+        <div className="bg-glow glow-blue" />
+        <div className="bg-glow glow-bottom" />
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(124,58,237,0.08),transparent_35%)]" />
+        <div className="light-line line-one" />
+        <div className="light-line line-two" />
+        <div className="light-line line-three" />
 
-        <div
-          className="absolute inset-0 opacity-[0.18]"
-          style={{
-            backgroundImage:
-              "radial-gradient(rgba(255,255,255,0.16) 0.6px, transparent 0.6px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
+        <div className="stars">
+          <span>✦</span>
+          <span>·</span>
+          <span>✧</span>
+          <span>·</span>
+          <span>✦</span>
+          <span>·</span>
+          <span>✧</span>
+          <span>·</span>
+          <span>✦</span>
+        </div>
       </div>
 
-      <header className="relative z-20 mx-auto flex max-w-5xl items-center justify-between">
+      {/* Header */}
+      <header className="relative z-20 mx-auto flex w-full max-w-5xl items-center justify-between px-5 pb-2 pt-6 sm:px-8">
         <button
           type="button"
           onClick={handleBack}
-          className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-2 text-xs text-white/55 backdrop-blur-xl transition duration-300 hover:border-violet-400/40 hover:bg-violet-500/[0.08] hover:text-white hover:shadow-[0_0_30px_rgba(139,92,246,0.14)]"
+          className="back-button"
         >
           <BackIcon />
-
           <span>بازگشت</span>
         </button>
 
-        <div className="text-lg font-black tracking-[0.18em] sm:text-xl">
-          MOBIXA
-          <span className="ml-1 bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent">
-            AI
-          </span>
+        <div className="brand">
+          <span>MOBIXA</span>
+          <b>AI</b>
         </div>
       </header>
 
-      <section className="relative z-10 mx-auto flex h-[calc(100vh-90px)] min-h-0 max-w-4xl flex-col">
-        {/* Messages */}
-        <div className="min-h-0 flex-1 overflow-y-auto py-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Main */}
+      <section className="relative z-10 mx-auto flex h-[calc(100svh-91px)] min-h-0 w-full max-w-5xl flex-col px-4 sm:px-8">
+        <div
+          ref={messagesRef}
+          className="min-h-0 flex-1 overflow-y-auto pb-4 pt-1 scrollbar-none"
+        >
           {messages.length === 0 ? (
-            <div className="flex min-h-full flex-col items-center justify-center pb-6 text-center">
-              {/* Custom Mobixa mark */}
-              <div className="mb-4">
-                <MobixaMark />
+            <div className="flex min-h-full flex-col items-center">
+              {/* Logo */}
+              <div className="logo-zone">
+                <MobixaLogo />
               </div>
 
-              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80">
-                MOBIXA AI
-              </div>
+              {/* Robot */}
+              <Robot />
 
               {/* Greeting */}
-              <div className="mt-5 flex flex-col items-center">
-                <div className="flex items-center gap-3">
-                  <WaveSticker />
-
-                  <h1 className="bg-gradient-to-r from-white via-white to-violet-200 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-6xl">
-                    سلام
-                  </h1>
+              <div className="welcome-block">
+                <div className="hello-line">
+                  <span>سلام</span>
+                  <HandSticker />
                 </div>
 
-                <h2 className="mt-2 bg-gradient-to-r from-violet-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-3xl font-black tracking-tight text-transparent sm:text-5xl">
-                  بزن بریم مهندس
-                </h2>
+                <h1>
+                  <span>بزن بریم</span>{" "}
+                  <strong>مهندس</strong>
+                </h1>
 
-                <div className="mt-3 h-[2px] w-32 rounded-full bg-gradient-to-r from-transparent via-violet-400 to-transparent opacity-70" />
+                <div className="welcome-line" />
               </div>
 
-              <p className="mt-7 max-w-xl text-sm leading-8 text-white/55 sm:text-base">
+              <p className="intro">
                 اینجا هر چیزی که توی ذهنت داری،
                 <br />
                 می‌تونه شروع یک چیز بزرگ باشه.
-              </p>
-
-              <p className="mt-1 text-xs text-white/30 sm:text-sm">
-                ایده بده، سؤال بپرس، بساز.
+                <br />
+                <span>ایده بده، سؤال بپرس، بساز.</span>
               </p>
 
               {/* Suggestions */}
-              <div className="mt-8 grid w-full max-w-3xl gap-3 sm:grid-cols-3">
-                {suggestions.map((item) => (
-                  <button
-                    key={item.title}
-                    type="button"
-                    onClick={() => sendMessage(item.prompt)}
-                    className={`group relative overflow-hidden rounded-[24px] border bg-white/[0.025] p-5 text-right backdrop-blur-2xl transition duration-300 hover:-translate-y-1 ${
-                      item.accent === "violet"
-                        ? "border-violet-400/15 hover:border-violet-400/45 hover:shadow-[0_20px_60px_rgba(139,92,246,0.12)]"
-                        : item.accent === "cyan"
-                          ? "border-cyan-400/15 hover:border-cyan-400/45 hover:shadow-[0_20px_60px_rgba(34,211,238,0.1)]"
-                          : "border-fuchsia-400/15 hover:border-fuchsia-400/45 hover:shadow-[0_20px_60px_rgba(217,70,239,0.12)]"
-                    }`}
-                  >
-                    <div
-                      className={`absolute -right-10 -top-10 h-24 w-24 rounded-full blur-3xl ${
-                        item.accent === "violet"
-                          ? "bg-violet-500/15"
-                          : item.accent === "cyan"
-                            ? "bg-cyan-500/15"
-                            : "bg-fuchsia-500/15"
-                      }`}
-                    />
+              <div className="suggestions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    useSuggestion(
+                      "این متن رو برای من حرفه‌ای‌تر و جذاب‌تر کن:"
+                    )
+                  }
+                  className="suggestion-card purple-card"
+                >
+                  <div className="suggestion-icon">
+                    <CreateIcon />
+                  </div>
 
-                    <div className="relative">
-                      <div
-                        className={`mb-5 flex h-11 w-11 items-center justify-center rounded-2xl border ${
-                          item.accent === "violet"
-                            ? "border-violet-400/20 bg-violet-500/10 text-violet-300"
-                            : item.accent === "cyan"
-                              ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-300"
-                              : "border-fuchsia-400/20 bg-fuchsia-500/10 text-fuchsia-300"
-                        }`}
-                      >
-                        {item.icon}
-                      </div>
+                  <div className="suggestion-content">
+                    <span className="suggestion-title">CREATE</span>
+                    <span className="suggestion-text">
+                      متنت رو حرفه‌ای کن
+                    </span>
+                  </div>
 
-                      <div className="text-[10px] font-bold tracking-[0.2em] text-white/40">
-                        {item.title}
-                      </div>
+                  <span className="card-arrow">↗</span>
+                </button>
 
-                      <div className="mt-2 text-sm font-semibold text-white/80">
-                        {item.text}
-                      </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    useSuggestion(
+                      "این موضوع رو خیلی ساده و قابل فهم برام توضیح بده:"
+                    )
+                  }
+                  className="suggestion-card blue-card"
+                >
+                  <div className="suggestion-icon">
+                    <LearnIcon />
+                  </div>
 
-                      <div
-                        className={`mt-5 flex h-8 w-8 items-center justify-center rounded-full border transition duration-300 group-hover:translate-x-1 ${
-                          item.accent === "violet"
-                            ? "border-violet-400/30 text-violet-300"
-                            : item.accent === "cyan"
-                              ? "border-cyan-400/30 text-cyan-300"
-                              : "border-fuchsia-400/30 text-fuchsia-300"
-                        }`}
-                      >
-                        <ArrowIcon />
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                  <div className="suggestion-content">
+                    <span className="suggestion-title">LEARN MODE</span>
+                    <span className="suggestion-text">
+                      هر چیزی رو ساده یاد بگیر
+                    </span>
+                  </div>
+
+                  <span className="card-arrow">↗</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    useSuggestion(
+                      "برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
+                    )
+                  }
+                  className="suggestion-card violet-card"
+                >
+                  <div className="suggestion-icon">
+                    <IdeaIcon />
+                  </div>
+
+                  <div className="suggestion-content">
+                    <span className="suggestion-title">IDEA LAB</span>
+                    <span className="suggestion-text">
+                      یه ایده خفن بساز
+                    </span>
+                  </div>
+
+                  <span className="card-arrow">↗</span>
+                </button>
               </div>
+
+              <div className="empty-space" />
             </div>
           ) : (
-            <div className="space-y-5">
-              {messages.map((msg, index) => (
+            <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-1 pb-8 pt-6">
+              {messages.map((message) => (
                 <div
-                  key={index}
-                  className={`flex ${
-                    msg.role === "user"
-                      ? "justify-start"
-                      : "justify-end"
-                  }`}
+                  key={message.id}
+                  className={
+                    message.role === "user"
+                      ? "message-row user-row"
+                      : "message-row assistant-row"
+                  }
                 >
                   <div
-                    className={`max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-7 ${
-                      msg.role === "user"
-                        ? "border border-violet-400/10 bg-violet-500/15 text-white"
-                        : "glass-card text-white/85"
-                    }`}
+                    className={
+                      message.role === "user"
+                        ? "message-bubble user-bubble"
+                        : "message-bubble assistant-bubble"
+                    }
                   >
-                    {msg.content}
+                    {message.content}
 
-                    {loading &&
-                      msg.role === "assistant" &&
-                      index === messages.length - 1 && (
-                        <span className="ml-1 inline-block animate-pulse text-violet-300">
-                          ▋
-                        </span>
+                    {message.role === "assistant" &&
+                      loading &&
+                      message.id === messages[messages.length - 1]?.id && (
+                        <span className="typing-cursor">▋</span>
                       )}
                   </div>
                 </div>
               ))}
-
-              <div ref={bottomRef} />
             </div>
           )}
         </div>
 
-        {/* Input */}
-        <div className="shrink-0 pb-5 pt-2">
-          <div className="group relative rounded-[28px] border border-white/10 bg-white/[0.045] p-2 shadow-[0_20px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl transition duration-300 focus-within:border-violet-400/25 focus-within:shadow-[0_20px_80px_rgba(124,58,237,0.12)]">
-            <div className="flex items-end gap-2">
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="پیامت رو برای موبیکسا بنویس..."
-                rows={1}
-                disabled={loading}
-                className="min-h-[52px] flex-1 resize-none bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-white/25"
-              />
+        {/* Composer */}
+        <div className="relative z-30 shrink-0 pb-3 pt-2 sm:pb-5">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              sendMessage();
+            }}
+            className="composer"
+          >
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="پیامت رو برای موبیکسا بنویس..."
+              rows={1}
+              disabled={loading}
+              className="composer-input"
+            />
 
-              <button
-                type="button"
-                onClick={() => sendMessage()}
-                disabled={!message.trim() || loading}
-                aria-label="ارسال پیام"
-                className="group/send relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white shadow-[0_0_25px_rgba(139,92,246,0.22)] transition duration-300 hover:scale-105 hover:shadow-[0_0_35px_rgba(139,92,246,0.38)] disabled:cursor-not-allowed disabled:opacity-25 disabled:shadow-none"
-              >
-                <span className="absolute inset-0 bg-white/20 opacity-0 transition group-hover/send:opacity-100" />
+            <button
+              type="submit"
+              disabled={!input.trim() || loading}
+              className="send-button"
+              aria-label="ارسال پیام"
+            >
+              <SendIcon />
+            </button>
+          </form>
 
-                <span className="relative z-10 transition duration-300 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5">
-                  <SendIcon />
-                </span>
-              </button>
-            </div>
-
-            <div className="px-4 pb-1 pt-1 text-[10px] text-white/20">
-              Mobixa AI ممکن است گاهی پاسخ نادرست بدهد.
-            </div>
-          </div>
-
-          <div className="mt-4 text-center text-[10px] tracking-wide text-white/20">
-            Crafted by BENYAMIN
+          <div className="footer-note">
+            <span>✦ Mobixa AI</span>
+            <span>ممکن است گاهی پاسخ نادرست باشد.</span>
           </div>
         </div>
       </section>
+
+      <style jsx>{`
+        .mobixa-page {
+          position: relative;
+          min-height: 100svh;
+          font-family:
+            Arial,
+            Tahoma,
+            system-ui,
+            sans-serif;
+        }
+
+        .mobixa-page * {
+          box-sizing: border-box;
+        }
+
+        .bg-glow {
+          position: absolute;
+          border-radius: 999px;
+          filter: blur(80px);
+          opacity: 0.42;
+        }
+
+        .glow-purple {
+          width: 360px;
+          height: 360px;
+          left: -170px;
+          top: 180px;
+          background: #7c22ff;
+        }
+
+        .glow-blue {
+          width: 340px;
+          height: 340px;
+          right: -170px;
+          top: 400px;
+          background: #0066ff;
+        }
+
+        .glow-bottom {
+          width: 430px;
+          height: 180px;
+          left: 50%;
+          bottom: -100px;
+          transform: translateX(-50%);
+          background: #6d21ff;
+          opacity: 0.3;
+        }
+
+        .light-line {
+          position: absolute;
+          height: 1px;
+          width: 70%;
+          opacity: 0.5;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            #9b5cff,
+            #00cfff,
+            transparent
+          );
+          transform-origin: center;
+        }
+
+        .line-one {
+          top: 390px;
+          left: -10%;
+          transform: rotate(-25deg);
+        }
+
+        .line-two {
+          top: 520px;
+          right: -15%;
+          transform: rotate(27deg);
+        }
+
+        .line-three {
+          bottom: 170px;
+          left: 15%;
+          transform: rotate(-5deg);
+          opacity: 0.2;
+        }
+
+        .stars {
+          position: absolute;
+          inset: 0;
+          color: #9a8cff;
+          font-size: 10px;
+          opacity: 0.55;
+        }
+
+        .stars span {
+          position: absolute;
+        }
+
+        .stars span:nth-child(1) {
+          top: 15%;
+          left: 12%;
+        }
+
+        .stars span:nth-child(2) {
+          top: 24%;
+          right: 14%;
+        }
+
+        .stars span:nth-child(3) {
+          top: 36%;
+          left: 8%;
+        }
+
+        .stars span:nth-child(4) {
+          top: 44%;
+          right: 10%;
+        }
+
+        .stars span:nth-child(5) {
+          top: 60%;
+          left: 14%;
+        }
+
+        .stars span:nth-child(6) {
+          top: 68%;
+          right: 15%;
+        }
+
+        .stars span:nth-child(7) {
+          top: 78%;
+          left: 9%;
+        }
+
+        .stars span:nth-child(8) {
+          top: 84%;
+          right: 12%;
+        }
+
+        .stars span:nth-child(9) {
+          top: 30%;
+          left: 48%;
+        }
+
+        .back-button {
+          display: flex;
+          height: 42px;
+          align-items: center;
+          gap: 7px;
+          border-radius: 999px;
+          border: 1px solid rgba(157, 84, 255, 0.9);
+          padding: 0 14px 0 11px;
+          color: white;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(104, 27, 255, 0.42),
+              rgba(0, 142, 255, 0.13)
+            );
+          box-shadow:
+            0 0 16px rgba(132, 44, 255, 0.38),
+            inset 0 0 16px rgba(96, 52, 255, 0.15);
+          backdrop-filter: blur(15px);
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .back-button:hover {
+          transform: translateY(-1px);
+          box-shadow:
+            0 0 24px rgba(132, 44, 255, 0.55),
+            inset 0 0 18px rgba(96, 52, 255, 0.2);
+        }
+
+        .back-button svg {
+          width: 20px;
+          height: 20px;
+        }
+
+        .brand {
+          direction: ltr;
+          letter-spacing: 4px;
+          font-size: 18px;
+          font-weight: 800;
+          text-shadow: 0 0 15px rgba(255, 255, 255, 0.18);
+        }
+
+        .brand b {
+          margin-left: 5px;
+          background: linear-gradient(90deg, #a855f7, #22d3ee);
+          -webkit-background-clip: text;
+          color: transparent;
+        }
+
+        .logo-zone {
+          height: 180px;
+          width: 100%;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          margin-top: 3px;
+        }
+
+        .logo-orbit {
+          position: relative;
+          width: 155px;
+          height: 155px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .logo-sphere {
+          position: relative;
+          width: 105px;
+          height: 105px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background:
+            radial-gradient(
+              circle at 35% 25%,
+              rgba(179, 126, 255, 0.8),
+              rgba(43, 12, 102, 0.48) 42%,
+              rgba(2, 5, 20, 0.9) 75%
+            );
+          border: 1px solid rgba(125, 87, 255, 0.65);
+          box-shadow:
+            0 0 22px rgba(135, 55, 255, 0.72),
+            inset 0 0 28px rgba(29, 159, 255, 0.28);
+        }
+
+        .logo-m {
+          position: relative;
+          width: 55px;
+          height: 55px;
+          filter:
+            drop-shadow(0 0 7px #b16cff)
+            drop-shadow(0 0 14px #00cfff);
+        }
+
+        .logo-m span {
+          position: absolute;
+          top: 6px;
+          width: 17px;
+          height: 45px;
+          border-radius: 5px;
+          background: linear-gradient(
+            180deg,
+            #ecb6ff,
+            #8f43ff 46%,
+            #20d9ff
+          );
+        }
+
+        .m-left {
+          left: 3px;
+          transform: skewY(28deg);
+        }
+
+        .m-center {
+          left: 19px;
+          height: 32px !important;
+          top: 13px !important;
+          transform: rotate(45deg) skewY(-17deg);
+        }
+
+        .m-right {
+          right: 3px;
+          transform: skewY(-28deg);
+        }
+
+        .orbit {
+          position: absolute;
+          border: 1px solid rgba(118, 83, 255, 0.7);
+          border-radius: 50%;
+          box-shadow: 0 0 12px rgba(85, 160, 255, 0.22);
+        }
+
+        .orbit-one {
+          width: 155px;
+          height: 55px;
+          transform: rotate(-18deg);
+        }
+
+        .orbit-two {
+          width: 150px;
+          height: 65px;
+          transform: rotate(54deg);
+          border-color: rgba(0, 204, 255, 0.55);
+        }
+
+        .logo-star {
+          position: absolute;
+          color: #fff;
+          text-shadow:
+            0 0 8px #a96cff,
+            0 0 18px #00d9ff;
+        }
+
+        .star-one {
+          top: -2px;
+          right: 16px;
+        }
+
+        .star-two {
+          bottom: 5px;
+          left: 18px;
+          font-size: 13px;
+        }
+
+        .robot-wrap {
+          position: relative;
+          width: 150px;
+          height: 132px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: -4px;
+        }
+
+        .robot-glow {
+          position: absolute;
+          width: 110px;
+          height: 90px;
+          border-radius: 50%;
+          background: #7c3cff;
+          filter: blur(42px);
+          opacity: 0.4;
+        }
+
+        .robot {
+          position: relative;
+          width: 95px;
+          height: 115px;
+          z-index: 2;
+        }
+
+        .robot-head {
+          position: absolute;
+          width: 76px;
+          height: 61px;
+          left: 9px;
+          top: 4px;
+          border-radius: 31px 31px 27px 27px;
+          border: 2px solid #829aff;
+          background:
+            radial-gradient(
+              circle at 50% 35%,
+              #18275d,
+              #050918 72%
+            );
+          box-shadow:
+            0 0 10px #6347ff,
+            inset 0 0 14px rgba(0, 214, 255, 0.2);
+        }
+
+        .robot-face {
+          position: absolute;
+          inset: 10px;
+          border-radius: 22px;
+          border: 1px solid rgba(96, 203, 255, 0.5);
+          background: #030715;
+        }
+
+        .robot-eye {
+          position: absolute;
+          width: 9px;
+          height: 9px;
+          top: 22px;
+          border-radius: 50%;
+          background: #43e7ff;
+          box-shadow:
+            0 0 7px #00d9ff,
+            0 0 15px #8a5cff;
+        }
+
+        .left-eye {
+          left: 18px;
+        }
+
+        .right-eye {
+          right: 18px;
+        }
+
+        .robot-smile {
+          position: absolute;
+          width: 17px;
+          height: 8px;
+          left: 50%;
+          bottom: 12px;
+          transform: translateX(-50%);
+          border-bottom: 2px solid #5bdcff;
+          border-radius: 0 0 15px 15px;
+        }
+
+        .robot-ear {
+          position: absolute;
+          width: 14px;
+          height: 25px;
+          top: 18px;
+          border-radius: 8px;
+          border: 2px solid #6d68ff;
+          background: #10163a;
+        }
+
+        .robot-ear.left {
+          left: -9px;
+        }
+
+        .robot-ear.right {
+          right: -9px;
+        }
+
+        .robot-body {
+          position: absolute;
+          width: 72px;
+          height: 63px;
+          left: 11px;
+          top: 58px;
+          border-radius: 25px 25px 20px 20px;
+          background: linear-gradient(
+            145deg,
+            #11183b,
+            #060914
+          );
+          border: 1px solid rgba(118, 116, 255, 0.8);
+          box-shadow:
+            0 0 13px rgba(92, 68, 255, 0.6),
+            inset 0 0 12px rgba(0, 214, 255, 0.15);
+        }
+
+        .robot-chest {
+          position: absolute;
+          width: 22px;
+          height: 22px;
+          top: 19px;
+          left: 25px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #56dfff;
+          box-shadow: 0 0 10px #634cff;
+        }
+
+        .robot-chest div {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #00d9ff;
+          box-shadow: 0 0 8px #00d9ff;
+        }
+
+        .robot-arm {
+          position: absolute;
+          width: 34px;
+          height: 10px;
+          top: 17px;
+          border-radius: 10px;
+          background: linear-gradient(
+            90deg,
+            #5446d9,
+            #8e6cff
+          );
+        }
+
+        .left-arm {
+          left: -26px;
+          transform: rotate(25deg);
+        }
+
+        .right-arm {
+          right: -27px;
+          transform: rotate(-40deg);
+        }
+
+        .robot-finger {
+          position: absolute;
+          width: 8px;
+          height: 20px;
+          right: -5px;
+          top: -9px;
+          border-radius: 8px;
+          background: #9b8aff;
+          transform: rotate(15deg);
+          box-shadow: 0 0 8px #816aff;
+        }
+
+        .robot-spark {
+          position: absolute;
+          z-index: 4;
+          color: #8f8cff;
+          text-shadow: 0 0 12px #00d9ff;
+        }
+
+        .spark-one {
+          top: 14px;
+          right: 3px;
+        }
+
+        .spark-two {
+          bottom: 16px;
+          left: 3px;
+          color: #b66cff;
+        }
+
+        .spark-three {
+          top: 42px;
+          left: 0;
+          font-size: 9px;
+        }
+
+        .welcome-block {
+          margin-top: -1px;
+          text-align: center;
+        }
+
+        .hello-line {
+          direction: rtl;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          font-size: 34px;
+          line-height: 1;
+          font-weight: 900;
+          text-shadow:
+            0 0 12px rgba(255, 255, 255, 0.24),
+            0 0 25px rgba(133, 68, 255, 0.4);
+        }
+
+        .hand-sticker {
+          display: inline-flex;
+          font-size: 31px;
+          transform: rotate(-8deg);
+          filter:
+            drop-shadow(0 0 7px rgba(168, 85, 247, 0.8))
+            drop-shadow(0 0 13px rgba(0, 212, 255, 0.35));
+          animation: handWave 2.4s ease-in-out infinite;
+        }
+
+        .welcome-block h1 {
+          margin: 12px 0 0;
+          font-size: 29px;
+          line-height: 1.2;
+          font-weight: 950;
+        }
+
+        .welcome-block h1 span {
+          background: linear-gradient(
+            90deg,
+            #e88cff,
+            #a855f7,
+            #6d8cff
+          );
+          -webkit-background-clip: text;
+          color: transparent;
+        }
+
+        .welcome-block h1 strong {
+          background: linear-gradient(
+            90deg,
+            #8b5cf6,
+            #22d3ee
+          );
+          -webkit-background-clip: text;
+          color: transparent;
+        }
+
+        .welcome-line {
+          width: 105px;
+          height: 2px;
+          margin: 11px auto 0;
+          border-radius: 999px;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            #a855f7,
+            #22d3ee,
+            transparent
+          );
+          box-shadow: 0 0 9px rgba(129, 76, 255, 0.8);
+        }
+
+        .intro {
+          margin: 14px auto 0;
+          max-width: 430px;
+          text-align: center;
+          font-size: 14px;
+          line-height: 2;
+          color: rgba(232, 235, 255, 0.86);
+        }
+
+        .intro span {
+          color: #9ba6e8;
+        }
+
+        .suggestions {
+          width: 100%;
+          max-width: 590px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 9px;
+          margin-top: 18px;
+        }
+
+        .suggestion-card {
+          min-width: 0;
+          min-height: 106px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 18px;
+          padding: 10px 6px 8px;
+          overflow: hidden;
+          color: white;
+          cursor: pointer;
+          backdrop-filter: blur(15px);
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .suggestion-card:hover {
+          transform: translateY(-3px);
+        }
+
+        .purple-card {
+          border: 1px solid rgba(184, 70, 255, 0.7);
+          background: rgba(60, 12, 105, 0.3);
+          box-shadow:
+            0 0 18px rgba(165, 57, 255, 0.22),
+            inset 0 0 20px rgba(165, 57, 255, 0.09);
+        }
+
+        .blue-card {
+          border: 1px solid rgba(0, 191, 255, 0.75);
+          background: rgba(5, 56, 105, 0.3);
+          box-shadow:
+            0 0 18px rgba(0, 191, 255, 0.2),
+            inset 0 0 20px rgba(0, 191, 255, 0.08);
+        }
+
+        .violet-card {
+          border: 1px solid rgba(143, 66, 255, 0.75);
+          background: rgba(66, 14, 120, 0.28);
+          box-shadow:
+            0 0 18px rgba(143, 66, 255, 0.22),
+            inset 0 0 20px rgba(143, 66, 255, 0.08);
+        }
+
+        .suggestion-icon {
+          width: 27px;
+          height: 27px;
+          margin-bottom: 4px;
+        }
+
+        .suggestion-icon svg {
+          width: 100%;
+          height: 100%;
+        }
+
+        .purple-card .suggestion-icon,
+        .purple-card .suggestion-title {
+          color: #d36cff;
+        }
+
+        .blue-card .suggestion-icon,
+        .blue-card .suggestion-title {
+          color: #2ed9ff;
+        }
+
+        .violet-card .suggestion-icon,
+        .violet-card .suggestion-title {
+          color: #bd6cff;
+        }
+
+        .suggestion-content {
+          display: flex;
+          min-width: 0;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .suggestion-title {
+          direction: ltr;
+          font-size: 10px;
+          line-height: 1;
+          font-weight: 900;
+          letter-spacing: 1px;
+        }
+
+        .suggestion-text {
+          margin-top: 5px;
+          color: rgba(245, 245, 255, 0.9);
+          font-size: 10px;
+          line-height: 1.5;
+          white-space: nowrap;
+        }
+
+        .card-arrow {
+          position: absolute;
+          bottom: 5px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 13px;
+          opacity: 0.8;
+        }
+
+        .empty-space {
+          min-height: 10px;
+          flex: 1;
+        }
+
+        .composer {
+          width: 100%;
+          max-width: 760px;
+          min-height: 62px;
+          margin: 0 auto;
+          display: flex;
+          direction: rtl;
+          align-items: center;
+          gap: 9px;
+          border-radius: 22px;
+          border: 1px solid rgba(65, 118, 255, 0.72);
+          padding: 7px 8px 7px 10px;
+          background:
+            linear-gradient(
+              110deg,
+              rgba(29, 17, 70, 0.86),
+              rgba(4, 17, 48, 0.88)
+            );
+          box-shadow:
+            0 0 24px rgba(67, 60, 255, 0.2),
+            inset 0 0 25px rgba(0, 183, 255, 0.07);
+          backdrop-filter: blur(22px);
+        }
+
+        .composer-input {
+          flex: 1;
+          min-width: 0;
+          min-height: 42px;
+          max-height: 120px;
+          resize: none;
+          border: 0;
+          outline: none;
+          background: transparent;
+          color: white;
+          padding: 9px 8px;
+          font-family: inherit;
+          font-size: 14px;
+          line-height: 1.6;
+          text-align: right;
+        }
+
+        .composer-input::placeholder {
+          color: rgba(179, 188, 235, 0.72);
+        }
+
+        .send-button {
+          width: 49px;
+          height: 49px;
+          flex: 0 0 49px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(171, 100, 255, 0.8);
+          border-radius: 50%;
+          color: white;
+          background:
+            radial-gradient(
+              circle at 30% 25%,
+              #b875ff,
+              #6937e8 48%,
+              #315aff
+            );
+          box-shadow:
+            0 0 16px rgba(145, 72, 255, 0.7),
+            0 0 28px rgba(0, 180, 255, 0.2);
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .send-button:hover:not(:disabled) {
+          transform: scale(1.06);
+          box-shadow:
+            0 0 20px rgba(145, 72, 255, 0.9),
+            0 0 32px rgba(0, 180, 255, 0.3);
+        }
+
+        .send-button:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .send-button svg {
+          width: 22px;
+          height: 22px;
+          transform: rotate(180deg);
+        }
+
+        .footer-note {
+          width: 100%;
+          max-width: 760px;
+          margin: 7px auto 0;
+          display: flex;
+          justify-content: space-between;
+          padding: 0 7px;
+          color: rgba(129, 143, 197, 0.7);
+          font-size: 8px;
+        }
+
+        .footer-note span:first-child {
+          color: rgba(166, 118, 255, 0.78);
+        }
+
+        .message-row {
+          display: flex;
+          width: 100%;
+        }
+
+        .user-row {
+          justify-content: flex-start;
+        }
+
+        .assistant-row {
+          justify-content: flex-end;
+        }
+
+        .message-bubble {
+          max-width: min(82%, 650px);
+          border-radius: 18px;
+          padding: 12px 15px;
+          white-space: pre-wrap;
+          line-height: 1.9;
+          font-size: 14px;
+        }
+
+        .user-bubble {
+          border: 1px solid rgba(136, 77, 255, 0.55);
+          background: rgba(87, 37, 150, 0.32);
+          box-shadow: 0 0 18px rgba(115, 58, 255, 0.1);
+        }
+
+        .assistant-bubble {
+          border: 1px solid rgba(22, 178, 255, 0.38);
+          background: rgba(9, 35, 73, 0.48);
+          box-shadow: 0 0 18px rgba(22, 178, 255, 0.08);
+        }
+
+        .typing-cursor {
+          display: inline-block;
+          margin-right: 3px;
+          color: #8b5cf6;
+          animation: blink 0.7s infinite;
+        }
+
+        @keyframes blink {
+          0%,
+          45% {
+            opacity: 1;
+          }
+
+          46%,
+          100% {
+            opacity: 0;
+          }
+        }
+
+        @keyframes handWave {
+          0%,
+          100% {
+            transform: rotate(-8deg);
+          }
+
+          50% {
+            transform: rotate(7deg) translateY(-2px);
+          }
+        }
+
+        @media (max-width: 430px) {
+          .logo-zone {
+            height: 157px;
+          }
+
+          .logo-orbit {
+            transform: scale(0.86);
+          }
+
+          .robot-wrap {
+            transform: scale(0.88);
+            margin-top: -10px;
+          }
+
+          .hello-line {
+            font-size: 31px;
+          }
+
+          .welcome-block h1 {
+            font-size: 26px;
+          }
+
+          .intro {
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.85;
+          }
+
+          .suggestions {
+            gap: 6px;
+            margin-top: 13px;
+          }
+
+          .suggestion-card {
+            min-height: 96px;
+            border-radius: 15px;
+            padding: 7px 3px;
+          }
+
+          .suggestion-icon {
+            width: 23px;
+            height: 23px;
+          }
+
+          .suggestion-title {
+            font-size: 8px;
+            letter-spacing: 0.6px;
+          }
+
+          .suggestion-text {
+            font-size: 8px;
+            margin-top: 4px;
+          }
+
+          .card-arrow {
+            font-size: 11px;
+            bottom: 4px;
+          }
+
+          .composer {
+            min-height: 58px;
+            border-radius: 19px;
+          }
+
+          .send-button {
+            width: 45px;
+            height: 45px;
+            flex-basis: 45px;
+          }
+
+          .footer-note {
+            font-size: 7px;
+          }
+        }
+
+        @media (max-height: 740px) {
+          .logo-zone {
+            height: 130px;
+          }
+
+          .logo-orbit {
+            transform: scale(0.72);
+          }
+
+          .robot-wrap {
+            transform: scale(0.7);
+            margin-top: -22px;
+          }
+
+          .welcome-block h1 {
+            margin-top: 5px;
+            font-size: 23px;
+          }
+
+          .hello-line {
+            font-size: 27px;
+          }
+
+          .intro {
+            margin-top: 7px;
+            line-height: 1.6;
+          }
+
+          .suggestions {
+            margin-top: 9px;
+          }
+
+          .suggestion-card {
+            min-height: 83px;
+          }
+        }
+
+        @media (min-width: 700px) {
+          .suggestions {
+            gap: 13px;
+          }
+
+          .suggestion-card {
+            min-height: 116px;
+          }
+
+          .suggestion-title {
+            font-size: 11px;
+          }
+
+          .suggestion-text {
+            font-size: 11px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
