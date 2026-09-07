@@ -452,69 +452,71 @@ export default function ChatPage() {
 
         try {
           const data = await response.json();
-          errorMessage = data?.error || errorMessage;
+          errorMessage =
+            data?.error || errorMessage;
         } catch {}
 
         throw new Error(errorMessage);
       }
 
       if (!response.body) {
-        throw new Error("پاسخ Streaming دریافت نشد.");
+        throw new Error(
+          "پاسخ Streaming دریافت نشد."
+        );
       }
 
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const decoder = new TextDecoder("utf-8");
 
-      let buffer = "";
       let assistantText = "";
 
       while (true) {
-        const { value, done } = await reader.read();
+        const { value, done } =
+          await reader.read();
 
         if (done) break;
 
-        buffer += decoder.decode(value, {
+        const chunk = decoder.decode(value, {
           stream: true,
         });
 
-        const events = buffer.split("\n\n");
+        if (!chunk) continue;
 
-        buffer = events.pop() || "";
+        assistantText += chunk;
 
-        for (const event of events) {
-          for (const line of event.split("\n")) {
-            if (!line.startsWith("data:")) continue;
+        setMessages((old) =>
+          old.map((item) =>
+            item.id === assistantId
+              ? {
+                  ...item,
+                  content: assistantText,
+                }
+              : item
+          )
+        );
+      }
 
-            const raw = line.slice(5).trim();
+      const finalChunk = decoder.decode();
 
-            if (!raw || raw === "[DONE]") continue;
+      if (finalChunk) {
+        assistantText += finalChunk;
 
-            try {
-              const parsed = JSON.parse(raw);
+        setMessages((old) =>
+          old.map((item) =>
+            item.id === assistantId
+              ? {
+                  ...item,
+                  content: assistantText,
+                }
+              : item
+          )
+        );
+      }
 
-              const text =
-                parsed?.candidates?.[0]?.content?.parts?.find(
-                  (part: { text?: string }) =>
-                    typeof part.text === "string"
-                )?.text ?? "";
-
-              if (!text) continue;
-
-              assistantText += text;
-
-              setMessages((old) =>
-                old.map((item) =>
-                  item.id === assistantId
-                    ? {
-                        ...item,
-                        content: assistantText,
-                      }
-                    : item
-                )
-              );
-            } catch {}
-          }
-        }
+      if (!assistantText.trim()) {
+        throw new Error(
+          "Gemini پاسخی ارسال نکرد."
+        );
       }
     } catch (error) {
       const errorText =
@@ -540,7 +542,10 @@ export default function ChatPage() {
   function keyDown(
     event: React.KeyboardEvent<HTMLTextAreaElement>
   ) {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
       event.preventDefault();
       sendMessage();
     }
@@ -625,7 +630,9 @@ export default function ChatPage() {
                 <br />
                 می‌تونه شروع یک چیز بزرگ باشه.
                 <br />
-                <span>ایده بده، سؤال بپرس، بساز.</span>
+                <span>
+                  ایده بده، سؤال بپرس، بساز.
+                </span>
               </p>
 
               <div className="cards">
@@ -644,7 +651,9 @@ export default function ChatPage() {
 
                   <b>CREATE</b>
 
-                  <span>متنت رو حرفه‌ای کن</span>
+                  <span>
+                    متنت رو حرفه‌ای کن
+                  </span>
                 </button>
 
                 <button
@@ -662,7 +671,9 @@ export default function ChatPage() {
 
                   <b>LEARN MODE</b>
 
-                  <span>هر چیزی رو ساده یاد بگیر</span>
+                  <span>
+                    هر چیزی رو ساده یاد بگیر
+                  </span>
                 </button>
 
                 <button
@@ -680,7 +691,9 @@ export default function ChatPage() {
 
                   <b>IDEA LAB</b>
 
-                  <span>یه ایده خفن بساز</span>
+                  <span>
+                    یه ایده خفن بساز
+                  </span>
                 </button>
               </div>
             </div>
@@ -698,10 +711,13 @@ export default function ChatPage() {
                   <div className="bubble">
                     {message.content}
 
-                    {message.role === "assistant" &&
+                    {message.role ===
+                      "assistant" &&
                       loading &&
                       message.id ===
-                        messages[messages.length - 1]?.id && (
+                        messages[
+                          messages.length - 1
+                        ]?.id && (
                         <span className="cursor">
                           ▋
                         </span>
@@ -736,7 +752,9 @@ export default function ChatPage() {
             <button
               type="submit"
               className="send"
-              disabled={!input.trim() || loading}
+              disabled={
+                !input.trim() || loading
+              }
             >
               <SendIcon />
             </button>
@@ -744,7 +762,9 @@ export default function ChatPage() {
 
           <div className="footer">
             <span>✦ Mobixa AI</span>
-            <span>ممکن است گاهی پاسخ نادرست باشد.</span>
+            <span>
+              ممکن است گاهی پاسخ نادرست باشد.
+            </span>
           </div>
         </div>
       </section>
