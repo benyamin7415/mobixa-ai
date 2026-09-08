@@ -579,11 +579,6 @@ function sanitizeOutput(
 ): string {
   let result = text;
 
-  /*
-    Remove internal safety labels that should
-    never reach the user.
-  */
-
   result = result.replace(
     /(?:User\s*)?Safety\s*:\s*(?:safe|unsafe|blocked|allowed|unknown)\s*/gi,
     ""
@@ -599,18 +594,10 @@ function sanitizeOutput(
     ""
   );
 
-  /*
-    Remove common accidental provider metadata.
-  */
-
   result = result.replace(
     /^(?:model|provider|status|moderation)\s*:\s*[^\n]*$/gim,
     ""
   );
-
-  /*
-    Remove excessive empty lines.
-  */
 
   result = result.replace(
     /\n{3,}/g,
@@ -797,10 +784,6 @@ async function createGeminiStream(
             }
           }
 
-          /*
-            Process remaining buffer.
-          */
-
           if (buffer.trim()) {
             const lines =
               buffer.split(
@@ -892,7 +875,9 @@ async function createGeminiStream(
         } catch (error) {
           console.error(
             "GEMINI_STREAM_ERROR:",
-            error
+            error instanceof Error
+              ? error.message
+              : String(error)
           );
 
           controller.error(
@@ -918,6 +903,11 @@ async function createOpenRouterStream(
   message: string,
   apiKey: string
 ) {
+  console.log(
+    "OPENROUTER_KEY_PRESENT:",
+    Boolean(apiKey)
+  );
+
   const response =
     await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
@@ -933,6 +923,12 @@ async function createOpenRouterStream(
 
           Accept:
             "text/event-stream",
+
+          "HTTP-Referer":
+            "https://mobixa-ai.benyaminkazemi3308.workers.dev",
+
+          "X-Title":
+            "Mobixa AI",
         },
 
         body: JSON.stringify({
@@ -950,19 +946,45 @@ async function createOpenRouterStream(
 
             {
               role: "user",
-              content: message,
+              content:
+                message,
             },
           ],
         }),
       }
     );
 
+  /*
+    Detailed OpenRouter HTTP diagnostics.
+    IMPORTANT:
+    The API key itself is NEVER logged.
+  */
+
   if (!response.ok) {
+    const raw =
+      await response.text().catch(
+        () => ""
+      );
+
+    console.error(
+      "OPENROUTER_HTTP_ERROR:",
+      JSON.stringify({
+        status:
+          response.status,
+
+        statusText:
+          response.statusText,
+
+        body:
+          raw.slice(0, 2000),
+      })
+    );
+
     let errorMessage = "";
 
     try {
       const data =
-        await response.json();
+        JSON.parse(raw);
 
       errorMessage =
         data?.error?.message ||
@@ -972,9 +994,14 @@ async function createOpenRouterStream(
 
     throw new Error(
       errorMessage ||
-        "OpenRouter request failed."
+        `OpenRouter HTTP ${response.status}`
     );
   }
+
+  console.log(
+    "OPENROUTER_HTTP_SUCCESS:",
+    response.status
+  );
 
   if (!response.body) {
     throw new Error(
@@ -1177,7 +1204,9 @@ async function createOpenRouterStream(
         } catch (error) {
           console.error(
             "OPENROUTER_STREAM_ERROR:",
-            error
+            error instanceof Error
+              ? error.message
+              : String(error)
           );
 
           controller.error(
@@ -1299,6 +1328,11 @@ export async function POST(
         response.ok &&
         response.body
       ) {
+        console.log(
+          "GEMINI_HTTP_SUCCESS:",
+          response.status
+        );
+
         const stream =
           await createGeminiStream(
             response
@@ -1326,8 +1360,8 @@ export async function POST(
 
       /*
         Gemini failed.
-        These statuses should trigger
-        OpenRouter fallback.
+        Log the real HTTP error without
+        exposing the API key.
       */
 
       const shouldFallback =
@@ -1347,15 +1381,39 @@ export async function POST(
       if (!shouldFallback) {
         let errorMessage = "";
 
+        let rawGeminiError = "";
+
         try {
+          rawGeminiError =
+            await response.text();
+
           const data =
-            await response.json();
+            JSON.parse(
+              rawGeminiError
+            );
 
           errorMessage =
             data?.error?.message ||
             data?.error?.status ||
             "";
         } catch {}
+
+        console.error(
+          "GEMINI_HTTP_ERROR:",
+          JSON.stringify({
+            status:
+              response.status,
+
+            statusText:
+              response.statusText,
+
+            body:
+              rawGeminiError.slice(
+                0,
+                2000
+              ),
+          })
+        );
 
         return jsonResponse(
           {
@@ -1367,10 +1425,22 @@ export async function POST(
           response.status
         );
       }
+
+      /*
+        Fallback statuses continue
+        to OpenRouter.
+      */
+
+      console.error(
+        "GEMINI_FALLBACK_TRIGGERED:",
+        response.status
+      );
     } catch (error) {
       console.error(
         "GEMINI_REQUEST_ERROR:",
-        error
+        error instanceof Error
+          ? error.message
+          : String(error)
       );
     }
 
@@ -1383,11 +1453,19 @@ export async function POST(
 
     if (openRouterKey) {
       try {
+        console.log(
+          "OPENROUTER_FALLBACK_START"
+        );
+
         const stream =
           await createOpenRouterStream(
             message.trim(),
             openRouterKey
           );
+
+        console.log(
+          "OPENROUTER_FALLBACK_SUCCESS"
+        );
 
         return new Response(
           stream,
@@ -1409,9 +1487,15 @@ export async function POST(
       } catch (error) {
         console.error(
           "OPENROUTER_FALLBACK_ERROR:",
-          error
+          error instanceof Error
+            ? error.message
+            : String(error)
         );
       }
+    } else {
+      console.error(
+        "OPENROUTER_KEY_MISSING"
+      );
     }
 
 
@@ -1431,7 +1515,9 @@ export async function POST(
   } catch (error) {
     console.error(
       "CHAT_API_ERROR:",
-      error
+      error instanceof Error
+        ? error.message
+        : String(error)
     );
 
     return jsonResponse(
