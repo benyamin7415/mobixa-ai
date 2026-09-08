@@ -63,40 +63,20 @@ function SendIcon() {
   );
 }
 
-function CopyIcon() {
+function StopIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      className="send-icon stop-icon"
+    >
       <rect
-        x="8"
-        y="8"
-        width="11"
-        height="11"
-        rx="2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="m5 12 4 4L19 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        x="9"
+        y="9"
+        width="14"
+        height="14"
+        rx="2.5"
+        fill="currentColor"
       />
     </svg>
   );
@@ -112,6 +92,7 @@ function CreateIcon() {
         strokeWidth="2"
         strokeLinejoin="round"
       />
+
       <path
         d="m18 8 4 4M22 4v4M20 6h4"
         fill="none"
@@ -133,6 +114,7 @@ function LearnIcon() {
         strokeWidth="2"
         strokeLinejoin="round"
       />
+
       <path
         d="M16 3v26M4 7l12 4 12-4"
         fill="none"
@@ -152,6 +134,7 @@ function IdeaIcon() {
         stroke="currentColor"
         strokeWidth="2"
       />
+
       <path
         d="M12 30h8M14 26h4"
         fill="none"
@@ -159,6 +142,7 @@ function IdeaIcon() {
         strokeWidth="2"
         strokeLinecap="round"
       />
+
       <path
         d="M16 2v2M28 10h-2M6 10H4"
         fill="none"
@@ -171,356 +155,54 @@ function IdeaIcon() {
 }
 
 /* =========================
-   MARKDOWN / MESSAGE RENDERER
+   COPY ICONS
 ========================= */
 
-function CodeBlock({
-  code,
-  language,
-}: {
-  code: string;
-  language?: string;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyCode() {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
-
+function CopyIcon() {
   return (
-    <div className="code-block">
-      <div className="code-header">
-        <div className="code-language">
-          {language || "CODE"}
-        </div>
-
-        <button
-          type="button"
-          className="code-copy"
-          onClick={copyCode}
-        >
-          {copied ? (
-            <>
-              <CheckIcon />
-              <span>کپی شد</span>
-            </>
-          ) : (
-            <>
-              <CopyIcon />
-              <span>کپی</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      <pre>
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}
-
-function InlineText({
-  text,
-}: {
-  text: string;
-}) {
-  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        if (
-          part.startsWith("**") &&
-          part.endsWith("**")
-        ) {
-          return (
-            <strong
-              key={index}
-              className="inline-bold"
-            >
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-
-        if (
-          part.startsWith("`") &&
-          part.endsWith("`")
-        ) {
-          return (
-            <code
-              key={index}
-              className="inline-code"
-            >
-              {part.slice(1, -1)}
-            </code>
-          );
-        }
-
-        return (
-          <span key={index}>
-            {part}
-          </span>
-        );
-      })}
-    </>
-  );
-}
-
-function MessageContent({
-  content,
-}: {
-  content: string;
-}) {
-  const blocks: React.ReactNode[] = [];
-
-  const lines = content.replace(/\r/g, "").split("\n");
-
-  let textBuffer: string[] = [];
-  let codeBuffer: string[] = [];
-  let codeLanguage = "";
-  let insideCode = false;
-
-  function flushText() {
-    if (!textBuffer.length) return;
-
-    const text = textBuffer.join("\n");
-
-    if (text.trim()) {
-      blocks.push(
-        <div
-          key={`text-${blocks.length}`}
-          className="message-text"
-        >
-          {text.split("\n").map((line, index) => {
-            const trimmed = line.trim();
-
-            if (
-              trimmed.startsWith("### ")
-            ) {
-              return (
-                <h3
-                  key={index}
-                  className="message-heading heading-3"
-                >
-                  <InlineText
-                    text={trimmed.slice(4)}
-                  />
-                </h3>
-              );
-            }
-
-            if (
-              trimmed.startsWith("## ")
-            ) {
-              return (
-                <h2
-                  key={index}
-                  className="message-heading heading-2"
-                >
-                  <InlineText
-                    text={trimmed.slice(3)}
-                  />
-                </h2>
-              );
-            }
-
-            if (
-              trimmed.startsWith("# ")
-            ) {
-              return (
-                <h1
-                  key={index}
-                  className="message-heading heading-1"
-                >
-                  <InlineText
-                    text={trimmed.slice(2)}
-                  />
-                </h1>
-              );
-            }
-
-            if (
-              trimmed.startsWith("- ") ||
-              trimmed.startsWith("• ")
-            ) {
-              return (
-                <div
-                  key={index}
-                  className="message-list-item"
-                >
-                  <span className="list-dot">
-                    •
-                  </span>
-                  <InlineText
-                    text={trimmed.slice(2)}
-                  />
-                </div>
-              );
-            }
-
-            if (
-              /^\d+\.\s/.test(trimmed)
-            ) {
-              const match =
-                trimmed.match(
-                  /^(\d+)\.\s(.+)$/
-                );
-
-              if (match) {
-                return (
-                  <div
-                    key={index}
-                    className="message-list-item numbered"
-                  >
-                    <span className="list-number">
-                      {match[1]}.
-                    </span>
-                    <InlineText
-                      text={match[2]}
-                    />
-                  </div>
-                );
-              }
-            }
-
-            if (!trimmed) {
-              return (
-                <div
-                  key={index}
-                  className="message-space"
-                />
-              );
-            }
-
-            return (
-              <div
-                key={index}
-                className="message-line"
-              >
-                <InlineText text={line} />
-              </div>
-            );
-          })}
-        </div>
-      );
-    }
-
-    textBuffer = [];
-  }
-
-  function flushCode() {
-    if (!codeBuffer.length) return;
-
-    blocks.push(
-      <CodeBlock
-        key={`code-${blocks.length}`}
-        code={codeBuffer.join("\n")}
-        language={codeLanguage}
-      />
-    );
-
-    codeBuffer = [];
-    codeLanguage = "";
-  }
-
-  for (const line of lines) {
-    const fence = line.match(
-      /^```([\w#+.-]*)\s*$/
-    );
-
-    if (fence) {
-      if (!insideCode) {
-        flushText();
-
-        insideCode = true;
-        codeLanguage =
-          fence[1] || "";
-      } else {
-        flushCode();
-        insideCode = false;
-      }
-
-      continue;
-    }
-
-    if (insideCode) {
-      codeBuffer.push(line);
-    } else {
-      textBuffer.push(line);
-    }
-  }
-
-  if (insideCode) {
-    flushCode();
-  } else {
-    flushText();
-  }
-
-  return (
-    <div className="rich-message">
-      {blocks}
-    </div>
-  );
-}
-
-/* =========================
-   COPY FULL MESSAGE
-========================= */
-
-function CopyMessageButton({
-  content,
-}: {
-  content: string;
-}) {
-  const [copied, setCopied] =
-    useState(false);
-
-  async function copyMessage() {
-    try {
-      await navigator.clipboard.writeText(
-        content
-      );
-
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      className="message-copy"
-      onClick={copyMessage}
-      aria-label="کپی پاسخ"
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="copy-icon"
     >
-      {copied ? (
-        <>
-          <CheckIcon />
-          <span>کپی شد</span>
-        </>
-      ) : (
-        <>
-          <CopyIcon />
-          <span>کپی</span>
-        </>
-      )}
-    </button>
+      <rect
+        x="8"
+        y="8"
+        width="11"
+        height="11"
+        rx="2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <path
+        d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4H6.5A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="copy-icon"
+    >
+      <path
+        d="m5 12 4 4L19 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -551,17 +233,9 @@ function MobixaLogo() {
         </span>
       </div>
 
-      <span className="logo-spark spark-a">
-        ✦
-      </span>
-
-      <span className="logo-spark spark-b">
-        ✧
-      </span>
-
-      <span className="logo-spark spark-c">
-        ✦
-      </span>
+      <span className="logo-spark spark-a">✦</span>
+      <span className="logo-spark spark-b">✧</span>
+      <span className="logo-spark spark-c">✦</span>
     </div>
   );
 }
@@ -593,10 +267,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#a975ff"
             />
+
             <stop
               offset="45%"
               stopColor="#372a86"
             />
+
             <stop
               offset="100%"
               stopColor="#080a22"
@@ -614,10 +290,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#6950db"
             />
+
             <stop
               offset="50%"
               stopColor="#17164d"
             />
+
             <stop
               offset="100%"
               stopColor="#070918"
@@ -635,10 +313,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#e3d4ff"
             />
+
             <stop
               offset="50%"
               stopColor="#8b5cf6"
             />
+
             <stop
               offset="100%"
               stopColor="#19d9ff"
@@ -650,6 +330,7 @@ function MobixaRobot() {
               stdDeviation="3"
               result="blur"
             />
+
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -846,6 +527,392 @@ function Hand() {
 }
 
 /* =========================
+   COPY BUTTON
+========================= */
+
+function CopyButton({
+  text,
+  code = false,
+}: {
+  text: string;
+  code?: boolean;
+}) {
+  const [copied, setCopied] =
+    useState(false);
+
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(text);
+
+      setCopied(true);
+
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 1600);
+    } catch {
+      try {
+        const textarea =
+          document.createElement("textarea");
+
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+
+        textarea.select();
+
+        document.execCommand("copy");
+
+        textarea.remove();
+
+        setCopied(true);
+
+        window.setTimeout(() => {
+          setCopied(false);
+        }, 1600);
+      } catch {}
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className={
+        code
+          ? "copy-button code-copy-button"
+          : "copy-button message-copy-button"
+      }
+      onClick={copyText}
+      aria-label={
+        copied ? "کپی شد" : "کپی پاسخ"
+      }
+      title={
+        copied ? "کپی شد" : "کپی پاسخ"
+      }
+    >
+      {copied ? (
+        <CheckIcon />
+      ) : (
+        <CopyIcon />
+      )}
+
+      {code && (
+        <span>
+          {copied ? "کپی شد" : "کپی"}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* =========================
+   MARKDOWN → PLAIN TEXT
+   FOR COPY
+========================= */
+
+function plainTextForCopy(
+  content: string
+) {
+  return content
+    .replace(
+      /```[^\n]*\n([\s\S]*?)(?:```|$)/g,
+      "$1"
+    )
+    .replace(
+      /^\s*#{1,6}\s+/gm,
+      ""
+    )
+    .replace(
+      /\*\*([\s\S]*?)\*\*/g,
+      "$1"
+    )
+    .replace(
+      /`([^`]+)`/g,
+      "$1"
+    )
+    .replace(
+      /^\s*[-*]\s+/gm,
+      "• "
+    )
+    .trim();
+}
+
+/* =========================
+   INLINE MARKDOWN
+========================= */
+
+function renderInlineText(
+  text: string
+) {
+  const parts = text.split(
+    /(\*\*[\s\S]*?\*\*|`[^`]+`)/g
+  );
+
+  return parts.map((part, index) => {
+    if (
+      part.startsWith("**") &&
+      part.endsWith("**")
+    ) {
+      return (
+        <strong
+          key={index}
+          className="rich-bold"
+        >
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    if (
+      part.startsWith("`") &&
+      part.endsWith("`")
+    ) {
+      return (
+        <code
+          key={index}
+          className="inline-code"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    return (
+      <span key={index}>
+        {part}
+      </span>
+    );
+  });
+}
+
+/* =========================
+   AI MESSAGE RENDERER
+========================= */
+
+function AssistantContent({
+  content,
+}: {
+  content: string;
+}) {
+  const blocks: Array<{
+    type: "text" | "code";
+    content: string;
+    language?: string;
+  }> = [];
+
+  const lines = content.split("\n");
+
+  let normalLines: string[] = [];
+  let codeLines: string[] = [];
+  let insideCode = false;
+  let codeLanguage = "";
+
+  function flushNormal() {
+    if (normalLines.length === 0) return;
+
+    blocks.push({
+      type: "text",
+      content: normalLines.join("\n"),
+    });
+
+    normalLines = [];
+  }
+
+  function flushCode() {
+    blocks.push({
+      type: "code",
+      content: codeLines.join("\n"),
+      language: codeLanguage,
+    });
+
+    codeLines = [];
+    codeLanguage = "";
+  }
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+
+    if (
+      trimmed.startsWith("```")
+    ) {
+      if (!insideCode) {
+        flushNormal();
+
+        insideCode = true;
+
+        codeLanguage =
+          trimmed
+            .replace(/^```/, "")
+            .trim();
+
+        return;
+      }
+
+      insideCode = false;
+
+      flushCode();
+
+      return;
+    }
+
+    if (insideCode) {
+      codeLines.push(line);
+    } else {
+      normalLines.push(line);
+    }
+  });
+
+  if (insideCode) {
+    flushCode();
+  }
+
+  flushNormal();
+
+  return (
+    <div className="rich-content">
+      {blocks.map((block, index) => {
+        if (block.type === "code") {
+          return (
+            <div
+              className="code-block"
+              key={index}
+              dir="ltr"
+            >
+              <div className="code-header">
+                <span className="code-language">
+                  {block.language ||
+                    "CODE"}
+                </span>
+
+                <CopyButton
+                  text={block.content}
+                  code
+                />
+              </div>
+
+              <pre>
+                <code>
+                  {block.content}
+                </code>
+              </pre>
+            </div>
+          );
+        }
+
+        const textLines =
+          block.content.split("\n");
+
+        return (
+          <div
+            key={index}
+            className="text-block"
+          >
+            {textLines.map(
+              (line, lineIndex) => {
+                const headingMatch =
+                  line.match(
+                    /^\s*#{1,6}\s+(.*)$/
+                  );
+
+                if (headingMatch) {
+                  return (
+                    <div
+                      key={lineIndex}
+                      className="rich-heading"
+                    >
+                      {renderInlineText(
+                        headingMatch[1]
+                      )}
+                    </div>
+                  );
+                }
+
+                if (
+                  /^\s*[-*]\s+/.test(
+                    line
+                  )
+                ) {
+                  return (
+                    <div
+                      key={lineIndex}
+                      className="rich-list-item"
+                    >
+                      <span className="list-dot">
+                        •
+                      </span>
+
+                      <span>
+                        {renderInlineText(
+                          line.replace(
+                            /^\s*[-*]\s+/,
+                            ""
+                          )
+                        )}
+                      </span>
+                    </div>
+                  );
+                }
+
+                if (
+                  /^\s*\d+\.\s+/.test(
+                    line
+                  )
+                ) {
+                  const match =
+                    line.match(
+                      /^\s*(\d+)\.\s+(.*)$/
+                    );
+
+                  return (
+                    <div
+                      key={lineIndex}
+                      className="rich-list-item numbered"
+                    >
+                      <span className="list-number">
+                        {match?.[1]}.
+                      </span>
+
+                      <span>
+                        {renderInlineText(
+                          match?.[2] || ""
+                        )}
+                      </span>
+                    </div>
+                  );
+                }
+
+                if (
+                  line.trim() === ""
+                ) {
+                  return (
+                    <div
+                      key={lineIndex}
+                      className="rich-space"
+                    />
+                  );
+                }
+
+                return (
+                  <div
+                    key={lineIndex}
+                    className="rich-line"
+                  >
+                    {renderInlineText(
+                      line
+                    )}
+                  </div>
+                );
+              }
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* =========================
    PAGE
 ========================= */
 
@@ -867,7 +934,14 @@ export default function ChatPage() {
     );
 
   const scrollRef =
-    useRef<HTMLDivElement | null>(null);
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const abortControllerRef =
+    useRef<AbortController | null>(
+      null
+    );
 
   function goBack() {
     if (window.history.length > 1) {
@@ -885,10 +959,23 @@ export default function ChatPage() {
     });
   }
 
-  async function sendMessage(custom?: string) {
-    const message = (
-      custom ?? input
-    ).trim();
+  function stopGenerating() {
+    if (!abortControllerRef.current) {
+      return;
+    }
+
+    abortControllerRef.current.abort();
+
+    abortControllerRef.current = null;
+
+    setLoading(false);
+  }
+
+  async function sendMessage(
+    custom?: string
+  ) {
+    const message =
+      (custom ?? input).trim();
 
     if (!message || loading) return;
 
@@ -900,15 +987,19 @@ export default function ChatPage() {
     const assistantId =
       crypto.randomUUID();
 
+    const controller =
+      new AbortController();
+
+    abortControllerRef.current =
+      controller;
+
     setMessages((old) => [
       ...old,
-
       {
         id: userId,
         role: "user",
         content: message,
       },
-
       {
         id: assistantId,
         role: "assistant",
@@ -930,6 +1021,7 @@ export default function ChatPage() {
           body: JSON.stringify({
             message,
           }),
+          signal: controller.signal,
         }
       );
 
@@ -953,7 +1045,7 @@ export default function ChatPage() {
 
       if (!response.body) {
         throw new Error(
-          "پاسخی از سرویس دریافت نشد."
+          "پاسخی از سرویس هوش مصنوعی دریافت نشد."
         );
       }
 
@@ -966,8 +1058,10 @@ export default function ChatPage() {
       let assistantText = "";
 
       while (true) {
-        const { value, done } =
-          await reader.read();
+        const {
+          value,
+          done,
+        } = await reader.read();
 
         if (done) break;
 
@@ -1015,10 +1109,24 @@ export default function ChatPage() {
 
       if (!assistantText.trim()) {
         throw new Error(
-          "پاسخی دریافت نشد."
+          "سرویس هوش مصنوعی پاسخی ارسال نکرد."
         );
       }
     } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      if (
+        error instanceof Error &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
       const errorText =
         error instanceof Error
           ? error.message
@@ -1029,13 +1137,20 @@ export default function ChatPage() {
           item.id === assistantId
             ? {
                 ...item,
-                content:
-                  `⚠️ ${errorText}`,
+                content: `⚠️ ${errorText}`,
               }
             : item
         )
       );
     } finally {
+      if (
+        abortControllerRef.current ===
+        controller
+      ) {
+        abortControllerRef.current =
+          null;
+      }
+
       setLoading(false);
     }
   }
@@ -1048,6 +1163,7 @@ export default function ChatPage() {
       !event.shiftKey
     ) {
       event.preventDefault();
+
       sendMessage();
     }
   }
@@ -1060,7 +1176,7 @@ export default function ChatPage() {
         scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages]);
+  }, [messages.length]);
 
   return (
     <main
@@ -1117,6 +1233,7 @@ export default function ChatPage() {
               <div className="greeting">
                 <div className="hello">
                   <span>سلام</span>
+
                   <Hand />
                 </div>
 
@@ -1133,16 +1250,15 @@ export default function ChatPage() {
               </div>
 
               <p className="intro">
-                اینجا هر چیزی که توی
-                ذهنت داری،
+                اینجا هر چیزی که توی ذهنت
+                داری،
                 <br />
                 می‌تونه شروع یک چیز بزرگ
                 باشه.
                 <br />
 
                 <span>
-                  ایده بده، سؤال بپرس،
-                  بساز.
+                  ایده بده، سؤال بپرس، بساز.
                 </span>
               </p>
 
@@ -1180,13 +1296,10 @@ export default function ChatPage() {
                     <LearnIcon />
                   </div>
 
-                  <b>
-                    LEARN MODE
-                  </b>
+                  <b>LEARN MODE</b>
 
                   <span>
-                    هر چیزی رو ساده
-                    یاد بگیر
+                    هر چیزی رو ساده یاد بگیر
                   </span>
                 </button>
 
@@ -1219,34 +1332,38 @@ export default function ChatPage() {
                     index ===
                     messages.length - 1;
 
+                  if (
+                    message.role ===
+                    "user"
+                  ) {
+                    return (
+                      <div
+                        key={message.id}
+                        className="message user-message"
+                      >
+                        <div className="bubble">
+                          <div className="user-text">
+                            {message.content}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={message.id}
-                      className={
-                        message.role ===
-                        "user"
-                          ? "message user-message"
-                          : "message ai-message"
-                      }
+                      className="message ai-message"
                     >
-                      <div className="message-wrapper">
+                      <div className="ai-message-inner">
                         <div className="bubble">
-                          {message.role ===
-                          "assistant" ? (
-                            <MessageContent
-                              content={
-                                message.content
-                              }
-                            />
-                          ) : (
-                            <div className="user-text">
-                              {message.content}
-                            </div>
-                          )}
+                          <AssistantContent
+                            content={
+                              message.content
+                            }
+                          />
 
-                          {message.role ===
-                            "assistant" &&
-                            loading &&
+                          {loading &&
                             isLast && (
                               <span className="cursor">
                                 ▋
@@ -1254,16 +1371,15 @@ export default function ChatPage() {
                             )}
                         </div>
 
-                        {message.role ===
-                          "assistant" &&
-                          message.content.trim() &&
-                          !loading && (
-                            <CopyMessageButton
-                              content={
+                        {message.content.trim() && (
+                          <div className="message-actions">
+                            <CopyButton
+                              text={plainTextForCopy(
                                 message.content
-                              }
+                              )}
                             />
-                          )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -1278,7 +1394,10 @@ export default function ChatPage() {
             className="composer"
             onSubmit={(event) => {
               event.preventDefault();
-              sendMessage();
+
+              if (!loading) {
+                sendMessage();
+              }
             }}
           >
             <textarea
@@ -1299,11 +1418,26 @@ export default function ChatPage() {
               type="submit"
               className="send"
               disabled={
-                !input.trim() ||
+                !input.trim() &&
+                !loading
+              }
+              onClick={(event) => {
+                if (loading) {
+                  event.preventDefault();
+                  stopGenerating();
+                }
+              }}
+              aria-label={
                 loading
+                  ? "توقف پاسخ"
+                  : "ارسال پیام"
               }
             >
-              <SendIcon />
+              {loading ? (
+                <StopIcon />
+              ) : (
+                <SendIcon />
+              )}
             </button>
           </form>
 
@@ -1313,8 +1447,7 @@ export default function ChatPage() {
             </span>
 
             <span>
-              ممکن است گاهی پاسخ نادرست
-              باشد.
+              ممکن است گاهی پاسخ نادرست باشد.
             </span>
           </div>
         </div>
@@ -1343,7 +1476,6 @@ export default function ChatPage() {
             ),
             #02030b;
           color: white;
-
           font-family:
             Arial,
             Tahoma,
@@ -1396,8 +1528,12 @@ export default function ChatPage() {
           position: absolute;
           width: 850px;
           height: 260px;
-          border: 1px solid
-            rgba(122, 77, 255, 0.35);
+          border: 1px solid rgba(
+            122,
+            77,
+            255,
+            0.35
+          );
           border-radius: 50%;
           filter: blur(0.2px);
         }
@@ -1408,21 +1544,29 @@ export default function ChatPage() {
           transform: rotate(-22deg);
           box-shadow:
             0 0 14px
-              rgba(91, 58, 255, 0.3);
+            rgba(91, 58, 255, 0.3);
         }
 
         .wave-two {
           right: -500px;
           top: 690px;
           transform: rotate(25deg);
-          border-color:
-            rgba(0, 194, 255, 0.28);
+          border-color: rgba(
+            0,
+            194,
+            255,
+            0.28
+          );
         }
 
         .starfield span {
           position: absolute;
-          color:
-            rgba(164, 140, 255, 0.7);
+          color: rgba(
+            164,
+            140,
+            255,
+            0.7
+          );
           font-size: 10px;
         }
 
@@ -1487,17 +1631,16 @@ export default function ChatPage() {
           letter-spacing: 5px;
           text-shadow:
             0 0 15px
-              rgba(255, 255, 255, 0.18);
+            rgba(255, 255, 255, 0.18);
         }
 
         .wordmark b {
           margin-left: 6px;
-          background:
-            linear-gradient(
-              90deg,
-              #b05cff,
-              #20dfff
-            );
+          background: linear-gradient(
+            90deg,
+            #b05cff,
+            #20dfff
+          );
           -webkit-background-clip: text;
           color: transparent;
         }
@@ -1510,11 +1653,14 @@ export default function ChatPage() {
           height: 44px;
           padding: 0 16px;
           border-radius: 999px;
-          border:
-            1px solid
-              rgba(155, 73, 255, 0.95);
-          background:
-            rgba(55, 16, 111, 0.25);
+          border: 1px solid
+            rgba(155, 73, 255, 0.95);
+          background: rgba(
+            55,
+            16,
+            111,
+            0.25
+          );
           color: white;
           box-shadow:
             0 0 15px
@@ -1585,15 +1731,29 @@ export default function ChatPage() {
           background:
             radial-gradient(
               circle at 35% 25%,
-              rgba(181, 122, 255, 0.85),
-              rgba(42, 14, 100, 0.48)
+              rgba(
+                181,
+                122,
+                255,
+                0.85
+              ),
+              rgba(
+                42,
+                14,
+                100,
+                0.48
+              )
                 42%,
-              rgba(3, 5, 25, 0.92)
+              rgba(
+                3,
+                5,
+                25,
+                0.92
+              )
                 76%
             );
-          border:
-            1px solid
-              rgba(132, 89, 255, 0.8);
+          border: 1px solid
+            rgba(132, 89, 255, 0.8);
           box-shadow:
             0 0 25px
               rgba(134, 63, 255, 0.75),
@@ -1611,29 +1771,41 @@ export default function ChatPage() {
           width: 205px;
           height: 65px;
           transform: rotate(-18deg);
-          border-color:
-            rgba(170, 79, 255, 0.8);
+          border-color: rgba(
+            170,
+            79,
+            255,
+            0.8
+          );
           box-shadow:
             0 0 12px
-              rgba(161, 74, 255, 0.4);
+            rgba(161, 74, 255, 0.4);
         }
 
         .orbit-b {
           width: 205px;
           height: 72px;
           transform: rotate(46deg);
-          border-color:
-            rgba(0, 209, 255, 0.65);
+          border-color: rgba(
+            0,
+            209,
+            255,
+            0.65
+          );
           box-shadow:
             0 0 12px
-              rgba(0, 209, 255, 0.35);
+            rgba(0, 209, 255, 0.35);
         }
 
         .orbit-c {
           width: 150px;
           height: 150px;
-          border-color:
-            rgba(118, 75, 255, 0.2);
+          border-color: rgba(
+            118,
+            75,
+            255,
+            0.2
+          );
         }
 
         .hero-m {
@@ -1656,13 +1828,12 @@ export default function ChatPage() {
           width: 20px;
           height: 54px;
           border-radius: 5px;
-          background:
-            linear-gradient(
-              180deg,
-              #f0c5ff,
-              #974cff 45%,
-              #25dfff
-            );
+          background: linear-gradient(
+            180deg,
+            #f0c5ff,
+            #974cff 45%,
+            #25dfff
+          );
         }
 
         .m1 {
@@ -1754,11 +1925,11 @@ export default function ChatPage() {
           filter:
             drop-shadow(
               0 0 9px
-                rgba(114, 81, 255, 0.5)
+              rgba(114, 81, 255, 0.5)
             )
             drop-shadow(
               0 0 18px
-                rgba(0, 210, 255, 0.16)
+              rgba(0, 210, 255, 0.16)
             );
         }
 
@@ -1811,15 +1982,15 @@ export default function ChatPage() {
           filter:
             drop-shadow(
               0 0 7px
-                rgba(180, 85, 255, 0.8)
+              rgba(180, 85, 255, 0.8)
             )
             drop-shadow(
               0 0 13px
-                rgba(0, 214, 255, 0.3)
+              rgba(0, 214, 255, 0.3)
             );
           animation:
             wave 2.3s ease-in-out
-              infinite;
+            infinite;
         }
 
         .greeting h1 {
@@ -1830,24 +2001,22 @@ export default function ChatPage() {
         }
 
         .greeting h1 span {
-          background:
-            linear-gradient(
-              90deg,
-              #b867ff,
-              #9354ff,
-              #8d6dff
-            );
+          background: linear-gradient(
+            90deg,
+            #b867ff,
+            #9354ff,
+            #8d6dff
+          );
           -webkit-background-clip: text;
           color: transparent;
         }
 
         .greeting h1 strong {
-          background:
-            linear-gradient(
-              90deg,
-              #9259ff,
-              #19d8ff
-            );
+          background: linear-gradient(
+            90deg,
+            #9259ff,
+            #19d8ff
+          );
           -webkit-background-clip: text;
           color: transparent;
         }
@@ -1857,14 +2026,13 @@ export default function ChatPage() {
           height: 4px;
           margin: 14px auto 0;
           border-radius: 999px;
-          background:
-            linear-gradient(
-              90deg,
-              transparent,
-              #b04cff,
-              #23dfff,
-              transparent
-            );
+          background: linear-gradient(
+            90deg,
+            transparent,
+            #b04cff,
+            #23dfff,
+            transparent
+          );
           box-shadow:
             0 0 8px #913eff,
             0 0 16px
@@ -1885,8 +2053,12 @@ export default function ChatPage() {
           text-align: center;
           font-size: 14px;
           line-height: 2;
-          color:
-            rgba(239, 239, 255, 0.86);
+          color: rgba(
+            239,
+            239,
+            255,
+            0.86
+          );
         }
 
         .intro span {
@@ -1915,8 +2087,12 @@ export default function ChatPage() {
           align-items: center;
           justify-content: center;
           color: white;
-          background:
-            rgba(20, 15, 60, 0.42);
+          background: rgba(
+            20,
+            15,
+            60,
+            0.42
+          );
           backdrop-filter: blur(15px);
           cursor: pointer;
           transition:
@@ -1960,9 +2136,8 @@ export default function ChatPage() {
         }
 
         .create {
-          border:
-            1px solid
-              rgba(196, 73, 255, 0.8);
+          border: 1px solid
+            rgba(196, 73, 255, 0.8);
           box-shadow:
             0 0 20px
               rgba(188, 64, 255, 0.18),
@@ -1976,9 +2151,8 @@ export default function ChatPage() {
         }
 
         .learn {
-          border:
-            1px solid
-              rgba(0, 206, 255, 0.82);
+          border: 1px solid
+            rgba(0, 206, 255, 0.82);
           box-shadow:
             0 0 20px
               rgba(0, 199, 255, 0.17),
@@ -1992,9 +2166,8 @@ export default function ChatPage() {
         }
 
         .idea {
-          border:
-            1px solid
-              rgba(165, 74, 255, 0.8);
+          border: 1px solid
+            rgba(165, 74, 255, 0.8);
           box-shadow:
             0 0 20px
               rgba(147, 68, 255, 0.18),
@@ -2034,135 +2207,164 @@ export default function ChatPage() {
           justify-content: flex-end;
         }
 
-        .message-wrapper {
+        .ai-message-inner {
+          width: 100%;
           max-width: 86%;
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .ai-message .message-wrapper {
           align-items: flex-end;
         }
 
         .bubble {
+          width: 100%;
           padding: 14px 17px;
           border-radius: 19px;
           font-size: 15px;
-          line-height: 2;
+          line-height: 1.95;
           font-weight: 500;
-          overflow: hidden;
+          overflow-wrap: anywhere;
         }
 
         .user-message .bubble {
-          background:
-            rgba(91, 35, 155, 0.35);
-          border:
-            1px solid
-              rgba(157, 78, 255, 0.55);
-          font-weight: 500;
+          max-width: 86%;
+          background: rgba(
+            91,
+            35,
+            155,
+            0.35
+          );
+
+          border: 1px solid
+            rgba(157, 78, 255, 0.55);
+
+          color: rgba(
+            255,
+            255,
+            255,
+            0.96
+          );
+
+          font-weight: 600;
         }
 
         .ai-message .bubble {
-          background:
-            rgba(8, 39, 77, 0.5);
-          border:
-            1px solid
-              rgba(32, 196, 255, 0.4);
+          background: rgba(
+            8,
+            39,
+            77,
+            0.5
+          );
 
-          box-shadow:
-            0 4px 25px
-              rgba(0, 100, 255, 0.07);
+          border: 1px solid
+            rgba(32, 196, 255, 0.4);
+
+          color: rgba(
+            250,
+            252,
+            255,
+            0.97
+          );
         }
 
         .user-text {
           white-space: pre-wrap;
-          overflow-wrap: anywhere;
         }
 
-        .rich-message {
+        /* =========================
+           RICH AI TEXT
+        ========================= */
+
+        .rich-content {
           width: 100%;
-          direction: rtl;
-          text-align: right;
+          font-family:
+            Arial,
+            Tahoma,
+            sans-serif;
+          font-weight: 500;
         }
 
-        .message-text {
+        .text-block {
           width: 100%;
         }
 
-        .message-line {
-          min-height: 1.8em;
-          overflow-wrap: anywhere;
+        .rich-line {
+          min-height: 1.4em;
+          font-weight: 500;
         }
 
-        .message-space {
+        .rich-bold {
+          font-weight: 850;
+          color: #ffffff;
+          text-shadow:
+            0 0 8px
+            rgba(255, 255, 255, 0.08);
+        }
+
+        .rich-heading {
+          margin: 10px 0 7px;
+          font-size: 17px;
+          line-height: 1.65;
+          font-weight: 900;
+          color: #ffffff;
+          text-shadow:
+            0 0 12px
+            rgba(150, 95, 255, 0.2);
+        }
+
+        .rich-heading:first-child {
+          margin-top: 0;
+        }
+
+        .rich-space {
           height: 8px;
         }
 
-        .message-heading {
-          margin: 13px 0 8px;
-          line-height: 1.45;
-          font-weight: 850;
-          letter-spacing: -0.2px;
-        }
-
-        .heading-1 {
-          font-size: 21px;
-        }
-
-        .heading-2 {
-          font-size: 19px;
-        }
-
-        .heading-3 {
-          font-size: 17px;
-        }
-
-        .inline-bold {
-          font-weight: 850;
-          color: #ffffff;
-        }
-
-        .inline-code {
-          direction: ltr;
-          unicode-bidi: plaintext;
-          display: inline-block;
-          padding: 1px 6px;
-          margin: 0 2px;
-          border-radius: 6px;
-          background:
-            rgba(7, 16, 38, 0.9);
-          border:
-            1px solid
-              rgba(90, 150, 255, 0.25);
-          color: #bdefff;
-          font-family:
-            "SFMono-Regular",
-            Consolas,
-            monospace;
-          font-size: 0.88em;
-        }
-
-        .message-list-item {
+        .rich-list-item {
           display: flex;
           align-items: flex-start;
           gap: 8px;
-          margin: 4px 0;
-          padding-right: 4px;
-          overflow-wrap: anywhere;
+          padding: 2px 0;
+          font-weight: 500;
         }
 
         .list-dot {
           flex: 0 0 auto;
-          color: #a96cff;
+          color: #b86cff;
           font-size: 17px;
-          line-height: 1.7;
+          line-height: 1.5;
+          text-shadow:
+            0 0 8px
+            rgba(180, 90, 255, 0.7);
         }
 
         .list-number {
-          flex: 0 0 auto;
-          color: #9e75ff;
+          min-width: 24px;
+          color: #a978ff;
           font-weight: 800;
+        }
+
+        .inline-code {
+          direction: ltr;
+          display: inline-block;
+          margin: 0 3px;
+          padding: 1px 6px;
+          border-radius: 6px;
+          background: rgba(
+            0,
+            0,
+            0,
+            0.35
+          );
+          border: 1px solid
+            rgba(82, 197, 255, 0.22);
+          color: #7eeaff;
+          font-family:
+            "SFMono-Regular",
+            Consolas,
+            "Liberation Mono",
+            monospace;
+          font-size: 0.9em;
+          font-weight: 600;
         }
 
         /* =========================
@@ -2172,140 +2374,198 @@ export default function ChatPage() {
         .code-block {
           direction: ltr;
           width: 100%;
-          margin: 15px 0;
+          margin: 14px 0;
           border-radius: 14px;
           overflow: hidden;
+          border: 1px solid
+            rgba(100, 155, 255, 0.28);
           background:
-            rgba(3, 7, 18, 0.96);
-          border:
-            1px solid
-              rgba(90, 130, 255, 0.3);
+            linear-gradient(
+              145deg,
+              rgba(5, 10, 27, 0.96),
+              rgba(8, 14, 34, 0.94)
+            );
           box-shadow:
-            0 8px 30px
-              rgba(0, 0, 0, 0.22),
-            inset 0 0 25px
-              rgba(60, 80, 180, 0.05);
+            0 8px 28px
+              rgba(0, 0, 0, 0.25),
+            inset 0 0 20px
+              rgba(70, 100, 255, 0.04);
         }
 
         .code-header {
-          min-height: 39px;
-          padding: 6px 8px 6px 12px;
+          height: 42px;
+          padding: 0 9px 0 13px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background:
-            rgba(13, 19, 39, 0.95);
-          border-bottom:
-            1px solid
-              rgba(90, 130, 255, 0.18);
+          border-bottom: 1px solid
+            rgba(120, 160, 255, 0.14);
+          background: rgba(
+            15,
+            23,
+            48,
+            0.82
+          );
         }
 
         .code-language {
-          direction: ltr;
-          color:
-            rgba(190, 201, 235, 0.72);
           font-family:
             "SFMono-Regular",
             Consolas,
             monospace;
-          font-size: 10px;
-          font-weight: 700;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 1px;
+          color: rgba(
+            172,
+            187,
+            224,
+            0.78
+          );
           text-transform: uppercase;
         }
 
-        .code-copy {
-          direction: rtl;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          min-height: 28px;
-          padding: 4px 8px;
-          border: 0;
-          border-radius: 7px;
-          background:
-            rgba(90, 100, 150, 0.14);
-          color:
-            rgba(220, 228, 255, 0.82);
-          cursor: pointer;
-          font-family: inherit;
-          font-size: 10px;
-          font-weight: 700;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
+        .code-block pre {
+          margin: 0;
+          padding: 15px;
+          overflow-x: auto;
+          direction: ltr;
+          text-align: left;
+          scrollbar-width: thin;
         }
 
-        .code-copy:hover {
-          background:
-            rgba(137, 88, 255, 0.2);
+        .code-block pre::-webkit-scrollbar {
+          height: 5px;
+        }
+
+        .code-block pre::-webkit-scrollbar-thumb {
+          border-radius: 999px;
+          background: rgba(
+            140,
+            110,
+            255,
+            0.4
+          );
+        }
+
+        .code-block code {
+          font-family:
+            "SFMono-Regular",
+            "Cascadia Code",
+            "Roboto Mono",
+            Consolas,
+            monospace;
+          font-size: 12px;
+          line-height: 1.75;
+          color: #e8efff;
+          white-space: pre;
+        }
+
+        /* =========================
+           COPY BUTTONS
+        ========================= */
+
+        .copy-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          border: 0;
+          cursor: pointer;
+          color: rgba(
+            224,
+            233,
+            255,
+            0.78
+          );
+          background: transparent;
+          transition:
+            color 0.18s ease,
+            background 0.18s ease,
+            transform 0.18s ease;
+        }
+
+        .copy-button:hover {
           color: white;
         }
 
-        .code-copy svg {
+        .copy-button:active {
+          transform: scale(0.95);
+        }
+
+        .copy-icon {
+          width: 15px;
+          height: 15px;
+          flex: 0 0 15px;
+        }
+
+        .code-copy-button {
+          min-height: 30px;
+          padding: 0 9px;
+          border-radius: 8px;
+          background: rgba(
+            105,
+            89,
+            210,
+            0.13
+          );
+          border: 1px solid
+            rgba(145, 130, 255, 0.18);
+          font-size: 10px;
+          font-weight: 700;
+        }
+
+        .code-copy-button:hover {
+          background: rgba(
+            125,
+            104,
+            255,
+            0.22
+          );
+          border-color: rgba(
+            160,
+            145,
+            255,
+            0.32
+          );
+        }
+
+        /* =========================
+           OUTSIDE MESSAGE COPY
+        ========================= */
+
+        .message-actions {
+          width: 100%;
+          height: 20px;
+          margin-top: 3px;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          direction: ltr;
+        }
+
+        .message-copy-button {
+          width: 24px;
+          height: 20px;
+          min-height: 20px;
+          padding: 0;
+          border-radius: 6px;
+          opacity: 0.52;
+        }
+
+        .message-copy-button .copy-icon {
           width: 14px;
           height: 14px;
         }
 
-        .code-block pre {
-          direction: ltr;
-          margin: 0;
-          padding: 15px;
-          overflow-x: auto;
-          text-align: left;
-          white-space: pre;
-          scrollbar-width: thin;
-        }
-
-        .code-block code {
-          color: #e9eeff;
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            Consolas,
-            "Liberation Mono",
-            monospace;
-          font-size: 12.5px;
-          line-height: 1.75;
-          font-weight: 500;
-        }
-
-        /* =========================
-           COPY MESSAGE
-        ========================= */
-
-        .message-copy {
-          margin-top: 6px;
-          margin-left: 4px;
-          direction: rtl;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          min-height: 27px;
-          padding: 3px 8px;
-          border: 0;
-          border-radius: 8px;
-          background:
-            rgba(80, 100, 150, 0.12);
-          color:
-            rgba(174, 187, 225, 0.68);
-          cursor: pointer;
-          font-family: inherit;
-          font-size: 9px;
-          font-weight: 700;
-          transition:
-            color 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .message-copy:hover {
-          color: white;
-          background:
-            rgba(135, 83, 255, 0.18);
-        }
-
-        .message-copy svg {
-          width: 13px;
-          height: 13px;
+        .message-copy-button:hover {
+          opacity: 1;
+          background: rgba(
+            120,
+            150,
+            255,
+            0.08
+          );
         }
 
         .cursor {
@@ -2326,12 +2586,11 @@ export default function ChatPage() {
           flex: 0 0 auto;
           width: 100%;
           padding: 8px 18px 12px;
-          background:
-            linear-gradient(
-              180deg,
-              transparent,
-              rgba(2, 3, 11, 0.25)
-            );
+          background: linear-gradient(
+            180deg,
+            transparent,
+            rgba(2, 3, 11, 0.25)
+          );
         }
 
         .composer {
@@ -2344,11 +2603,14 @@ export default function ChatPage() {
           gap: 9px;
           padding: 7px 8px;
           border-radius: 23px;
-          border:
-            1px solid
-              rgba(67, 119, 255, 0.75);
-          background:
-            rgba(9, 18, 49, 0.78);
+          border: 1px solid
+            rgba(67, 119, 255, 0.75);
+          background: rgba(
+            9,
+            18,
+            49,
+            0.78
+          );
           box-shadow:
             0 0 25px
               rgba(76, 61, 255, 0.2),
@@ -2372,16 +2634,20 @@ export default function ChatPage() {
           font-family: inherit;
           font-size: 14px;
           line-height: 1.6;
-          font-weight: 500;
         }
 
         .composer textarea::placeholder {
-          color:
-            rgba(173, 183, 230, 0.72);
+          color: rgba(
+            173,
+            183,
+            230,
+            0.72
+          );
         }
 
         /* =========================
-           SEND BUTTON
+           FUTURISTIC SEND BUTTON
+           ORIGINAL DESIGN PRESERVED
         ========================= */
 
         .send {
@@ -2392,15 +2658,19 @@ export default function ChatPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-              rgba(201, 127, 255, 0.95);
+          border: 1px solid
+            rgba(201, 127, 255, 0.95);
           border-radius: 50%;
           color: white;
           background:
             radial-gradient(
               circle at 31% 24%,
-              rgba(255, 255, 255, 0.4),
+              rgba(
+                255,
+                255,
+                255,
+                0.4
+              ),
               transparent 22%
             ),
             radial-gradient(
@@ -2425,7 +2695,12 @@ export default function ChatPage() {
           isolation: isolate;
           transition:
             transform 0.22s
-              cubic-bezier(.2,.8,.2,1),
+              cubic-bezier(
+                0.2,
+                0.8,
+                0.2,
+                1
+              ),
             box-shadow 0.22s ease,
             filter 0.22s ease;
         }
@@ -2439,17 +2714,36 @@ export default function ChatPage() {
             conic-gradient(
               from 0deg,
               transparent 0deg,
-              rgba(190, 91, 255, 0.95) 65deg,
-              rgba(35, 225, 255, 0.95) 145deg,
+              rgba(
+                190,
+                91,
+                255,
+                0.95
+              )
+                65deg,
+              rgba(
+                35,
+                225,
+                255,
+                0.95
+              )
+                145deg,
               transparent 215deg,
-              rgba(173, 76, 255, 0.9) 300deg,
+              rgba(
+                173,
+                76,
+                255,
+                0.9
+              )
+                300deg,
               transparent 360deg
             );
           z-index: -1;
           filter: blur(1px);
           opacity: 0.8;
           animation:
-            sendRing 4s linear infinite;
+            sendRing 4s linear
+            infinite;
         }
 
         .send::after {
@@ -2457,9 +2751,8 @@ export default function ChatPage() {
           position: absolute;
           inset: 2px;
           border-radius: 50%;
-          border:
-            1px solid
-              rgba(255, 255, 255, 0.17);
+          border: 1px solid
+            rgba(255, 255, 255, 0.17);
           box-shadow:
             inset 0 0 10px
               rgba(255, 255, 255, 0.08),
@@ -2498,9 +2791,8 @@ export default function ChatPage() {
         }
 
         .send:focus-visible {
-          outline:
-            2px solid
-              rgba(42, 222, 255, 0.9);
+          outline: 2px solid
+            rgba(42, 222, 255, 0.9);
           outline-offset: 4px;
         }
 
@@ -2529,11 +2821,11 @@ export default function ChatPage() {
           filter:
             drop-shadow(
               0 0 4px
-                rgba(255, 255, 255, 0.7)
+              rgba(255, 255, 255, 0.7)
             )
             drop-shadow(
               0 0 9px
-                rgba(28, 224, 255, 0.38)
+              rgba(28, 224, 255, 0.38)
             );
           transform: translateX(1px);
           transition:
@@ -2548,11 +2840,11 @@ export default function ChatPage() {
           filter:
             drop-shadow(
               0 0 5px
-                rgba(255, 255, 255, 0.95)
+              rgba(255, 255, 255, 0.95)
             )
             drop-shadow(
               0 0 13px
-                rgba(31, 225, 255, 0.58)
+              rgba(31, 225, 255, 0.58)
             );
         }
 
@@ -2560,6 +2852,20 @@ export default function ChatPage() {
           transform:
             translateX(4px)
             scale(0.94);
+        }
+
+        .stop-icon {
+          width: 19px;
+          height: 19px;
+          transform: none;
+        }
+
+        .send:hover .stop-icon {
+          transform: scale(1.07);
+        }
+
+        .send:active .stop-icon {
+          transform: scale(0.94);
         }
 
         @keyframes sendRing {
@@ -2580,14 +2886,22 @@ export default function ChatPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          color:
-            rgba(132, 143, 193, 0.72);
+          color: rgba(
+            132,
+            143,
+            193,
+            0.72
+          );
           font-size: 8px;
         }
 
         .footer span:first-child {
-          color:
-            rgba(166, 104, 255, 0.85);
+          color: rgba(
+            166,
+            104,
+            255,
+            0.85
+          );
         }
 
         @keyframes wave {
@@ -2614,6 +2928,10 @@ export default function ChatPage() {
             opacity: 0;
           }
         }
+
+        /* =========================
+           MOBILE
+        ========================= */
 
         @media (max-width: 500px) {
           .header {
@@ -2702,6 +3020,61 @@ export default function ChatPage() {
             margin-top: 4px;
           }
 
+          .messages {
+            padding-top: 20px;
+          }
+
+          .ai-message-inner {
+            max-width: 92%;
+          }
+
+          .user-message .bubble {
+            max-width: 92%;
+          }
+
+          .bubble {
+            padding: 12px 14px;
+            font-size: 14px;
+            line-height: 1.95;
+          }
+
+          .rich-heading {
+            font-size: 16px;
+          }
+
+          .code-block {
+            margin: 12px 0;
+            border-radius: 12px;
+          }
+
+          .code-header {
+            height: 39px;
+          }
+
+          .code-block pre {
+            padding: 12px;
+          }
+
+          .code-block code {
+            font-size: 11px;
+            line-height: 1.7;
+          }
+
+          .message-actions {
+            margin-top: 2px;
+            height: 19px;
+          }
+
+          .message-copy-button {
+            width: 23px;
+            height: 19px;
+          }
+
+          .message-copy-button .copy-icon {
+            width: 13px;
+            height: 13px;
+          }
+
           .composer-zone {
             padding: 7px 12px 10px;
           }
@@ -2722,51 +3095,13 @@ export default function ChatPage() {
             height: 23px;
           }
 
+          .stop-icon {
+            width: 18px;
+            height: 18px;
+          }
+
           .footer {
             font-size: 7px;
-          }
-
-          .messages {
-            padding-top: 20px;
-          }
-
-          .message-wrapper {
-            max-width: 92%;
-          }
-
-          .bubble {
-            font-size: 14px;
-            line-height: 1.95;
-            padding: 13px 14px;
-          }
-
-          .code-block {
-            margin: 12px 0;
-            border-radius: 12px;
-          }
-
-          .code-block pre {
-            padding: 12px;
-          }
-
-          .code-block code {
-            font-size: 11.5px;
-          }
-
-          .code-copy {
-            font-size: 9px;
-          }
-
-          .heading-1 {
-            font-size: 19px;
-          }
-
-          .heading-2 {
-            font-size: 17px;
-          }
-
-          .heading-3 {
-            font-size: 16px;
           }
         }
 
