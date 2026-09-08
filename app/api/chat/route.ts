@@ -609,53 +609,6 @@ function sanitizeOutput(
   );
 
   /*
-    Remove Markdown hashtags from headings.
-    Example:
-    ### عنوان
-    becomes:
-    عنوان
-  */
-
-  result = result.replace(
-    /^\s*#{1,6}\s+/gm,
-    ""
-  );
-
-  /*
-    Remove Markdown stars.
-    Example:
-    **متن**
-    *متن*
-    ***متن***
-    becomes:
-    متن
-  */
-
-  result = result.replace(
-    /\*+/g,
-    ""
-  );
-
-  /*
-    Remove Markdown underscores used for
-    bold or italic formatting.
-  */
-
-  result = result.replace(
-    /_{2,}/g,
-    ""
-  );
-
-  /*
-    Remove Markdown horizontal separators.
-  */
-
-  result = result.replace(
-    /^\s*(?:-{3,}|_{3,})\s*$/gm,
-    ""
-  );
-
-  /*
     Remove excessive empty lines.
   */
 
@@ -1471,7 +1424,7 @@ export async function POST(
     return jsonResponse(
       {
         error:
-          "در حال حاضر سرویس هوش مصنوعی در دسترس نیست. لطفاً چند لحظه بعد دوباره امتحان کنید.",
+          "در حال حاضر سرویس هوش مصنوعی در دسترس نیست. لطفاً چند لحظه بعد دوباره امتحان کن.",
       },
       503
     );
