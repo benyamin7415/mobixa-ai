@@ -63,25 +63,6 @@ function SendIcon() {
   );
 }
 
-function StopIcon() {
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-      className="send-icon stop-icon"
-    >
-      <rect
-        x="9"
-        y="9"
-        width="14"
-        height="14"
-        rx="2.5"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
 function CreateIcon() {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true">
@@ -155,7 +136,7 @@ function IdeaIcon() {
 }
 
 /* =========================
-   COPY ICONS
+   COPY ICON
 ========================= */
 
 function CopyIcon() {
@@ -555,6 +536,7 @@ function CopyButton({
           document.createElement("textarea");
 
         textarea.value = text;
+
         textarea.style.position = "fixed";
         textarea.style.opacity = "0";
 
@@ -585,10 +567,7 @@ function CopyButton({
       }
       onClick={copyText}
       aria-label={
-        copied ? "کپی شد" : "کپی پاسخ"
-      }
-      title={
-        copied ? "کپی شد" : "کپی پاسخ"
+        copied ? "کپی شد" : "کپی"
       }
     >
       {copied ? (
@@ -597,45 +576,11 @@ function CopyButton({
         <CopyIcon />
       )}
 
-      {code && (
-        <span>
-          {copied ? "کپی شد" : "کپی"}
-        </span>
-      )}
+      <span>
+        {copied ? "کپی شد" : "کپی"}
+      </span>
     </button>
   );
-}
-
-/* =========================
-   MARKDOWN → PLAIN TEXT
-   FOR COPY
-========================= */
-
-function plainTextForCopy(
-  content: string
-) {
-  return content
-    .replace(
-      /```[^\n]*\n([\s\S]*?)(?:```|$)/g,
-      "$1"
-    )
-    .replace(
-      /^\s*#{1,6}\s+/gm,
-      ""
-    )
-    .replace(
-      /\*\*([\s\S]*?)\*\*/g,
-      "$1"
-    )
-    .replace(
-      /`([^`]+)`/g,
-      "$1"
-    )
-    .replace(
-      /^\s*[-*]\s+/gm,
-      "• "
-    )
-    .trim();
 }
 
 /* =========================
@@ -695,12 +640,7 @@ function AssistantContent({
 }: {
   content: string;
 }) {
-  const blocks: Array<{
-    type: "text" | "code";
-    content: string;
-    language?: string;
-  }> = [];
-
+  const blocks = [];
   const lines = content.split("\n");
 
   let normalLines: string[] = [];
@@ -711,9 +651,12 @@ function AssistantContent({
   function flushNormal() {
     if (normalLines.length === 0) return;
 
+    const text =
+      normalLines.join("\n");
+
     blocks.push({
       type: "text",
-      content: normalLines.join("\n"),
+      content: text,
     });
 
     normalLines = [];
@@ -800,8 +743,11 @@ function AssistantContent({
           );
         }
 
+        const text =
+          block.content as string;
+
         const textLines =
-          block.content.split("\n");
+          text.split("\n");
 
         return (
           <div
@@ -938,11 +884,6 @@ export default function ChatPage() {
       null
     );
 
-  const abortControllerRef =
-    useRef<AbortController | null>(
-      null
-    );
-
   function goBack() {
     if (window.history.length > 1) {
       router.back();
@@ -957,18 +898,6 @@ export default function ChatPage() {
     requestAnimationFrame(() => {
       textareaRef.current?.focus();
     });
-  }
-
-  function stopGenerating() {
-    if (!abortControllerRef.current) {
-      return;
-    }
-
-    abortControllerRef.current.abort();
-
-    abortControllerRef.current = null;
-
-    setLoading(false);
   }
 
   async function sendMessage(
@@ -986,12 +915,6 @@ export default function ChatPage() {
 
     const assistantId =
       crypto.randomUUID();
-
-    const controller =
-      new AbortController();
-
-    abortControllerRef.current =
-      controller;
 
     setMessages((old) => [
       ...old,
@@ -1021,7 +944,6 @@ export default function ChatPage() {
           body: JSON.stringify({
             message,
           }),
-          signal: controller.signal,
         }
       );
 
@@ -1113,20 +1035,6 @@ export default function ChatPage() {
         );
       }
     } catch (error) {
-      if (
-        error instanceof DOMException &&
-        error.name === "AbortError"
-      ) {
-        return;
-      }
-
-      if (
-        error instanceof Error &&
-        error.name === "AbortError"
-      ) {
-        return;
-      }
-
       const errorText =
         error instanceof Error
           ? error.message
@@ -1143,14 +1051,6 @@ export default function ChatPage() {
         )
       );
     } finally {
-      if (
-        abortControllerRef.current ===
-        controller
-      ) {
-        abortControllerRef.current =
-          null;
-      }
-
       setLoading(false);
     }
   }
@@ -1332,52 +1232,47 @@ export default function ChatPage() {
                     index ===
                     messages.length - 1;
 
-                  if (
-                    message.role ===
-                    "user"
-                  ) {
-                    return (
-                      <div
-                        key={message.id}
-                        className="message user-message"
-                      >
-                        <div className="bubble">
-                          <div className="user-text">
-                            {message.content}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
                   return (
                     <div
                       key={message.id}
-                      className="message ai-message"
+                      className={
+                        message.role ===
+                        "user"
+                          ? "message user-message"
+                          : "message ai-message"
+                      }
                     >
-                      <div className="ai-message-inner">
-                        <div className="bubble">
-                          <AssistantContent
-                            content={
-                              message.content
-                            }
-                          />
-
-                          {loading &&
-                            isLast && (
-                              <span className="cursor">
-                                ▋
-                              </span>
-                            )}
-                        </div>
-
-                        {message.content.trim() && (
-                          <div className="message-actions">
-                            <CopyButton
-                              text={plainTextForCopy(
+                      <div className="bubble">
+                        {message.role ===
+                        "assistant" ? (
+                          <>
+                            <AssistantContent
+                              content={
                                 message.content
-                              )}
+                              }
                             />
+
+                            {message.content.trim() &&
+                              !loading && (
+                                <div className="message-actions">
+                                  <CopyButton
+                                    text={
+                                      message.content
+                                    }
+                                  />
+                                </div>
+                              )}
+
+                            {loading &&
+                              isLast && (
+                                <span className="cursor">
+                                  ▋
+                                </span>
+                              )}
+                          </>
+                        ) : (
+                          <div className="user-text">
+                            {message.content}
                           </div>
                         )}
                       </div>
@@ -1395,9 +1290,7 @@ export default function ChatPage() {
             onSubmit={(event) => {
               event.preventDefault();
 
-              if (!loading) {
-                sendMessage();
-              }
+              sendMessage();
             }}
           >
             <textarea
@@ -1418,26 +1311,11 @@ export default function ChatPage() {
               type="submit"
               className="send"
               disabled={
-                !input.trim() &&
-                !loading
-              }
-              onClick={(event) => {
-                if (loading) {
-                  event.preventDefault();
-                  stopGenerating();
-                }
-              }}
-              aria-label={
+                !input.trim() ||
                 loading
-                  ? "توقف پاسخ"
-                  : "ارسال پیام"
               }
             >
-              {loading ? (
-                <StopIcon />
-              ) : (
-                <SendIcon />
-              )}
+              <SendIcon />
             </button>
           </form>
 
@@ -2207,16 +2085,8 @@ export default function ChatPage() {
           justify-content: flex-end;
         }
 
-        .ai-message-inner {
-          width: 100%;
-          max-width: 86%;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-        }
-
         .bubble {
-          width: 100%;
+          max-width: 86%;
           padding: 14px 17px;
           border-radius: 19px;
           font-size: 15px;
@@ -2226,7 +2096,6 @@ export default function ChatPage() {
         }
 
         .user-message .bubble {
-          max-width: 86%;
           background: rgba(
             91,
             35,
@@ -2530,32 +2399,22 @@ export default function ChatPage() {
           );
         }
 
-        /* =========================
-           OUTSIDE MESSAGE COPY
-        ========================= */
-
         .message-actions {
           width: 100%;
-          height: 20px;
-          margin-top: 3px;
+          margin-top: 10px;
+          padding-top: 7px;
           display: flex;
-          align-items: center;
           justify-content: flex-start;
-          direction: ltr;
+          border-top: 1px solid
+            rgba(120, 190, 255, 0.09);
         }
 
         .message-copy-button {
-          width: 24px;
-          height: 20px;
-          min-height: 20px;
-          padding: 0;
-          border-radius: 6px;
-          opacity: 0.52;
-        }
-
-        .message-copy-button .copy-icon {
-          width: 14px;
-          height: 14px;
+          min-height: 27px;
+          padding: 0 6px;
+          border-radius: 7px;
+          font-size: 9px;
+          opacity: 0.68;
         }
 
         .message-copy-button:hover {
@@ -2564,7 +2423,7 @@ export default function ChatPage() {
             120,
             150,
             255,
-            0.08
+            0.09
           );
         }
 
@@ -2647,7 +2506,6 @@ export default function ChatPage() {
 
         /* =========================
            FUTURISTIC SEND BUTTON
-           ORIGINAL DESIGN PRESERVED
         ========================= */
 
         .send {
@@ -2854,20 +2712,6 @@ export default function ChatPage() {
             scale(0.94);
         }
 
-        .stop-icon {
-          width: 19px;
-          height: 19px;
-          transform: none;
-        }
-
-        .send:hover .stop-icon {
-          transform: scale(1.07);
-        }
-
-        .send:active .stop-icon {
-          transform: scale(0.94);
-        }
-
         @keyframes sendRing {
           from {
             transform: rotate(0deg);
@@ -3024,15 +2868,8 @@ export default function ChatPage() {
             padding-top: 20px;
           }
 
-          .ai-message-inner {
-            max-width: 92%;
-          }
-
-          .user-message .bubble {
-            max-width: 92%;
-          }
-
           .bubble {
+            max-width: 92%;
             padding: 12px 14px;
             font-size: 14px;
             line-height: 1.95;
@@ -3060,21 +2897,6 @@ export default function ChatPage() {
             line-height: 1.7;
           }
 
-          .message-actions {
-            margin-top: 2px;
-            height: 19px;
-          }
-
-          .message-copy-button {
-            width: 23px;
-            height: 19px;
-          }
-
-          .message-copy-button .copy-icon {
-            width: 13px;
-            height: 13px;
-          }
-
           .composer-zone {
             padding: 7px 12px 10px;
           }
@@ -3093,11 +2915,6 @@ export default function ChatPage() {
           .send-icon {
             width: 23px;
             height: 23px;
-          }
-
-          .stop-icon {
-            width: 18px;
-            height: 18px;
           }
 
           .footer {
