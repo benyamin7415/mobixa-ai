@@ -1,10 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 
 type Message = {
   id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
+type ChatHistoryMessage = {
   role: "user" | "assistant";
   content: string;
 };
@@ -95,6 +106,7 @@ function CopyIcon() {
         stroke="currentColor"
         strokeWidth="1.8"
       />
+
       <path
         d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
         fill="none"
@@ -131,6 +143,7 @@ function CreateIcon() {
         strokeWidth="2"
         strokeLinejoin="round"
       />
+
       <path
         d="m18 8 4 4M22 4v4M20 6h4"
         fill="none"
@@ -152,6 +165,7 @@ function LearnIcon() {
         strokeWidth="2"
         strokeLinejoin="round"
       />
+
       <path
         d="M16 3v26M4 7l12 4 12-4"
         fill="none"
@@ -171,6 +185,7 @@ function IdeaIcon() {
         stroke="currentColor"
         strokeWidth="2"
       />
+
       <path
         d="M12 30h8M14 26h4"
         fill="none"
@@ -178,6 +193,7 @@ function IdeaIcon() {
         strokeWidth="2"
         strokeLinecap="round"
       />
+
       <path
         d="M16 2v2M28 10h-2M6 10H4"
         fill="none"
@@ -205,6 +221,7 @@ function CodeBlock({
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(code);
+
       setCopied(true);
 
       window.setTimeout(() => {
@@ -253,7 +270,9 @@ function InlineText({
 }: {
   text: string;
 }) {
-  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
+  const parts = text.split(
+    /(`[^`]+`|\*\*[^*]+\*\*)/g
+  );
 
   return (
     <>
@@ -301,9 +320,11 @@ function MessageContent({
 }: {
   content: string;
 }) {
-  const blocks: React.ReactNode[] = [];
+  const blocks: ReactNode[] = [];
 
-  const lines = content.replace(/\r/g, "").split("\n");
+  const lines = content
+    .replace(/\r/g, "")
+    .split("\n");
 
   let textBuffer: string[] = [];
   let codeBuffer: string[] = [];
@@ -381,9 +402,12 @@ function MessageContent({
                   <span className="list-dot">
                     •
                   </span>
-                  <InlineText
-                    text={trimmed.slice(2)}
-                  />
+
+                  <span className="list-content">
+                    <InlineText
+                      text={trimmed.slice(2)}
+                    />
+                  </span>
                 </div>
               );
             }
@@ -405,9 +429,12 @@ function MessageContent({
                     <span className="list-number">
                       {match[1]}.
                     </span>
-                    <InlineText
-                      text={match[2]}
-                    />
+
+                    <span className="list-content">
+                      <InlineText
+                        text={match[2]}
+                      />
+                    </span>
                   </div>
                 );
               }
@@ -669,6 +696,7 @@ function MobixaRobot() {
               stdDeviation="3"
               result="blur"
             />
+
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -908,12 +936,7 @@ export default function ChatPage() {
   }
 
   function stopGeneration() {
-    const controller =
-      abortControllerRef.current;
-
-    if (controller) {
-      controller.abort();
-    }
+    abortControllerRef.current?.abort();
   }
 
   async function sendMessage(custom?: string) {
@@ -924,25 +947,25 @@ export default function ChatPage() {
     if (!message || loading) return;
 
     /*
-      تاریخچه را قبل از اضافه کردن
-      پیام جدید می‌گیریم تا پیام
-      خالیِ assistant وارد history نشود.
+      تاریخچه فقط از پیام‌های کامل
+      و غیرخالی ساخته می‌شود.
     */
-    const history = messages
-      .filter(
-        (item) =>
-          item.content.trim()
-      )
-      .slice(-30)
-      .map(
-        ({
-          role,
-          content,
-        }) => ({
-          role,
-          content,
-        })
-      );
+    const history: ChatHistoryMessage[] =
+      messages
+        .filter(
+          (item) =>
+            item.content.trim()
+        )
+        .slice(-30)
+        .map(
+          ({
+            role,
+            content,
+          }) => ({
+            role,
+            content,
+          })
+        );
 
     setInput("");
 
@@ -981,12 +1004,15 @@ export default function ChatPage() {
         "/api/chat",
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/json",
           },
+
           signal:
             controller.signal,
+
           body: JSON.stringify({
             message,
             history,
@@ -1081,12 +1107,13 @@ export default function ChatPage() {
       }
     } catch (error) {
       /*
-        اگر کاربر Stop زده باشد،
-        متن ناقص را نگه می‌داریم و
-        پیام خطا نمایش نمی‌دهیم.
+        Stop با AbortController
+        نباید پیام خطا بسازد.
+        متن ناقص همان‌طور که هست
+        باقی می‌ماند.
       */
       if (
-        error instanceof DOMException &&
+        error instanceof Error &&
         error.name === "AbortError"
       ) {
         return;
@@ -1122,7 +1149,7 @@ export default function ChatPage() {
   }
 
   function keyDown(
-    event: React.KeyboardEvent<HTMLTextAreaElement>
+    event: KeyboardEvent<HTMLTextAreaElement>
   ) {
     if (
       event.key === "Enter" &&
@@ -2122,11 +2149,13 @@ export default function ChatPage() {
           display: flex;
           flex-direction: column;
           gap: 15px;
+          min-width: 0;
         }
 
         .message {
           display: flex;
           width: 100%;
+          min-width: 0;
         }
 
         .user-message {
@@ -2138,7 +2167,9 @@ export default function ChatPage() {
         }
 
         .message-wrapper {
+          width: auto;
           max-width: 86%;
+          min-width: 0;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
@@ -2146,15 +2177,21 @@ export default function ChatPage() {
 
         .ai-message .message-wrapper {
           align-items: flex-end;
+          min-width: 0;
         }
 
         .bubble {
+          width: auto;
+          max-width: 100%;
+          min-width: 0;
           padding: 14px 17px;
           border-radius: 19px;
           font-size: 15px;
           line-height: 2;
           font-weight: 500;
           overflow: hidden;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .user-message .bubble {
@@ -2179,23 +2216,37 @@ export default function ChatPage() {
         }
 
         .user-text {
+          min-width: 0;
+          max-width: 100%;
           white-space: pre-wrap;
           overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .rich-message {
           width: 100%;
+          min-width: 0;
+          max-width: 100%;
           direction: rtl;
           text-align: right;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .message-text {
           width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .message-line {
           min-height: 1.8em;
+          min-width: 0;
+          max-width: 100%;
           overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .message-space {
@@ -2203,10 +2254,14 @@ export default function ChatPage() {
         }
 
         .message-heading {
+          max-width: 100%;
+          min-width: 0;
           margin: 13px 0 8px;
           line-height: 1.45;
           font-weight: 850;
           letter-spacing: -0.2px;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .heading-1 {
@@ -2224,12 +2279,15 @@ export default function ChatPage() {
         .inline-bold {
           font-weight: 850;
           color: #ffffff;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .inline-code {
           direction: ltr;
           unicode-bidi: plaintext;
           display: inline-block;
+          max-width: 100%;
           padding: 1px 6px;
           margin: 0 2px;
           border-radius: 6px;
@@ -2244,6 +2302,8 @@ export default function ChatPage() {
             Consolas,
             monospace;
           font-size: 0.88em;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .message-list-item {
@@ -2252,7 +2312,18 @@ export default function ChatPage() {
           gap: 8px;
           margin: 4px 0;
           padding-right: 4px;
+          min-width: 0;
+          max-width: 100%;
           overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+
+        .list-content {
+          min-width: 0;
+          max-width: 100%;
+          flex: 1 1 auto;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .list-dot {
@@ -2275,6 +2346,8 @@ export default function ChatPage() {
         .code-block {
           direction: ltr;
           width: 100%;
+          max-width: 100%;
+          min-width: 0;
           margin: 15px 0;
           border-radius: 14px;
           overflow: hidden;
@@ -2292,6 +2365,8 @@ export default function ChatPage() {
 
         .code-header {
           min-height: 39px;
+          max-width: 100%;
+          min-width: 0;
           padding: 6px 8px 6px 12px;
           display: flex;
           align-items: center;
@@ -2305,6 +2380,7 @@ export default function ChatPage() {
 
         .code-language {
           direction: ltr;
+          min-width: 0;
           color:
             rgba(190, 201, 235, 0.72);
           font-family:
@@ -2317,6 +2393,7 @@ export default function ChatPage() {
         }
 
         .code-copy {
+          flex: 0 0 auto;
           direction: rtl;
           display: flex;
           align-items: center;
@@ -2351,9 +2428,13 @@ export default function ChatPage() {
 
         .code-block pre {
           direction: ltr;
+          display: block;
+          width: 100%;
+          max-width: 100%;
           margin: 0;
           padding: 15px;
           overflow-x: auto;
+          overflow-y: hidden;
           text-align: left;
           white-space: pre;
           scrollbar-width: thin;
@@ -2857,20 +2938,25 @@ export default function ChatPage() {
 
           .message-wrapper {
             max-width: 92%;
+            min-width: 0;
           }
 
           .bubble {
+            max-width: 100%;
+            min-width: 0;
             font-size: 14px;
             line-height: 1.95;
             padding: 13px 14px;
           }
 
           .code-block {
+            max-width: 100%;
             margin: 12px 0;
             border-radius: 12px;
           }
 
           .code-block pre {
+            max-width: 100%;
             padding: 12px;
           }
 
