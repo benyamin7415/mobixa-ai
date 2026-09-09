@@ -161,11 +161,13 @@ function createOpenAIMessages(
   ];
 }
 
-function createGeminiStream(response: Response) {
-  const reader = response.body!.getReader();
+function createGeminiStream(
+  body: ReadableStream<Uint8Array>
+) {
+  const reader = body.getReader();
   const decoder = new TextDecoder();
 
-  return new ReadableStream({
+  return new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = "";
 
@@ -177,9 +179,12 @@ function createGeminiStream(response: Response) {
             break;
           }
 
-          buffer += decoder.decode(value, { stream: true });
+          buffer += decoder.decode(value, {
+            stream: true,
+          });
 
           const events = buffer.split("\n");
+
           buffer = events.pop() || "";
 
           for (const line of events) {
@@ -191,7 +196,10 @@ function createGeminiStream(response: Response) {
 
             const jsonText = trimmed.slice(5).trim();
 
-            if (!jsonText || jsonText === "[DONE]") {
+            if (
+              !jsonText ||
+              jsonText === "[DONE]"
+            ) {
               continue;
             }
 
@@ -200,12 +208,17 @@ function createGeminiStream(response: Response) {
 
               const text =
                 data?.candidates?.[0]?.content?.parts
-                  ?.map((part: { text?: string }) => part?.text || "")
+                  ?.map(
+                    (part: { text?: string }) =>
+                      part?.text || ""
+                  )
                   .join("") || "";
 
               if (text) {
                 controller.enqueue(
-                  new TextEncoder().encode(sanitizeOutput(text))
+                  new TextEncoder().encode(
+                    sanitizeOutput(text)
+                  )
                 );
               }
             } catch {
@@ -216,7 +229,11 @@ function createGeminiStream(response: Response) {
 
         controller.close();
       } catch (error) {
-        console.error("GEMINI_STREAM_ERROR:", error);
+        console.error(
+          "GEMINI_STREAM_ERROR:",
+          error
+        );
+
         controller.error(error);
       } finally {
         reader.releaseLock();
@@ -225,11 +242,13 @@ function createGeminiStream(response: Response) {
   });
 }
 
-function createOpenAICompatibleStream(response: Response) {
-  const reader = response.body!.getReader();
+function createOpenAICompatibleStream(
+  body: ReadableStream<Uint8Array>
+) {
+  const reader = body.getReader();
   const decoder = new TextDecoder();
 
-  return new ReadableStream({
+  return new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = "";
 
@@ -241,9 +260,12 @@ function createOpenAICompatibleStream(response: Response) {
             break;
           }
 
-          buffer += decoder.decode(value, { stream: true });
+          buffer += decoder.decode(value, {
+            stream: true,
+          });
 
           const events = buffer.split("\n");
+
           buffer = events.pop() || "";
 
           for (const line of events) {
@@ -255,7 +277,10 @@ function createOpenAICompatibleStream(response: Response) {
 
             const jsonText = trimmed.slice(5).trim();
 
-            if (!jsonText || jsonText === "[DONE]") {
+            if (
+              !jsonText ||
+              jsonText === "[DONE]"
+            ) {
               continue;
             }
 
@@ -263,11 +288,14 @@ function createOpenAICompatibleStream(response: Response) {
               const data = JSON.parse(jsonText);
 
               const text =
-                data?.choices?.[0]?.delta?.content || "";
+                data?.choices?.[0]?.delta?.content ||
+                "";
 
               if (text) {
                 controller.enqueue(
-                  new TextEncoder().encode(sanitizeOutput(text))
+                  new TextEncoder().encode(
+                    sanitizeOutput(text)
+                  )
                 );
               }
             } catch {
@@ -278,7 +306,11 @@ function createOpenAICompatibleStream(response: Response) {
 
         controller.close();
       } catch (error) {
-        console.error("OPENAI_COMPATIBLE_STREAM_ERROR:", error);
+        console.error(
+          "OPENAI_COMPATIBLE_STREAM_ERROR:",
+          error
+        );
+
         controller.error(error);
       } finally {
         reader.releaseLock();
@@ -303,9 +335,16 @@ async function requestGemini(
     },
     body: JSON.stringify({
       systemInstruction: {
-        parts: [{ text: SYSTEM_INSTRUCTION }],
+        parts: [
+          {
+            text: SYSTEM_INSTRUCTION,
+          },
+        ],
       },
-      contents: createGeminiContents(history, message),
+      contents: createGeminiContents(
+        history,
+        message
+      ),
       generationConfig: {
         temperature: 0.7,
       },
@@ -330,7 +369,10 @@ async function requestOpenRouter(
       },
       body: JSON.stringify({
         model: "openrouter/free",
-        messages: createOpenAIMessages(history, message),
+        messages: createOpenAIMessages(
+          history,
+          message
+        ),
         stream: true,
       }),
     }
@@ -352,7 +394,10 @@ async function requestGroq(
       },
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
-        messages: createOpenAIMessages(history, message),
+        messages: createOpenAIMessages(
+          history,
+          message
+        ),
         stream: true,
         temperature: 0.7,
       }),
@@ -360,7 +405,9 @@ async function requestGroq(
   );
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(
+  req: NextRequest
+) {
   try {
     const body = await req.json();
 
@@ -369,47 +416,69 @@ export async function POST(req: NextRequest) {
         ? body.message.trim()
         : "";
 
-    const history = normalizeHistory(body?.history);
+    const history = normalizeHistory(
+      body?.history
+    );
 
     if (!message) {
       return NextResponse.json(
         {
           error: "پیام خالی است.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    const groqKey = process.env.GROQ_API_KEY;
+    const geminiKey =
+      process.env.GEMINI_API_KEY;
+
+    const openRouterKey =
+      process.env.OPENROUTER_API_KEY;
+
+    const groqKey =
+      process.env.GROQ_API_KEY;
 
     /*
-     * 1️⃣ GEMINI
+     * =====================================================
+     * 1. GEMINI
+     * =====================================================
      */
+
     if (geminiKey) {
       try {
-        const response = await requestGemini(
-          message,
-          history,
-          geminiKey
-        );
+        const response =
+          await requestGemini(
+            message,
+            history,
+            geminiKey
+          );
 
-        if (response.ok && response.body) {
+        if (
+          response.ok &&
+          response.body
+        ) {
           return new Response(
-            createGeminiStream(response.body),
+            createGeminiStream(
+              response.body
+            ),
             {
               status: 200,
               headers: {
-                "Content-Type": "text/plain; charset=utf-8",
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
+                "Content-Type":
+                  "text/plain; charset=utf-8",
+                "Cache-Control":
+                  "no-cache",
+                "Connection":
+                  "keep-alive",
               },
             }
           );
         }
 
-        const errorText = await response.text();
+        const errorText =
+          await response.text();
 
         console.error(
           "GEMINI_HTTP_ERROR:",
@@ -417,49 +486,82 @@ export async function POST(req: NextRequest) {
           errorText.slice(0, 2000)
         );
 
+        /*
+         * این خطاها باعث می‌شوند
+         * سراغ سرویس بعدی برویم.
+         */
         if (
-          ![408, 409, 425, 429, 500, 502, 503, 504].includes(
-            response.status
-          )
+          ![
+            408,
+            409,
+            425,
+            429,
+            500,
+            502,
+            503,
+            504,
+          ].includes(response.status)
         ) {
           return NextResponse.json(
             {
-              error: cleanErrorMessage(errorText),
+              error:
+                cleanErrorMessage(
+                  errorText
+                ),
             },
-            { status: response.status }
+            {
+              status:
+                response.status,
+            }
           );
         }
       } catch (error) {
-        console.error("GEMINI_REQUEST_ERROR:", error);
+        console.error(
+          "GEMINI_REQUEST_ERROR:",
+          error
+        );
       }
     }
 
     /*
-     * 2️⃣ OPENROUTER
+     * =====================================================
+     * 2. OPENROUTER
+     * =====================================================
      */
+
     if (openRouterKey) {
       try {
-        const response = await requestOpenRouter(
-          message,
-          history,
-          openRouterKey
-        );
+        const response =
+          await requestOpenRouter(
+            message,
+            history,
+            openRouterKey
+          );
 
-        if (response.ok && response.body) {
+        if (
+          response.ok &&
+          response.body
+        ) {
           return new Response(
-            createOpenAICompatibleStream(response),
+            createOpenAICompatibleStream(
+              response.body
+            ),
             {
               status: 200,
               headers: {
-                "Content-Type": "text/plain; charset=utf-8",
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
+                "Content-Type":
+                  "text/plain; charset=utf-8",
+                "Cache-Control":
+                  "no-cache",
+                "Connection":
+                  "keep-alive",
               },
             }
           );
         }
 
-        const errorText = await response.text();
+        const errorText =
+          await response.text();
 
         console.error(
           "OPENROUTER_HTTP_ERROR:",
@@ -467,49 +569,82 @@ export async function POST(req: NextRequest) {
           errorText.slice(0, 2000)
         );
 
+        /*
+         * اگر خطای غیرقابل fallback بود،
+         * همان‌جا پاسخ می‌دهیم.
+         */
         if (
-          ![408, 409, 425, 429, 500, 502, 503, 504].includes(
-            response.status
-          )
+          ![
+            408,
+            409,
+            425,
+            429,
+            500,
+            502,
+            503,
+            504,
+          ].includes(response.status)
         ) {
           return NextResponse.json(
             {
-              error: cleanErrorMessage(errorText),
+              error:
+                cleanErrorMessage(
+                  errorText
+                ),
             },
-            { status: response.status }
+            {
+              status:
+                response.status,
+            }
           );
         }
       } catch (error) {
-        console.error("OPENROUTER_REQUEST_ERROR:", error);
+        console.error(
+          "OPENROUTER_REQUEST_ERROR:",
+          error
+        );
       }
     }
 
     /*
-     * 3️⃣ GROQ
+     * =====================================================
+     * 3. GROQ
+     * =====================================================
      */
+
     if (groqKey) {
       try {
-        const response = await requestGroq(
-          message,
-          history,
-          groqKey
-        );
+        const response =
+          await requestGroq(
+            message,
+            history,
+            groqKey
+          );
 
-        if (response.ok && response.body) {
+        if (
+          response.ok &&
+          response.body
+        ) {
           return new Response(
-            createOpenAICompatibleStream(response),
+            createOpenAICompatibleStream(
+              response.body
+            ),
             {
               status: 200,
               headers: {
-                "Content-Type": "text/plain; charset=utf-8",
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
+                "Content-Type":
+                  "text/plain; charset=utf-8",
+                "Cache-Control":
+                  "no-cache",
+                "Connection":
+                  "keep-alive",
               },
             }
           );
         }
 
-        const errorText = await response.text();
+        const errorText =
+          await response.text();
 
         console.error(
           "GROQ_HTTP_ERROR:",
@@ -519,33 +654,53 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
           {
-            error: cleanErrorMessage(errorText),
+            error:
+              cleanErrorMessage(
+                errorText
+              ),
           },
-          { status: response.status }
+          {
+            status:
+              response.status,
+          }
         );
       } catch (error) {
-        console.error("GROQ_REQUEST_ERROR:", error);
+        console.error(
+          "GROQ_REQUEST_ERROR:",
+          error
+        );
       }
     }
 
     /*
-     * همه سرویس‌ها شکست خوردند
+     * =====================================================
+     * ALL PROVIDERS FAILED
+     * =====================================================
      */
+
     return NextResponse.json(
       {
         error:
           "فعلاً امکان دریافت پاسخ از سرویس‌های هوش مصنوعی وجود ندارد. لطفاً کمی بعد دوباره امتحان کن.",
       },
-      { status: 503 }
+      {
+        status: 503,
+      }
     );
   } catch (error) {
-    console.error("CHAT_ROUTE_ERROR:", error);
+    console.error(
+      "CHAT_ROUTE_ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "در پردازش پیام مشکلی پیش آمد. لطفاً دوباره امتحان کن.",
+        error:
+          "در پردازش پیام مشکلی پیش آمد. لطفاً دوباره امتحان کن.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
