@@ -63,6 +63,25 @@ function SendIcon() {
   );
 }
 
+function StopIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="stop-icon"
+    >
+      <rect
+        x="7"
+        y="7"
+        width="10"
+        height="10"
+        rx="2"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 function CopyIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -869,6 +888,9 @@ export default function ChatPage() {
   const scrollRef =
     useRef<HTMLDivElement | null>(null);
 
+  const abortControllerRef =
+    useRef<AbortController | null>(null);
+
   function goBack() {
     if (window.history.length > 1) {
       router.back();
@@ -885,12 +907,42 @@ export default function ChatPage() {
     });
   }
 
+  function stopGeneration() {
+    const controller =
+      abortControllerRef.current;
+
+    if (controller) {
+      controller.abort();
+    }
+  }
+
   async function sendMessage(custom?: string) {
     const message = (
       custom ?? input
     ).trim();
 
     if (!message || loading) return;
+
+    /*
+      تاریخچه را قبل از اضافه کردن
+      پیام جدید می‌گیریم تا پیام
+      خالیِ assistant وارد history نشود.
+    */
+    const history = messages
+      .filter(
+        (item) =>
+          item.content.trim()
+      )
+      .slice(-30)
+      .map(
+        ({
+          role,
+          content,
+        }) => ({
+          role,
+          content,
+        })
+      );
 
     setInput("");
 
@@ -918,6 +970,12 @@ export default function ChatPage() {
 
     setLoading(true);
 
+    const controller =
+      new AbortController();
+
+    abortControllerRef.current =
+      controller;
+
     try {
       const response = await fetch(
         "/api/chat",
@@ -927,8 +985,11 @@ export default function ChatPage() {
             "Content-Type":
               "application/json",
           },
+          signal:
+            controller.signal,
           body: JSON.stringify({
             message,
+            history,
           }),
         }
       );
@@ -1019,6 +1080,18 @@ export default function ChatPage() {
         );
       }
     } catch (error) {
+      /*
+        اگر کاربر Stop زده باشد،
+        متن ناقص را نگه می‌داریم و
+        پیام خطا نمایش نمی‌دهیم.
+      */
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
       const errorText =
         error instanceof Error
           ? error.message
@@ -1036,6 +1109,14 @@ export default function ChatPage() {
         )
       );
     } finally {
+      if (
+        abortControllerRef.current ===
+        controller
+      ) {
+        abortControllerRef.current =
+          null;
+      }
+
       setLoading(false);
     }
   }
@@ -1048,7 +1129,10 @@ export default function ChatPage() {
       !event.shiftKey
     ) {
       event.preventDefault();
-      sendMessage();
+
+      if (!loading) {
+        sendMessage();
+      }
     }
   }
 
@@ -1278,7 +1362,10 @@ export default function ChatPage() {
             className="composer"
             onSubmit={(event) => {
               event.preventDefault();
-              sendMessage();
+
+              if (!loading) {
+                sendMessage();
+              }
             }}
           >
             <textarea
@@ -1296,14 +1383,30 @@ export default function ChatPage() {
             />
 
             <button
-              type="submit"
+              type="button"
               className="send"
               disabled={
-                !input.trim() ||
+                !input.trim() &&
+                !loading
+              }
+              onClick={() => {
+                if (loading) {
+                  stopGeneration();
+                } else {
+                  sendMessage();
+                }
+              }}
+              aria-label={
                 loading
+                  ? "توقف تولید پاسخ"
+                  : "ارسال پیام"
               }
             >
-              <SendIcon />
+              {loading ? (
+                <StopIcon />
+              ) : (
+                <SendIcon />
+              )}
             </button>
           </form>
 
@@ -2274,23 +2377,23 @@ export default function ChatPage() {
         ========================= */
 
         .message-copy {
-          margin-top: 6px;
-          margin-left: 4px;
+          margin-top: 3px;
+          margin-left: 3px;
           direction: rtl;
           display: flex;
           align-items: center;
-          gap: 5px;
-          min-height: 27px;
-          padding: 3px 8px;
+          gap: 4px;
+          min-height: 23px;
+          padding: 2px 5px;
           border: 0;
-          border-radius: 8px;
+          border-radius: 7px;
           background:
-            rgba(80, 100, 150, 0.12);
+            rgba(80, 100, 150, 0.09);
           color:
-            rgba(174, 187, 225, 0.68);
+            rgba(174, 187, 225, 0.58);
           cursor: pointer;
           font-family: inherit;
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 700;
           transition:
             color 0.2s ease,
@@ -2304,8 +2407,8 @@ export default function ChatPage() {
         }
 
         .message-copy svg {
-          width: 13px;
-          height: 13px;
+          width: 11px;
+          height: 11px;
         }
 
         .cursor {
@@ -2562,6 +2665,23 @@ export default function ChatPage() {
             scale(0.94);
         }
 
+        .stop-icon {
+          position: relative;
+          z-index: 3;
+          width: 15px;
+          height: 15px;
+          color: white;
+          filter:
+            drop-shadow(
+              0 0 4px
+                rgba(255, 255, 255, 0.75)
+            )
+            drop-shadow(
+              0 0 8px
+                rgba(28, 224, 255, 0.35)
+            );
+        }
+
         @keyframes sendRing {
           from {
             transform: rotate(0deg);
@@ -2720,6 +2840,11 @@ export default function ChatPage() {
           .send-icon {
             width: 23px;
             height: 23px;
+          }
+
+          .stop-icon {
+            width: 14px;
+            height: 14px;
           }
 
           .footer {
