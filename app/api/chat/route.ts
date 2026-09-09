@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const SYSTEM_INSTRUCTION = `
 You are Mobixa AI, an intelligent AI assistant inside the Mobixa website.
@@ -113,7 +114,8 @@ function normalizeHistory(history: unknown): ChatMessage[] {
         item !== null &&
         "role" in item &&
         "content" in item &&
-        (item.role === "user" || item.role === "assistant") &&
+        (item.role === "user" ||
+          item.role === "assistant") &&
         typeof item.content === "string" &&
         item.content.trim().length > 0
       );
@@ -131,12 +133,24 @@ function createGeminiContents(
 ) {
   return [
     ...history.map((item) => ({
-      role: item.role === "assistant" ? "model" : "user",
-      parts: [{ text: item.content }],
+      role:
+        item.role === "assistant"
+          ? "model"
+          : "user",
+      parts: [
+        {
+          text: item.content,
+        },
+      ],
     })),
+
     {
       role: "user",
-      parts: [{ text: message }],
+      parts: [
+        {
+          text: message,
+        },
+      ],
     },
   ];
 }
@@ -150,10 +164,12 @@ function createOpenAIMessages(
       role: "system",
       content: SYSTEM_INSTRUCTION,
     },
+
     ...history.map((item) => ({
       role: item.role,
       content: item.content,
     })),
+
     {
       role: "user",
       content: message,
@@ -173,7 +189,8 @@ function createGeminiStream(
 
       try {
         while (true) {
-          const { done, value } = await reader.read();
+          const { done, value } =
+            await reader.read();
 
           if (done) {
             break;
@@ -183,18 +200,28 @@ function createGeminiStream(
             stream: true,
           });
 
-          const events = buffer.split("\n");
+          const events =
+            buffer.split("\n");
 
-          buffer = events.pop() || "";
+          buffer =
+            events.pop() || "";
 
           for (const line of events) {
-            const trimmed = line.trim();
+            const trimmed =
+              line.trim();
 
-            if (!trimmed.startsWith("data:")) {
+            if (
+              !trimmed.startsWith(
+                "data:"
+              )
+            ) {
               continue;
             }
 
-            const jsonText = trimmed.slice(5).trim();
+            const jsonText =
+              trimmed
+                .slice(5)
+                .trim();
 
             if (
               !jsonText ||
@@ -204,12 +231,18 @@ function createGeminiStream(
             }
 
             try {
-              const data = JSON.parse(jsonText);
+              const data =
+                JSON.parse(jsonText);
 
               const text =
-                data?.candidates?.[0]?.content?.parts
+                data?.candidates?.[0]
+                  ?.content?.parts
                   ?.map(
-                    (part: { text?: string }) =>
+                    (
+                      part: {
+                        text?: string;
+                      }
+                    ) =>
                       part?.text || ""
                   )
                   .join("") || "";
@@ -223,6 +256,59 @@ function createGeminiStream(
               }
             } catch {
               // Ignore incomplete SSE chunks.
+            }
+          }
+        }
+
+        if (buffer.trim()) {
+          const trimmed =
+            buffer.trim();
+
+          if (
+            trimmed.startsWith(
+              "data:"
+            )
+          ) {
+            const jsonText =
+              trimmed
+                .slice(5)
+                .trim();
+
+            if (
+              jsonText &&
+              jsonText !== "[DONE]"
+            ) {
+              try {
+                const data =
+                  JSON.parse(
+                    jsonText
+                  );
+
+                const text =
+                  data?.candidates?.[0]
+                    ?.content?.parts
+                    ?.map(
+                      (
+                        part: {
+                          text?: string;
+                        }
+                      ) =>
+                        part?.text || ""
+                    )
+                    .join("") || "";
+
+                if (text) {
+                  controller.enqueue(
+                    new TextEncoder().encode(
+                      sanitizeOutput(
+                        text
+                      )
+                    )
+                  );
+                }
+              } catch {
+                // Ignore incomplete final chunk.
+              }
             }
           }
         }
@@ -254,7 +340,8 @@ function createOpenAICompatibleStream(
 
       try {
         while (true) {
-          const { done, value } = await reader.read();
+          const { done, value } =
+            await reader.read();
 
           if (done) {
             break;
@@ -264,18 +351,28 @@ function createOpenAICompatibleStream(
             stream: true,
           });
 
-          const events = buffer.split("\n");
+          const events =
+            buffer.split("\n");
 
-          buffer = events.pop() || "";
+          buffer =
+            events.pop() || "";
 
           for (const line of events) {
-            const trimmed = line.trim();
+            const trimmed =
+              line.trim();
 
-            if (!trimmed.startsWith("data:")) {
+            if (
+              !trimmed.startsWith(
+                "data:"
+              )
+            ) {
               continue;
             }
 
-            const jsonText = trimmed.slice(5).trim();
+            const jsonText =
+              trimmed
+                .slice(5)
+                .trim();
 
             if (
               !jsonText ||
@@ -285,10 +382,12 @@ function createOpenAICompatibleStream(
             }
 
             try {
-              const data = JSON.parse(jsonText);
+              const data =
+                JSON.parse(jsonText);
 
               const text =
-                data?.choices?.[0]?.delta?.content ||
+                data?.choices?.[0]
+                  ?.delta?.content ||
                 "";
 
               if (text) {
@@ -300,6 +399,51 @@ function createOpenAICompatibleStream(
               }
             } catch {
               // Ignore incomplete SSE chunks.
+            }
+          }
+        }
+
+        if (buffer.trim()) {
+          const trimmed =
+            buffer.trim();
+
+          if (
+            trimmed.startsWith(
+              "data:"
+            )
+          ) {
+            const jsonText =
+              trimmed
+                .slice(5)
+                .trim();
+
+            if (
+              jsonText &&
+              jsonText !== "[DONE]"
+            ) {
+              try {
+                const data =
+                  JSON.parse(
+                    jsonText
+                  );
+
+                const text =
+                  data?.choices?.[0]
+                    ?.delta?.content ||
+                  "";
+
+                if (text) {
+                  controller.enqueue(
+                    new TextEncoder().encode(
+                      sanitizeOutput(
+                        text
+                      )
+                    )
+                  );
+                }
+              } catch {
+                // Ignore incomplete final chunk.
+              }
             }
           }
         }
@@ -330,9 +474,12 @@ async function requestGemini(
 
   return fetch(url, {
     method: "POST",
+
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type":
+        "application/json",
     },
+
     body: JSON.stringify({
       systemInstruction: {
         parts: [
@@ -341,10 +488,13 @@ async function requestGemini(
           },
         ],
       },
-      contents: createGeminiContents(
-        history,
-        message
-      ),
+
+      contents:
+        createGeminiContents(
+          history,
+          message
+        ),
+
       generationConfig: {
         temperature: 0.7,
       },
@@ -361,18 +511,31 @@ async function requestOpenRouter(
     "https://openrouter.ai/api/v1/chat/completions",
     {
       method: "POST",
+
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://mobixa.ir",
-        "X-Title": "Mobixa AI",
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${apiKey}`,
+
+        "HTTP-Referer":
+          "https://mobixa.ir",
+
+        "X-Title":
+          "Mobixa AI",
       },
+
       body: JSON.stringify({
-        model: "openrouter/free",
-        messages: createOpenAIMessages(
-          history,
-          message
-        ),
+        model:
+          "openrouter/free",
+
+        messages:
+          createOpenAIMessages(
+            history,
+            message
+          ),
+
         stream: true,
       }),
     }
@@ -388,42 +551,97 @@ async function requestGroq(
     "https://api.groq.com/openai/v1/chat/completions",
     {
       method: "POST",
+
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${apiKey}`,
       },
+
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b",
-        messages: createOpenAIMessages(
-          history,
-          message
-        ),
+        model:
+          "openai/gpt-oss-120b",
+
+        messages:
+          createOpenAIMessages(
+            history,
+            message
+          ),
+
         stream: true,
+
         temperature: 0.7,
       }),
     }
   );
 }
 
+function getSecret(
+  env: unknown,
+  name: string
+): string {
+  const cloudflareEnv =
+    env as Record<
+      string,
+      unknown
+    >;
+
+  const cloudflareValue =
+    cloudflareEnv?.[name];
+
+  if (
+    typeof cloudflareValue ===
+      "string" &&
+    cloudflareValue.trim()
+  ) {
+    return cloudflareValue.trim();
+  }
+
+  const processEnv =
+    typeof process !==
+      "undefined"
+      ? process.env
+      : undefined;
+
+  const processValue =
+    processEnv?.[name];
+
+  if (
+    typeof processValue ===
+      "string" &&
+    processValue.trim()
+  ) {
+    return processValue.trim();
+  }
+
+  return "";
+}
+
 export async function POST(
   req: NextRequest
 ) {
   try {
-    const body = await req.json();
+    const body =
+      await req.json();
 
     const message =
-      typeof body?.message === "string"
+      typeof body?.message ===
+      "string"
         ? body.message.trim()
         : "";
 
-    const history = normalizeHistory(
-      body?.history
-    );
+    const history =
+      normalizeHistory(
+        body?.history
+      );
 
     if (!message) {
       return NextResponse.json(
         {
-          error: "پیام خالی است.",
+          error:
+            "پیام خالی است.",
         },
         {
           status: 400,
@@ -431,14 +649,49 @@ export async function POST(
       );
     }
 
+    /*
+     * =====================================================
+     * CLOUDFLARE ENVIRONMENT
+     * =====================================================
+     */
+
+    const cloudflareContext =
+      getCloudflareContext();
+
+    const env =
+      cloudflareContext?.env;
+
     const geminiKey =
-      process.env.GEMINI_API_KEY;
+      getSecret(
+        env,
+        "GEMINI_API_KEY"
+      );
 
     const openRouterKey =
-      process.env.OPENROUTER_API_KEY;
+      getSecret(
+        env,
+        "OPENROUTER_API_KEY"
+      );
 
     const groqKey =
-      process.env.GROQ_API_KEY;
+      getSecret(
+        env,
+        "GROQ_API_KEY"
+      );
+
+    console.log(
+      "MOBIXA_PROVIDER_STATUS:",
+      {
+        gemini:
+          Boolean(geminiKey),
+
+        openRouter:
+          Boolean(openRouterKey),
+
+        groq:
+          Boolean(groqKey),
+      }
+    );
 
     /*
      * =====================================================
@@ -465,11 +718,14 @@ export async function POST(
             ),
             {
               status: 200,
+
               headers: {
                 "Content-Type":
                   "text/plain; charset=utf-8",
+
                 "Cache-Control":
                   "no-cache",
+
                 "Connection":
                   "keep-alive",
               },
@@ -483,38 +739,17 @@ export async function POST(
         console.error(
           "GEMINI_HTTP_ERROR:",
           response.status,
-          errorText.slice(0, 2000)
+          errorText.slice(
+            0,
+            2000
+          )
         );
 
         /*
-         * این خطاها باعث می‌شوند
-         * سراغ سرویس بعدی برویم.
+         * مهم:
+         * هیچ خطای Gemini نباید
+         * fallback را متوقف کند.
          */
-        if (
-          ![
-            408,
-            409,
-            425,
-            429,
-            500,
-            502,
-            503,
-            504,
-          ].includes(response.status)
-        ) {
-          return NextResponse.json(
-            {
-              error:
-                cleanErrorMessage(
-                  errorText
-                ),
-            },
-            {
-              status:
-                response.status,
-            }
-          );
-        }
       } catch (error) {
         console.error(
           "GEMINI_REQUEST_ERROR:",
@@ -548,11 +783,14 @@ export async function POST(
             ),
             {
               status: 200,
+
               headers: {
                 "Content-Type":
                   "text/plain; charset=utf-8",
+
                 "Cache-Control":
                   "no-cache",
+
                 "Connection":
                   "keep-alive",
               },
@@ -566,38 +804,17 @@ export async function POST(
         console.error(
           "OPENROUTER_HTTP_ERROR:",
           response.status,
-          errorText.slice(0, 2000)
+          errorText.slice(
+            0,
+            2000
+          )
         );
 
         /*
-         * اگر خطای غیرقابل fallback بود،
-         * همان‌جا پاسخ می‌دهیم.
+         * حتی اگر OpenRouter
+         * 401/403/404/429 بدهد،
+         * Groq را امتحان می‌کنیم.
          */
-        if (
-          ![
-            408,
-            409,
-            425,
-            429,
-            500,
-            502,
-            503,
-            504,
-          ].includes(response.status)
-        ) {
-          return NextResponse.json(
-            {
-              error:
-                cleanErrorMessage(
-                  errorText
-                ),
-            },
-            {
-              status:
-                response.status,
-            }
-          );
-        }
       } catch (error) {
         console.error(
           "OPENROUTER_REQUEST_ERROR:",
@@ -631,11 +848,14 @@ export async function POST(
             ),
             {
               status: 200,
+
               headers: {
                 "Content-Type":
                   "text/plain; charset=utf-8",
+
                 "Cache-Control":
                   "no-cache",
+
                 "Connection":
                   "keep-alive",
               },
@@ -649,7 +869,10 @@ export async function POST(
         console.error(
           "GROQ_HTTP_ERROR:",
           response.status,
-          errorText.slice(0, 2000)
+          errorText.slice(
+            0,
+            2000
+          )
         );
 
         return NextResponse.json(
@@ -674,14 +897,28 @@ export async function POST(
 
     /*
      * =====================================================
-     * ALL PROVIDERS FAILED
+     * NO PROVIDER AVAILABLE
      * =====================================================
      */
+
+    console.error(
+      "MOBIXA_ALL_PROVIDERS_FAILED:",
+      {
+        gemini:
+          Boolean(geminiKey),
+
+        openRouter:
+          Boolean(openRouterKey),
+
+        groq:
+          Boolean(groqKey),
+      }
+    );
 
     return NextResponse.json(
       {
         error:
-          "فعلاً امکان دریافت پاسخ از سرویس‌های هوش مصنوعی وجود ندارد. لطفاً کمی بعد دوباره امتحان کن.",
+          "فعلاً امکان دریافت پاسخ وجود ندارد. لطفاً دوباره امتحان کن.",
       },
       {
         status: 503,
