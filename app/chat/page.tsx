@@ -243,18 +243,9 @@ function CodeBlock({
           type="button"
           className="code-copy"
           onClick={copyCode}
+          aria-label={copied ? "کپی شد" : "کپی کد"}
         >
-          {copied ? (
-            <>
-              <CheckIcon />
-              <span>کپی شد</span>
-            </>
-          ) : (
-            <>
-              <CopyIcon />
-              <span>کپی</span>
-            </>
-          )}
+          {copied ? <CheckIcon /> : <CopyIcon />}
         </button>
       </div>
 
@@ -553,18 +544,16 @@ function CopyMessageButton({
       type="button"
       className="message-copy"
       onClick={copyMessage}
-      aria-label="کپی پاسخ"
+      aria-label={
+        copied
+          ? "کپی شد"
+          : "کپی پاسخ"
+      }
     >
       {copied ? (
-        <>
-          <CheckIcon />
-          <span>کپی شد</span>
-        </>
+        <CheckIcon />
       ) : (
-        <>
-          <CopyIcon />
-          <span>کپی</span>
-        </>
+        <CopyIcon />
       )}
     </button>
   );
@@ -946,10 +935,6 @@ export default function ChatPage() {
 
     if (!message || loading) return;
 
-    /*
-      تاریخچه فقط از پیام‌های کامل
-      و غیرخالی ساخته می‌شود.
-    */
     const history: ChatHistoryMessage[] =
       messages
         .filter(
@@ -1106,12 +1091,6 @@ export default function ChatPage() {
         );
       }
     } catch (error) {
-      /*
-        Stop با AbortController
-        نباید پیام خطا بسازد.
-        متن ناقص همان‌طور که هست
-        باقی می‌ماند.
-      */
       if (
         error instanceof Error &&
         error.name === "AbortError"
@@ -1473,7 +1452,6 @@ export default function ChatPage() {
             ),
             #02030b;
           color: white;
-
           font-family:
             Arial,
             Tahoma,
@@ -2392,33 +2370,39 @@ export default function ChatPage() {
           text-transform: uppercase;
         }
 
+        /* دکمه کپی کد — فقط آیکون */
         .code-copy {
           flex: 0 0 auto;
-          direction: rtl;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          min-height: 28px;
-          padding: 4px 8px;
+          width: 27px;
+          height: 27px;
+          padding: 0;
           border: 0;
           border-radius: 7px;
-          background:
-            rgba(90, 100, 150, 0.14);
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          background: transparent;
           color:
-            rgba(220, 228, 255, 0.82);
+            rgba(220, 228, 255, 0.62);
+
           cursor: pointer;
-          font-family: inherit;
-          font-size: 10px;
-          font-weight: 700;
+
           transition:
             background 0.2s ease,
-            color 0.2s ease;
+            color 0.2s ease,
+            transform 0.15s ease;
         }
 
         .code-copy:hover {
           background:
-            rgba(137, 88, 255, 0.2);
+            rgba(137, 88, 255, 0.16);
           color: white;
+        }
+
+        .code-copy:active {
+          transform: scale(0.9);
         }
 
         .code-copy svg {
@@ -2457,28 +2441,34 @@ export default function ChatPage() {
            COPY MESSAGE
         ========================= */
 
+        /* دکمه کپی پاسخ — فقط آیکون */
         .message-copy {
-          margin-top: 3px;
+          margin-top: 4px;
           margin-left: 3px;
-          direction: rtl;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          min-height: 23px;
-          padding: 2px 5px;
+
+          width: 26px;
+          height: 26px;
+
+          padding: 0;
           border: 0;
           border-radius: 7px;
-          background:
-            rgba(80, 100, 150, 0.09);
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          direction: ltr;
+
+          background: transparent;
           color:
             rgba(174, 187, 225, 0.58);
+
           cursor: pointer;
-          font-family: inherit;
-          font-size: 8px;
-          font-weight: 700;
+
           transition:
             color 0.2s ease,
-            background 0.2s ease;
+            background 0.2s ease,
+            transform 0.15s ease;
         }
 
         .message-copy:hover {
@@ -2487,9 +2477,13 @@ export default function ChatPage() {
             rgba(135, 83, 255, 0.18);
         }
 
+        .message-copy:active {
+          transform: scale(0.9);
+        }
+
         .message-copy svg {
-          width: 11px;
-          height: 11px;
+          width: 13px;
+          height: 13px;
         }
 
         .cursor {
@@ -2962,10 +2956,6 @@ export default function ChatPage() {
 
           .code-block code {
             font-size: 11.5px;
-          }
-
-          .code-copy {
-            font-size: 9px;
           }
 
           .heading-1 {
