@@ -241,9 +241,12 @@ function CodeBlock({
 
         <button
           type="button"
-          className="code-copy"
+          className={`code-copy ${
+            copied ? "copied" : ""
+          }`}
           onClick={copyCode}
           aria-label={copied ? "کپی شد" : "کپی کد"}
+          title={copied ? "کپی شد" : "کپی کد"}
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
         </button>
@@ -542,9 +545,16 @@ function CopyMessageButton({
   return (
     <button
       type="button"
-      className="message-copy"
+      className={`message-copy ${
+        copied ? "copied" : ""
+      }`}
       onClick={copyMessage}
       aria-label={
+        copied
+          ? "کپی شد"
+          : "کپی پاسخ"
+      }
+      title={
         copied
           ? "کپی شد"
           : "کپی پاسخ"
@@ -1346,15 +1356,12 @@ export default function ChatPage() {
 
                         {message.role ===
                           "assistant" &&
-                          message.content.trim() &&
-                          !loading && (
-                            <div className="message-actions">
-                              <CopyMessageButton
-                                content={
-                                  message.content
-                                }
-                              />
-                            </div>
+                          message.content.trim() && (
+                            <CopyMessageButton
+                              content={
+                                message.content
+                              }
+                            />
                           )}
                       </div>
                     </div>
@@ -2372,66 +2379,103 @@ export default function ChatPage() {
           text-transform: uppercase;
         }
 
+        /* =========================
+           CODE COPY BUTTON
+           ========================= */
+
         .code-copy {
-          flex: 0 0 auto;
+          position: relative;
 
-          width: 27px;
-          height: 27px;
+          width: 30px !important;
+          height: 30px !important;
 
-          padding: 0;
+          min-width: 30px !important;
+          min-height: 30px !important;
 
-          border: 1px solid
-            rgba(130, 100, 255, 0.18);
+          padding: 0 !important;
+          margin: 0;
 
-          border-radius: 8px;
+          flex: 0 0 30px;
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+
+          border:
+            1px solid
+              rgba(125, 104, 255, 0.28) !important;
+
+          border-radius: 8px !important;
 
           background:
-            rgba(100, 75, 220, 0.06);
+            rgba(28, 24, 61, 0.55) !important;
 
           color:
-            rgba(220, 228, 255, 0.62);
+            rgba(210, 220, 255, 0.7) !important;
 
           cursor: pointer;
 
-          box-shadow:
-            inset 0 0 10px
-              rgba(120, 80, 255, 0.03);
+          opacity: 0.9;
+
+          backdrop-filter: blur(10px);
 
           transition:
-            background 0.22s ease,
-            color 0.22s ease,
-            border-color 0.22s ease,
-            box-shadow 0.22s ease,
-            transform 0.15s ease;
+            transform 0.18s ease,
+            color 0.18s ease,
+            background 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
         }
 
         .code-copy:hover {
-          background:
-            rgba(135, 85, 255, 0.18);
+          color: #ffffff !important;
 
-          color: white;
+          background:
+            rgba(116, 69, 210, 0.3) !important;
 
           border-color:
-            rgba(150, 105, 255, 0.42);
+            rgba(174, 105, 255, 0.75) !important;
 
           box-shadow:
-            0 0 12px
-              rgba(125, 75, 255, 0.18),
+            0 0 9px
+              rgba(151, 75, 255, 0.3),
             inset 0 0 10px
-              rgba(255, 255, 255, 0.025);
+              rgba(143, 79, 255, 0.1);
+
+          transform: scale(1.05);
         }
 
         .code-copy:active {
-          transform: scale(0.9);
+          transform: scale(0.88);
+        }
+
+        .code-copy.copied {
+          color: #4ce7ff !important;
+
+          border-color:
+            rgba(55, 222, 255, 0.7) !important;
+
+          background:
+            rgba(0, 189, 255, 0.12) !important;
+
+          box-shadow:
+            0 0 12px
+              rgba(0, 214, 255, 0.25);
         }
 
         .code-copy svg {
-          width: 14px;
-          height: 14px;
+          display: block !important;
+
+          width: 15px !important;
+          height: 15px !important;
+
+          min-width: 15px;
+          min-height: 15px;
+
+          flex: 0 0 15px;
+
+          visibility: visible !important;
+          opacity: 1 !important;
         }
 
         .code-block pre {
@@ -2462,147 +2506,128 @@ export default function ChatPage() {
         }
 
         /* =========================
-           COPY MESSAGE
+           COPY MESSAGE BUTTON
         ========================= */
-
-        .message-actions {
-          width: 100%;
-          display: flex;
-          justify-content: flex-start;
-          direction: ltr;
-          margin-top: 5px;
-          padding-left: 3px;
-        }
 
         .message-copy {
           position: relative;
 
-          width: 30px;
-          height: 30px;
+          width: 32px !important;
+          height: 32px !important;
 
-          padding: 0;
+          min-width: 32px !important;
+          min-height: 32px !important;
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          margin-top: 6px;
+          margin-left: 2px;
 
-          border: 1px solid
-            rgba(135, 100, 255, 0.28);
+          padding: 0 !important;
 
-          border-radius: 9px;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+
+          flex: 0 0 32px;
+
+          border:
+            1px solid
+              rgba(137, 91, 255, 0.28) !important;
+
+          border-radius: 9px !important;
 
           background:
             linear-gradient(
               145deg,
-              rgba(91, 58, 190, 0.16),
-              rgba(12, 165, 220, 0.07)
-            );
+              rgba(35, 24, 82, 0.72),
+              rgba(7, 18, 43, 0.72)
+            ) !important;
 
           color:
-            rgba(210, 220, 255, 0.68);
-
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+            rgba(202, 214, 255, 0.72) !important;
 
           box-shadow:
-            0 0 0
-              rgba(133, 76, 255, 0),
+            0 4px 15px
+              rgba(91, 48, 255, 0.12),
             inset 0 0 12px
-              rgba(120, 80, 255, 0.05);
+              rgba(129, 74, 255, 0.08);
 
           cursor: pointer;
 
+          opacity: 0.82;
+
+          backdrop-filter: blur(12px);
+
           transition:
             transform 0.18s ease,
-            color 0.22s ease,
-            border-color 0.22s ease,
-            background 0.22s ease,
-            box-shadow 0.22s ease;
-        }
-
-        .message-copy::before {
-          content: "";
-
-          position: absolute;
-          inset: -1px;
-
-          border-radius: inherit;
-
-          background:
-            linear-gradient(
-              135deg,
-              rgba(175, 90, 255, 0.55),
-              transparent 35%,
-              rgba(0, 210, 255, 0.35)
-            );
-
-          opacity: 0;
-
-          pointer-events: none;
-
-          transition:
-            opacity 0.25s ease;
+            color 0.18s ease,
+            background 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease,
+            opacity 0.18s ease;
         }
 
         .message-copy:hover {
-          color:
-            rgba(255, 255, 255, 0.95);
+          opacity: 1;
+
+          color: #ffffff !important;
 
           border-color:
-            rgba(158, 108, 255, 0.65);
+            rgba(170, 100, 255, 0.8) !important;
 
           background:
             linear-gradient(
               145deg,
-              rgba(119, 69, 230, 0.25),
-              rgba(0, 184, 255, 0.10)
-            );
+              rgba(92, 47, 166, 0.72),
+              rgba(16, 48, 91, 0.72)
+            ) !important;
 
           box-shadow:
-            0 0 12px
-              rgba(128, 73, 255, 0.22),
-            0 0 24px
-              rgba(0, 193, 255, 0.08),
+            0 0 10px
+              rgba(153, 77, 255, 0.35),
+            0 0 22px
+              rgba(0, 194, 255, 0.12),
             inset 0 0 12px
-              rgba(150, 100, 255, 0.08);
+              rgba(166, 86, 255, 0.14);
 
           transform:
             translateY(-1px)
             scale(1.04);
         }
 
-        .message-copy:hover::before {
-          opacity: 1;
+        .message-copy:active {
+          transform: scale(0.9);
         }
 
-        .message-copy:active {
-          transform: scale(0.88);
+        .message-copy.copied {
+          color: #52e8ff !important;
+
+          border-color:
+            rgba(52, 224, 255, 0.65) !important;
+
+          background:
+            rgba(0, 181, 255, 0.12) !important;
+
+          box-shadow:
+            0 0 12px
+              rgba(0, 215, 255, 0.3),
+            inset 0 0 12px
+              rgba(0, 215, 255, 0.08);
         }
 
         .message-copy svg {
-          position: relative;
-          z-index: 2;
+          display: block !important;
 
-          width: 14px;
-          height: 14px;
+          width: 15px !important;
+          height: 15px !important;
 
-          transition:
-            transform 0.2s ease,
-            filter 0.2s ease;
-        }
+          min-width: 15px;
+          min-height: 15px;
 
-        .message-copy:hover svg {
-          transform: scale(1.08);
+          flex: 0 0 15px;
 
-          filter:
-            drop-shadow(
-              0 0 4px
-              rgba(174, 112, 255, 0.8)
-            )
-            drop-shadow(
-              0 0 7px
-              rgba(0, 211, 255, 0.35)
-            );
+          opacity: 1 !important;
+
+          visibility: visible !important;
         }
 
         .cursor {
@@ -3060,22 +3085,6 @@ export default function ChatPage() {
             font-size: 14px;
             line-height: 1.95;
             padding: 13px 14px;
-          }
-
-          .message-actions {
-            margin-top: 4px;
-            padding-left: 2px;
-          }
-
-          .message-copy {
-            width: 29px;
-            height: 29px;
-            border-radius: 8px;
-          }
-
-          .message-copy svg {
-            width: 13px;
-            height: 13px;
           }
 
           .code-block {
