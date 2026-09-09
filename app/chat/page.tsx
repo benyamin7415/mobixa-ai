@@ -241,14 +241,20 @@ function CodeBlock({
 
         <button
           type="button"
-          className={`code-copy ${
-            copied ? "copied" : ""
-          }`}
+          className="code-copy"
           onClick={copyCode}
-          aria-label={copied ? "کپی شد" : "کپی کد"}
-          title={copied ? "کپی شد" : "کپی کد"}
         >
-          {copied ? <CheckIcon /> : <CopyIcon />}
+          {copied ? (
+            <>
+              <CheckIcon />
+              <span>کپی شد</span>
+            </>
+          ) : (
+            <>
+              <CopyIcon />
+              <span>کپی</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -545,25 +551,20 @@ function CopyMessageButton({
   return (
     <button
       type="button"
-      className={`message-copy ${
-        copied ? "copied" : ""
-      }`}
+      className="message-copy"
       onClick={copyMessage}
-      aria-label={
-        copied
-          ? "کپی شد"
-          : "کپی پاسخ"
-      }
-      title={
-        copied
-          ? "کپی شد"
-          : "کپی پاسخ"
-      }
+      aria-label="کپی پاسخ"
     >
       {copied ? (
-        <CheckIcon />
+        <>
+          <CheckIcon />
+          <span>کپی شد</span>
+        </>
       ) : (
-        <CopyIcon />
+        <>
+          <CopyIcon />
+          <span>کپی</span>
+        </>
       )}
     </button>
   );
@@ -945,6 +946,10 @@ export default function ChatPage() {
 
     if (!message || loading) return;
 
+    /*
+      تاریخچه فقط از پیام‌های کامل
+      و غیرخالی ساخته می‌شود.
+    */
     const history: ChatHistoryMessage[] =
       messages
         .filter(
@@ -1101,6 +1106,12 @@ export default function ChatPage() {
         );
       }
     } catch (error) {
+      /*
+        Stop با AbortController
+        نباید پیام خطا بسازد.
+        متن ناقص همان‌طور که هست
+        باقی می‌ماند.
+      */
       if (
         error instanceof Error &&
         error.name === "AbortError"
@@ -1356,7 +1367,8 @@ export default function ChatPage() {
 
                         {message.role ===
                           "assistant" &&
-                          message.content.trim() && (
+                          message.content.trim() &&
+                          !loading && (
                             <CopyMessageButton
                               content={
                                 message.content
@@ -1461,6 +1473,7 @@ export default function ChatPage() {
             ),
             #02030b;
           color: white;
+
           font-family:
             Arial,
             Tahoma,
@@ -2379,103 +2392,38 @@ export default function ChatPage() {
           text-transform: uppercase;
         }
 
-        /* =========================
-           CODE COPY BUTTON
-           ========================= */
-
         .code-copy {
-          position: relative;
-
-          width: 30px !important;
-          height: 30px !important;
-
-          min-width: 30px !important;
-          min-height: 30px !important;
-
-          padding: 0 !important;
-          margin: 0;
-
-          flex: 0 0 30px;
-
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-
-          border:
-            1px solid
-              rgba(125, 104, 255, 0.28) !important;
-
-          border-radius: 8px !important;
-
+          flex: 0 0 auto;
+          direction: rtl;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          min-height: 28px;
+          padding: 4px 8px;
+          border: 0;
+          border-radius: 7px;
           background:
-            rgba(28, 24, 61, 0.55) !important;
-
+            rgba(90, 100, 150, 0.14);
           color:
-            rgba(210, 220, 255, 0.7) !important;
-
+            rgba(220, 228, 255, 0.82);
           cursor: pointer;
-
-          opacity: 0.9;
-
-          backdrop-filter: blur(10px);
-
+          font-family: inherit;
+          font-size: 10px;
+          font-weight: 700;
           transition:
-            transform 0.18s ease,
-            color 0.18s ease,
-            background 0.18s ease,
-            border-color 0.18s ease,
-            box-shadow 0.18s ease;
+            background 0.2s ease,
+            color 0.2s ease;
         }
 
         .code-copy:hover {
-          color: #ffffff !important;
-
           background:
-            rgba(116, 69, 210, 0.3) !important;
-
-          border-color:
-            rgba(174, 105, 255, 0.75) !important;
-
-          box-shadow:
-            0 0 9px
-              rgba(151, 75, 255, 0.3),
-            inset 0 0 10px
-              rgba(143, 79, 255, 0.1);
-
-          transform: scale(1.05);
-        }
-
-        .code-copy:active {
-          transform: scale(0.88);
-        }
-
-        .code-copy.copied {
-          color: #4ce7ff !important;
-
-          border-color:
-            rgba(55, 222, 255, 0.7) !important;
-
-          background:
-            rgba(0, 189, 255, 0.12) !important;
-
-          box-shadow:
-            0 0 12px
-              rgba(0, 214, 255, 0.25);
+            rgba(137, 88, 255, 0.2);
+          color: white;
         }
 
         .code-copy svg {
-          display: block !important;
-
-          width: 15px !important;
-          height: 15px !important;
-
-          min-width: 15px;
-          min-height: 15px;
-
-          flex: 0 0 15px;
-
-          visibility: visible !important;
-          opacity: 1 !important;
+          width: 14px;
+          height: 14px;
         }
 
         .code-block pre {
@@ -2506,128 +2454,42 @@ export default function ChatPage() {
         }
 
         /* =========================
-           COPY MESSAGE BUTTON
+           COPY MESSAGE
         ========================= */
 
         .message-copy {
-          position: relative;
-
-          width: 32px !important;
-          height: 32px !important;
-
-          min-width: 32px !important;
-          min-height: 32px !important;
-
-          margin-top: 6px;
-          margin-left: 2px;
-
-          padding: 0 !important;
-
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-
-          flex: 0 0 32px;
-
-          border:
-            1px solid
-              rgba(137, 91, 255, 0.28) !important;
-
-          border-radius: 9px !important;
-
+          margin-top: 3px;
+          margin-left: 3px;
+          direction: rtl;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          min-height: 23px;
+          padding: 2px 5px;
+          border: 0;
+          border-radius: 7px;
           background:
-            linear-gradient(
-              145deg,
-              rgba(35, 24, 82, 0.72),
-              rgba(7, 18, 43, 0.72)
-            ) !important;
-
+            rgba(80, 100, 150, 0.09);
           color:
-            rgba(202, 214, 255, 0.72) !important;
-
-          box-shadow:
-            0 4px 15px
-              rgba(91, 48, 255, 0.12),
-            inset 0 0 12px
-              rgba(129, 74, 255, 0.08);
-
+            rgba(174, 187, 225, 0.58);
           cursor: pointer;
-
-          opacity: 0.82;
-
-          backdrop-filter: blur(12px);
-
+          font-family: inherit;
+          font-size: 8px;
+          font-weight: 700;
           transition:
-            transform 0.18s ease,
-            color 0.18s ease,
-            background 0.18s ease,
-            border-color 0.18s ease,
-            box-shadow 0.18s ease,
-            opacity 0.18s ease;
+            color 0.2s ease,
+            background 0.2s ease;
         }
 
         .message-copy:hover {
-          opacity: 1;
-
-          color: #ffffff !important;
-
-          border-color:
-            rgba(170, 100, 255, 0.8) !important;
-
+          color: white;
           background:
-            linear-gradient(
-              145deg,
-              rgba(92, 47, 166, 0.72),
-              rgba(16, 48, 91, 0.72)
-            ) !important;
-
-          box-shadow:
-            0 0 10px
-              rgba(153, 77, 255, 0.35),
-            0 0 22px
-              rgba(0, 194, 255, 0.12),
-            inset 0 0 12px
-              rgba(166, 86, 255, 0.14);
-
-          transform:
-            translateY(-1px)
-            scale(1.04);
-        }
-
-        .message-copy:active {
-          transform: scale(0.9);
-        }
-
-        .message-copy.copied {
-          color: #52e8ff !important;
-
-          border-color:
-            rgba(52, 224, 255, 0.65) !important;
-
-          background:
-            rgba(0, 181, 255, 0.12) !important;
-
-          box-shadow:
-            0 0 12px
-              rgba(0, 215, 255, 0.3),
-            inset 0 0 12px
-              rgba(0, 215, 255, 0.08);
+            rgba(135, 83, 255, 0.18);
         }
 
         .message-copy svg {
-          display: block !important;
-
-          width: 15px !important;
-          height: 15px !important;
-
-          min-width: 15px;
-          min-height: 15px;
-
-          flex: 0 0 15px;
-
-          opacity: 1 !important;
-
-          visibility: visible !important;
+          width: 11px;
+          height: 11px;
         }
 
         .cursor {
@@ -3100,6 +2962,10 @@ export default function ChatPage() {
 
           .code-block code {
             font-size: 11.5px;
+          }
+
+          .code-copy {
+            font-size: 9px;
           }
 
           .heading-1 {
