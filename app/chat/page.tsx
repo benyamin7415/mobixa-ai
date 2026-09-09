@@ -104,14 +104,14 @@ function CopyIcon() {
         rx="2"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.7"
       />
 
       <path
         d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.7"
         strokeLinecap="round"
       />
     </svg>
@@ -125,7 +125,7 @@ function CheckIcon() {
         d="m5 12 4 4L19 6"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -241,19 +241,20 @@ function CodeBlock({
 
         <button
           type="button"
-          className="code-copy"
+          className={`code-copy ${
+            copied ? "copied" : ""
+          }`}
           onClick={copyCode}
+          aria-label={
+            copied
+              ? "Copied"
+              : "Copy code"
+          }
         >
           {copied ? (
-            <>
-              <CheckIcon />
-              <span>کپی شد</span>
-            </>
+            <CheckIcon />
           ) : (
-            <>
-              <CopyIcon />
-              <span>کپی</span>
-            </>
+            <CopyIcon />
           )}
         </button>
       </div>
@@ -2392,38 +2393,157 @@ export default function ChatPage() {
           text-transform: uppercase;
         }
 
+        /* =========================
+           MODERN CODE COPY BUTTON
+        ========================= */
+
         .code-copy {
+          position: relative;
           flex: 0 0 auto;
-          direction: rtl;
+
+          width: 29px;
+          height: 29px;
+
           display: flex;
           align-items: center;
-          gap: 5px;
-          min-height: 28px;
-          padding: 4px 8px;
-          border: 0;
-          border-radius: 7px;
+          justify-content: center;
+
+          padding: 0;
+
+          border:
+            1px solid
+              rgba(137, 105, 255, 0.24);
+
+          border-radius: 8px;
+
           background:
-            rgba(90, 100, 150, 0.14);
+            linear-gradient(
+              145deg,
+              rgba(122, 76, 255, 0.13),
+              rgba(0, 205, 255, 0.06)
+            );
+
           color:
-            rgba(220, 228, 255, 0.82);
+            rgba(215, 224, 255, 0.72);
+
           cursor: pointer;
-          font-family: inherit;
-          font-size: 10px;
-          font-weight: 700;
+
+          backdrop-filter: blur(10px);
+
+          box-shadow:
+            inset 0 0 10px
+              rgba(111, 77, 255, 0.07),
+            0 0 8px
+              rgba(96, 75, 255, 0.04);
+
           transition:
+            transform 0.18s ease,
+            color 0.2s ease,
             background 0.2s ease,
-            color 0.2s ease;
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
-        .code-copy:hover {
+        .code-copy::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+
+          border-radius: inherit;
+
           background:
-            rgba(137, 88, 255, 0.2);
-          color: white;
+            linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.08),
+              transparent 45%
+            );
+
+          opacity: 0.55;
+
+          pointer-events: none;
         }
 
         .code-copy svg {
+          position: relative;
+          z-index: 2;
+
           width: 14px;
           height: 14px;
+
+          transition:
+            transform 0.18s ease,
+            filter 0.2s ease;
+        }
+
+        .code-copy:hover {
+          color: #ffffff;
+
+          border-color:
+            rgba(157, 103, 255, 0.55);
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(143, 79, 255, 0.22),
+              rgba(0, 210, 255, 0.10)
+            );
+
+          box-shadow:
+            0 0 8px
+              rgba(139, 72, 255, 0.22),
+            0 0 16px
+              rgba(0, 204, 255, 0.06),
+            inset 0 0 12px
+              rgba(117, 72, 255, 0.10);
+        }
+
+        .code-copy:hover svg {
+          transform: scale(1.06);
+
+          filter:
+            drop-shadow(
+              0 0 4px
+                rgba(173, 112, 255, 0.8)
+            )
+            drop-shadow(
+              0 0 7px
+                rgba(0, 211, 255, 0.25)
+            );
+        }
+
+        .code-copy:active {
+          transform: scale(0.88);
+        }
+
+        .code-copy.copied {
+          color: #7eeeff;
+
+          border-color:
+            rgba(48, 220, 255, 0.42);
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(98, 67, 255, 0.16),
+              rgba(0, 211, 255, 0.13)
+            );
+
+          box-shadow:
+            0 0 9px
+              rgba(0, 213, 255, 0.18),
+            inset 0 0 12px
+              rgba(0, 213, 255, 0.08);
+        }
+
+        .code-copy.copied svg {
+          width: 13px;
+          height: 13px;
+
+          filter:
+            drop-shadow(
+              0 0 5px
+                rgba(0, 224, 255, 0.75)
+            );
         }
 
         .code-block pre {
@@ -2965,7 +3085,19 @@ export default function ChatPage() {
           }
 
           .code-copy {
-            font-size: 9px;
+            width: 27px;
+            height: 27px;
+            border-radius: 7px;
+          }
+
+          .code-copy svg {
+            width: 13px;
+            height: 13px;
+          }
+
+          .code-copy.copied svg {
+            width: 12px;
+            height: 12px;
           }
 
           .heading-1 {
