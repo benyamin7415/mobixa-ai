@@ -4,11 +4,6 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 /*
  * =========================================================
  * MOBIXA AI — OPTIMIZED CHAT ROUTE
- * هدف:
- * - کاهش شدید مصرف توکن
- * - حفظ context مکالمه
- * - خروجی کنترل‌شده
- * - fallback بین Gemini / OpenRouter / Groq
  * =========================================================
  */
 
@@ -55,7 +50,8 @@ function normalizeHistory(history: unknown): ChatMessage[] {
         item !== null &&
         "role" in item &&
         "content" in item &&
-        (item.role === "user" || item.role === "assistant") &&
+        (item.role === "user" ||
+          item.role === "assistant") &&
         typeof item.content === "string" &&
         item.content.trim().length > 0
       );
@@ -68,10 +64,6 @@ function normalizeHistory(history: unknown): ChatMessage[] {
         .slice(0, MAX_HISTORY_MESSAGE_CHARS),
     }));
 
-  /*
-   * مجموع تاریخچه هم محدود می‌شود.
-   * این قسمت مهم‌ترین کاهش مصرف توکن است.
-   */
   const result: ChatMessage[] = [];
   let totalChars = 0;
 
@@ -94,24 +86,17 @@ function normalizeHistory(history: unknown): ChatMessage[] {
 
 /*
  * =========================================================
- * SIMPLE VS COMPLEX REQUEST
+ * SIMPLE VS TECHNICAL REQUEST
  * =========================================================
  */
 
 function isTechnicalRequest(message: string): boolean {
-  return /کد|برنامه|پروژه|سایت|وبسایت|api|API|react|next|nextjs|typescript|javascript|python|html|css|cloudflare|github|debug|باگ|خطا|ارور|دیباگ|پرومت|prompt|json|sql|regex/i.test(
+  return /کد|برنامه|پروژه|سایت|وبسایت|api|react|next|nextjs|typescript|javascript|python|html|css|cloudflare|github|debug|باگ|خطا|ارور|دیباگ|پرومت|prompt|json|sql|regex/i.test(
     message
   );
 }
 
 function getOutputLimit(message: string): number {
-  /*
-   * سؤال ساده:
-   * خروجی کمتر = مصرف کمتر
-   *
-   * سؤال فنی:
-   * فضای بیشتر برای کد و توضیح
-   */
   return isTechnicalRequest(message) ? 1200 : 650;
 }
 
@@ -165,6 +150,10 @@ function cleanErrorMessage(text: string): string {
 /*
  * =========================================================
  * OUTPUT CLEANUP
+ *
+ * مهم:
+ * این تابع دیگر روی هر chunk اجرا نمی‌شود.
+ * چون دستکاری chunk می‌تواند فاصله‌های فارسی را خراب کند.
  * =========================================================
  */
 
@@ -194,8 +183,7 @@ function sanitizeOutput(text: string): string {
       /^(Model|Provider|Moderation|Status)\s*:\s*.*$/gim,
       ""
     )
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 /*
@@ -210,20 +198,31 @@ function createGeminiContents(
 ) {
   return [
     ...history.map((item) => ({
-      role: item.role === "assistant" ? "model" : "user",
-      parts: [{ text: item.content }],
+      role:
+        item.role === "assistant"
+          ? "model"
+          : "user",
+      parts: [
+        {
+          text: item.content,
+        },
+      ],
     })),
 
     {
       role: "user",
-      parts: [{ text: message }],
+      parts: [
+        {
+          text: message,
+        },
+      ],
     },
   ];
 }
 
 /*
  * =========================================================
- * OPENAI-COMPATIBLE FORMAT
+ * OPENAI COMPATIBLE FORMAT
  * =========================================================
  */
 
@@ -252,6 +251,9 @@ function createOpenAIMessages(
 /*
  * =========================================================
  * GEMINI STREAM
+ *
+ * اینجا chunkها مستقیماً ارسال می‌شوند.
+ * هیچ trim یا sanitize وسط stream انجام نمی‌شود.
  * =========================================================
  */
 
@@ -268,7 +270,8 @@ function createGeminiStream(
 
       try {
         while (true) {
-          const { done, value } = await reader.read();
+          const { done, value } =
+            await reader.read();
 
           if (done) {
             break;
@@ -278,41 +281,58 @@ function createGeminiStream(
             stream: true,
           });
 
-          const events = buffer.split("\n");
-          buffer = events.pop() || "";
+          const events =
+            buffer.split("\n");
+
+          buffer =
+            events.pop() || "";
 
           for (const line of events) {
-            const trimmed = line.trim();
+            const trimmed =
+              line.trim();
 
-            if (!trimmed.startsWith("data:")) {
+            if (
+              !trimmed.startsWith("data:")
+            ) {
               continue;
             }
 
-            const jsonText = trimmed.slice(5).trim();
+            const jsonText =
+              trimmed.slice(5).trim();
 
-            if (!jsonText || jsonText === "[DONE]") {
+            if (
+              !jsonText ||
+              jsonText === "[DONE]"
+            ) {
               continue;
             }
 
             try {
-              const data = JSON.parse(jsonText);
+              const data =
+                JSON.parse(jsonText);
 
               const text =
-                data?.candidates?.[0]?.content?.parts
+                data?.candidates?.[0]
+                  ?.content?.parts
                   ?.map(
-                    (part: { text?: string }) =>
+                    (
+                      part: {
+                        text?: string;
+                      }
+                    ) =>
                       part?.text || ""
                   )
                   .join("") || "";
 
+              /*
+               * مهم:
+               * text بدون trim یا sanitize
+               * ارسال می‌شود.
+               */
               if (text) {
-                const cleaned = sanitizeOutput(text);
-
-                if (cleaned) {
-                  controller.enqueue(
-                    encoder.encode(cleaned)
-                  );
-                }
+                controller.enqueue(
+                  encoder.encode(text)
+                );
               }
             } catch {
               // Ignore incomplete SSE chunks.
@@ -338,6 +358,8 @@ function createGeminiStream(
 /*
  * =========================================================
  * OPENAI / GROQ STREAM
+ *
+ * chunkها بدون دستکاری ارسال می‌شوند.
  * =========================================================
  */
 
@@ -354,7 +376,8 @@ function createOpenAICompatibleStream(
 
       try {
         while (true) {
-          const { done, value } = await reader.read();
+          const { done, value } =
+            await reader.read();
 
           if (done) {
             break;
@@ -364,36 +387,48 @@ function createOpenAICompatibleStream(
             stream: true,
           });
 
-          const events = buffer.split("\n");
-          buffer = events.pop() || "";
+          const events =
+            buffer.split("\n");
+
+          buffer =
+            events.pop() || "";
 
           for (const line of events) {
-            const trimmed = line.trim();
+            const trimmed =
+              line.trim();
 
-            if (!trimmed.startsWith("data:")) {
+            if (
+              !trimmed.startsWith("data:")
+            ) {
               continue;
             }
 
-            const jsonText = trimmed.slice(5).trim();
+            const jsonText =
+              trimmed.slice(5).trim();
 
-            if (!jsonText || jsonText === "[DONE]") {
+            if (
+              !jsonText ||
+              jsonText === "[DONE]"
+            ) {
               continue;
             }
 
             try {
-              const data = JSON.parse(jsonText);
+              const data =
+                JSON.parse(jsonText);
 
               const text =
-                data?.choices?.[0]?.delta?.content || "";
+                data?.choices?.[0]
+                  ?.delta?.content || "";
 
+              /*
+               * مهم:
+               * text مستقیماً ارسال می‌شود.
+               */
               if (text) {
-                const cleaned = sanitizeOutput(text);
-
-                if (cleaned) {
-                  controller.enqueue(
-                    encoder.encode(cleaned)
-                  );
-                }
+                controller.enqueue(
+                  encoder.encode(text)
+                );
               }
             } catch {
               // Ignore incomplete SSE chunks.
@@ -435,7 +470,8 @@ async function requestGemini(
     method: "POST",
 
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type":
+        "application/json",
     },
 
     body: JSON.stringify({
@@ -447,14 +483,17 @@ async function requestGemini(
         ],
       },
 
-      contents: createGeminiContents(
-        history,
-        message
-      ),
+      contents:
+        createGeminiContents(
+          history,
+          message
+        ),
 
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: getOutputLimit(message),
+
+        maxOutputTokens:
+          getOutputLimit(message),
       },
     }),
   });
@@ -477,23 +516,33 @@ async function requestOpenRouter(
       method: "POST",
 
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://mobixa.ir",
-        "X-Title": "Mobixa AI",
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${apiKey}`,
+
+        "HTTP-Referer":
+          "https://mobixa.ir",
+
+        "X-Title":
+          "Mobixa AI",
       },
 
       body: JSON.stringify({
-        model: "openrouter/free",
+        model:
+          "openrouter/free",
 
-        messages: createOpenAIMessages(
-          history,
-          message
-        ),
+        messages:
+          createOpenAIMessages(
+            history,
+            message
+          ),
 
         stream: true,
 
-        max_tokens: getOutputLimit(message),
+        max_tokens:
+          getOutputLimit(message),
       }),
     }
   );
@@ -516,33 +565,30 @@ async function requestGroq(
       method: "POST",
 
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${apiKey}`,
       },
 
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b",
+        model:
+          "openai/gpt-oss-120b",
 
-        messages: createOpenAIMessages(
-          history,
-          message
-        ),
+        messages:
+          createOpenAIMessages(
+            history,
+            message
+          ),
 
         stream: true,
 
         temperature: 0.7,
 
-        /*
-         * محدود کردن خروجی برای جلوگیری
-         * از مصرف بی‌دلیل TPM
-         */
         max_completion_tokens:
           getOutputLimit(message),
 
-        /*
-         * برای سؤال‌های معمولی reasoning
-         * کمتر مصرف می‌کند.
-         */
         reasoning_effort:
           isTechnicalRequest(message)
             ? "medium"
@@ -563,20 +609,25 @@ function getSecret(
   name: string
 ): string {
   const cloudflareEnv =
-    env as Record<string, unknown>;
+    env as Record<
+      string,
+      unknown
+    >;
 
   const cloudflareValue =
     cloudflareEnv?.[name];
 
   if (
-    typeof cloudflareValue === "string" &&
+    typeof cloudflareValue ===
+      "string" &&
     cloudflareValue.trim()
   ) {
     return cloudflareValue.trim();
   }
 
   const processEnv =
-    typeof process !== "undefined"
+    typeof process !==
+      "undefined"
       ? process.env
       : undefined;
 
@@ -584,7 +635,8 @@ function getSecret(
     processEnv?.[name];
 
   if (
-    typeof processValue === "string" &&
+    typeof processValue ===
+      "string" &&
     processValue.trim()
   ) {
     return processValue.trim();
@@ -603,17 +655,20 @@ export async function POST(
   req: NextRequest
 ) {
   try {
-    const body = await req.json();
+    const body =
+      await req.json();
 
     const rawMessage =
-      typeof body?.message === "string"
+      typeof body?.message ===
+      "string"
         ? body.message.trim()
         : "";
 
     if (!rawMessage) {
       return NextResponse.json(
         {
-          error: "پیام خالی است.",
+          error:
+            "پیام خالی است.",
         },
         {
           status: 400,
@@ -621,20 +676,16 @@ export async function POST(
       );
     }
 
-    /*
-     * جلوگیری از پیام‌های غیرعادی خیلی بزرگ
-     */
-    const message = rawMessage.slice(
-      0,
-      MAX_CURRENT_MESSAGE_CHARS
-    );
+    const message =
+      rawMessage.slice(
+        0,
+        MAX_CURRENT_MESSAGE_CHARS
+      );
 
-    /*
-     * تاریخچه بهینه‌شده
-     */
-    const history = normalizeHistory(
-      body?.history
-    );
+    const history =
+      normalizeHistory(
+        body?.history
+      );
 
     /*
      * =====================================================
@@ -669,15 +720,26 @@ export async function POST(
     console.log(
       "MOBIXA_PROVIDER_STATUS:",
       {
-        gemini: Boolean(geminiKey),
-        openRouter: Boolean(openRouterKey),
-        groq: Boolean(groqKey),
-        historyMessages: history.length,
-        historyChars: history.reduce(
-          (sum, item) =>
-            sum + item.content.length,
-          0
-        ),
+        gemini:
+          Boolean(geminiKey),
+
+        openRouter:
+          Boolean(openRouterKey),
+
+        groq:
+          Boolean(groqKey),
+
+        historyMessages:
+          history.length,
+
+        historyChars:
+          history.reduce(
+            (sum, item) =>
+              sum +
+              item.content.length,
+            0
+          ),
+
         outputLimit:
           getOutputLimit(message),
       }
@@ -729,7 +791,10 @@ export async function POST(
         console.error(
           "GEMINI_HTTP_ERROR:",
           response.status,
-          errorText.slice(0, 2000)
+          errorText.slice(
+            0,
+            2000
+          )
         );
       } catch (error) {
         console.error(
@@ -785,7 +850,10 @@ export async function POST(
         console.error(
           "OPENROUTER_HTTP_ERROR:",
           response.status,
-          errorText.slice(0, 2000)
+          errorText.slice(
+            0,
+            2000
+          )
         );
       } catch (error) {
         console.error(
@@ -841,7 +909,10 @@ export async function POST(
         console.error(
           "GROQ_HTTP_ERROR:",
           response.status,
-          errorText.slice(0, 2000)
+          errorText.slice(
+            0,
+            2000
+          )
         );
 
         return NextResponse.json(
@@ -866,16 +937,21 @@ export async function POST(
 
     /*
      * =====================================================
-     * NO PROVIDER
+     * NO PROVIDER AVAILABLE
      * =====================================================
      */
 
     console.error(
       "MOBIXA_ALL_PROVIDERS_FAILED:",
       {
-        gemini: Boolean(geminiKey),
-        openRouter: Boolean(openRouterKey),
-        groq: Boolean(groqKey),
+        gemini:
+          Boolean(geminiKey),
+
+        openRouter:
+          Boolean(openRouterKey),
+
+        groq:
+          Boolean(groqKey),
       }
     );
 
