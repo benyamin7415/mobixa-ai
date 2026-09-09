@@ -1348,11 +1348,13 @@ export default function ChatPage() {
                           "assistant" &&
                           message.content.trim() &&
                           !loading && (
-                            <CopyMessageButton
-                              content={
-                                message.content
-                              }
-                            />
+                            <div className="message-actions">
+                              <CopyMessageButton
+                                content={
+                                  message.content
+                                }
+                              />
+                            </div>
                           )}
                       </div>
                     </div>
@@ -2370,35 +2372,57 @@ export default function ChatPage() {
           text-transform: uppercase;
         }
 
-        /* دکمه کپی کد — فقط آیکون */
         .code-copy {
           flex: 0 0 auto;
+
           width: 27px;
           height: 27px;
+
           padding: 0;
-          border: 0;
-          border-radius: 7px;
+
+          border: 1px solid
+            rgba(130, 100, 255, 0.18);
+
+          border-radius: 8px;
 
           display: flex;
           align-items: center;
           justify-content: center;
 
-          background: transparent;
+          background:
+            rgba(100, 75, 220, 0.06);
+
           color:
             rgba(220, 228, 255, 0.62);
 
           cursor: pointer;
 
+          box-shadow:
+            inset 0 0 10px
+              rgba(120, 80, 255, 0.03);
+
           transition:
-            background 0.2s ease,
-            color 0.2s ease,
+            background 0.22s ease,
+            color 0.22s ease,
+            border-color 0.22s ease,
+            box-shadow 0.22s ease,
             transform 0.15s ease;
         }
 
         .code-copy:hover {
           background:
-            rgba(137, 88, 255, 0.16);
+            rgba(135, 85, 255, 0.18);
+
           color: white;
+
+          border-color:
+            rgba(150, 105, 255, 0.42);
+
+          box-shadow:
+            0 0 12px
+              rgba(125, 75, 255, 0.18),
+            inset 0 0 10px
+              rgba(255, 255, 255, 0.025);
         }
 
         .code-copy:active {
@@ -2441,49 +2465,144 @@ export default function ChatPage() {
            COPY MESSAGE
         ========================= */
 
-        /* دکمه کپی پاسخ — فقط آیکون */
-        .message-copy {
-          margin-top: 4px;
-          margin-left: 3px;
+        .message-actions {
+          width: 100%;
+          display: flex;
+          justify-content: flex-start;
+          direction: ltr;
+          margin-top: 5px;
+          padding-left: 3px;
+        }
 
-          width: 26px;
-          height: 26px;
+        .message-copy {
+          position: relative;
+
+          width: 30px;
+          height: 30px;
 
           padding: 0;
-          border: 0;
-          border-radius: 7px;
 
           display: flex;
           align-items: center;
           justify-content: center;
 
-          direction: ltr;
+          border: 1px solid
+            rgba(135, 100, 255, 0.28);
 
-          background: transparent;
+          border-radius: 9px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(91, 58, 190, 0.16),
+              rgba(12, 165, 220, 0.07)
+            );
+
           color:
-            rgba(174, 187, 225, 0.58);
+            rgba(210, 220, 255, 0.68);
+
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+
+          box-shadow:
+            0 0 0
+              rgba(133, 76, 255, 0),
+            inset 0 0 12px
+              rgba(120, 80, 255, 0.05);
 
           cursor: pointer;
 
           transition:
-            color 0.2s ease,
-            background 0.2s ease,
-            transform 0.15s ease;
+            transform 0.18s ease,
+            color 0.22s ease,
+            border-color 0.22s ease,
+            background 0.22s ease,
+            box-shadow 0.22s ease;
+        }
+
+        .message-copy::before {
+          content: "";
+
+          position: absolute;
+          inset: -1px;
+
+          border-radius: inherit;
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(175, 90, 255, 0.55),
+              transparent 35%,
+              rgba(0, 210, 255, 0.35)
+            );
+
+          opacity: 0;
+
+          pointer-events: none;
+
+          transition:
+            opacity 0.25s ease;
         }
 
         .message-copy:hover {
-          color: white;
+          color:
+            rgba(255, 255, 255, 0.95);
+
+          border-color:
+            rgba(158, 108, 255, 0.65);
+
           background:
-            rgba(135, 83, 255, 0.18);
+            linear-gradient(
+              145deg,
+              rgba(119, 69, 230, 0.25),
+              rgba(0, 184, 255, 0.10)
+            );
+
+          box-shadow:
+            0 0 12px
+              rgba(128, 73, 255, 0.22),
+            0 0 24px
+              rgba(0, 193, 255, 0.08),
+            inset 0 0 12px
+              rgba(150, 100, 255, 0.08);
+
+          transform:
+            translateY(-1px)
+            scale(1.04);
+        }
+
+        .message-copy:hover::before {
+          opacity: 1;
         }
 
         .message-copy:active {
-          transform: scale(0.9);
+          transform: scale(0.88);
         }
 
         .message-copy svg {
-          width: 13px;
-          height: 13px;
+          position: relative;
+          z-index: 2;
+
+          width: 14px;
+          height: 14px;
+
+          transition:
+            transform 0.2s ease,
+            filter 0.2s ease;
+        }
+
+        .message-copy:hover svg {
+          transform: scale(1.08);
+
+          filter:
+            drop-shadow(
+              0 0 4px
+              rgba(174, 112, 255, 0.8)
+            )
+            drop-shadow(
+              0 0 7px
+              rgba(0, 211, 255, 0.35)
+            );
         }
 
         .cursor {
@@ -2941,6 +3060,22 @@ export default function ChatPage() {
             font-size: 14px;
             line-height: 1.95;
             padding: 13px 14px;
+          }
+
+          .message-actions {
+            margin-top: 4px;
+            padding-left: 2px;
+          }
+
+          .message-copy {
+            width: 29px;
+            height: 29px;
+            border-radius: 8px;
+          }
+
+          .message-copy svg {
+            width: 13px;
+            height: 13px;
           }
 
           .code-block {
