@@ -258,10 +258,7 @@ function cleanErrorMessage(text: string): string {
  * =========================================================
  * OUTPUT CLEANUP
  *
- * فقط متن‌های متا / safety / internal reasoning
- * از خروجی حذف می‌شوند.
- *
- * روی chunkهای معمولی trim اجرا نمی‌شود تا فاصله فارسی خراب نشود.
+ * فقط متادیتا و متن‌های داخلی ناخواسته حذف می‌شوند.
  * =========================================================
  */
 
@@ -312,6 +309,63 @@ function sanitizeOutput(text: string): string {
       ""
     )
     .replace(/\n{3,}/g, "\n\n");
+}
+
+/*
+ * =========================================================
+ * STREAM-SAFE OUTPUT CLEANUP
+ *
+ * چون متن به صورت chunk می‌آید، ممکن است عبارت متا
+ * بین چند chunk تقسیم شود.
+ *
+ * این تابع فقط prefixهای واضح و ناخواسته را حذف می‌کند.
+ * =========================================================
+ */
+
+function sanitizeStreamText(text: string): string {
+  let result = text;
+
+  result = result.replace(
+    /User Safety\s*:\s*(safe|unsafe|blocked|allowed|unknown)/gi,
+    ""
+  );
+
+  result = result.replace(
+    /Response Safety\s*:\s*(safe|unsafe|blocked|allowed|unknown)/gi,
+    ""
+  );
+
+  result = result.replace(
+    /User Safety Status\s*:\s*[^\n]*/gi,
+    ""
+  );
+
+  result = result.replace(
+    /Response Safety Status\s*:\s*[^\n]*/gi,
+    ""
+  );
+
+  result = result.replace(
+    /User Safety Result\s*:\s*[^\n]*/gi,
+    ""
+  );
+
+  result = result.replace(
+    /Response Safety Result\s*:\s*[^\n]*/gi,
+    ""
+  );
+
+  result = result.replace(
+    /Safety Status\s*:\s*[^\n]*/gi,
+    ""
+  );
+
+  result = result.replace(
+    /Safety Result\s*:\s*[^\n]*/gi,
+    ""
+  );
+
+  return result;
 }
 
 /*
@@ -379,8 +433,6 @@ function createOpenAIMessages(
 /*
  * =========================================================
  * GEMINI STREAM
- *
- * chunkها مستقیماً ارسال می‌شوند تا فاصله‌های فارسی حفظ شوند.
  * =========================================================
  */
 
@@ -451,10 +503,6 @@ function createGeminiStream(
                   )
                   .join("") || "";
 
-              /*
-               * مهم:
-               * بدون trim و بدون sanitize
-               */
               if (text) {
                 controller.enqueue(
                   encoder.encode(text)
@@ -484,9 +532,6 @@ function createGeminiStream(
 /*
  * =========================================================
  * OPENAI / GROQ STREAM
- *
- * فقط خروجی‌های متا و safety فیلتر می‌شوند.
- * متن عادی دستکاری نمی‌شود.
  * =========================================================
  */
 
@@ -550,7 +595,7 @@ function createOpenAICompatibleStream(
 
               if (text) {
                 const cleaned =
-                  sanitizeOutput(text);
+                  sanitizeStreamText(text);
 
                 if (cleaned) {
                   controller.enqueue(
