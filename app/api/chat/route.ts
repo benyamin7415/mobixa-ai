@@ -258,9 +258,10 @@ function cleanErrorMessage(text: string): string {
  * =========================================================
  * OUTPUT CLEANUP
  *
- * مهم:
- * این تابع روی هر chunk اجرا نمی‌شود.
- * چون trim کردن chunkها می‌تواند فاصله‌های فارسی را خراب کند.
+ * فقط متن‌های متا / safety / internal reasoning
+ * از خروجی حذف می‌شوند.
+ *
+ * روی chunkهای معمولی trim اجرا نمی‌شود تا فاصله فارسی خراب نشود.
  * =========================================================
  */
 
@@ -271,11 +272,23 @@ function sanitizeOutput(text: string): string {
       ""
     )
     .replace(
+      /Response Safety\s*:\s*(safe|unsafe|blocked|allowed|unknown)/gi,
+      ""
+    )
+    .replace(
       /User Safety Status\s*:\s*.*$/gim,
       ""
     )
     .replace(
+      /Response Safety Status\s*:\s*.*$/gim,
+      ""
+    )
+    .replace(
       /User Safety Result\s*:\s*.*$/gim,
+      ""
+    )
+    .replace(
+      /Response Safety Result\s*:\s*.*$/gim,
       ""
     )
     .replace(
@@ -288,6 +301,14 @@ function sanitizeOutput(text: string): string {
     )
     .replace(
       /^(Model|Provider|Moderation|Status)\s*:\s*.*$/gim,
+      ""
+    )
+    .replace(
+      /^\s*(Okay|OK|Alright)[,.]?\s+(the user|the assistant)\b.*$/gim,
+      ""
+    )
+    .replace(
+      /^\s*Let me (check|think|see|analyze|consider)\b.*$/gim,
       ""
     )
     .replace(/\n{3,}/g, "\n\n");
@@ -464,7 +485,8 @@ function createGeminiStream(
  * =========================================================
  * OPENAI / GROQ STREAM
  *
- * chunkها بدون دستکاری ارسال می‌شوند.
+ * فقط خروجی‌های متا و safety فیلتر می‌شوند.
+ * متن عادی دستکاری نمی‌شود.
  * =========================================================
  */
 
@@ -526,14 +548,15 @@ function createOpenAICompatibleStream(
                 data?.choices?.[0]
                   ?.delta?.content || "";
 
-              /*
-               * مهم:
-               * بدون trim و بدون sanitize
-               */
               if (text) {
-                controller.enqueue(
-                  encoder.encode(text)
-                );
+                const cleaned =
+                  sanitizeOutput(text);
+
+                if (cleaned) {
+                  controller.enqueue(
+                    encoder.encode(cleaned)
+                  );
+                }
               }
             } catch {
               // Ignore incomplete SSE chunks.
