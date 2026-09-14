@@ -204,7 +204,7 @@ function isTechnicalRequest(message: string): boolean {
 }
 
 function getOutputLimit(message: string): number {
-  return isTechnicalRequest(message) ? 3000 : 1800;
+  return isTechnicalRequest(message) ? 5000 : 4000;
 }
 
 /*
