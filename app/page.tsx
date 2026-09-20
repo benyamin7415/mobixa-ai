@@ -32,8 +32,8 @@ export default function Home() {
         </h1>
 
         <p className="mt-6 max-w-2xl text-sm leading-7 text-white/55 sm:text-base">
-          با موبیکسا با هوش مصنوعی گفتگو کن یا ایده‌هایت را به تصاویر
-          خلاقانه تبدیل کن.
+          با موبیکسا با هوش مصنوعی گفتگو کن، تصویر بساز یا متن خودت را
+          به صدای طبیعی تبدیل کن.
         </p>
       </section>
 
@@ -114,6 +114,51 @@ export default function Home() {
           </div>
         </Link>
 
+        {/* VOICE */}
+        <Link
+          href="/voice"
+          className="glass-card group relative min-h-[260px] overflow-hidden rounded-[32px] p-7 text-right md:col-span-2"
+        >
+          <div className="absolute -right-20 -bottom-20 h-56 w-56 rounded-full bg-fuchsia-500/20 blur-3xl transition-all duration-500 group-hover:bg-fuchsia-500/35" />
+
+          <div className="absolute -left-20 -top-20 h-48 w-48 rounded-full bg-violet-500/15 blur-3xl transition-all duration-500 group-hover:bg-violet-500/30" />
+
+          <div className="relative flex h-full flex-col justify-between">
+
+            <div>
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-fuchsia-400/10 text-3xl">
+                🎙️
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-2xl font-bold">
+                  تبدیل متن به صدا با هوش مصنوعی
+                </h2>
+
+                <span className="rounded-full border border-fuchsia-400/20 bg-fuchsia-400/10 px-3 py-1 text-[10px] font-semibold text-fuchsia-200">
+                  NEW
+                </span>
+              </div>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/45">
+                متن خودت را وارد کن، مدل صدا را انتخاب کن و آن را به یک
+                صدای طبیعی و حرفه‌ای تبدیل کن.
+              </p>
+            </div>
+
+            <div className="mt-8 flex items-center justify-between">
+              <span className="text-sm text-fuchsia-300">
+                ساخت صدا
+              </span>
+
+              <span className="text-xl transition-transform duration-300 group-hover:-translate-x-2">
+                ←
+              </span>
+            </div>
+
+          </div>
+        </Link>
+
       </section>
 
       {/* Features */}
@@ -128,9 +173,11 @@ export default function Home() {
 
             <div className="rounded-2xl bg-white/[0.035] p-4">
               <div className="text-xl">💡</div>
+
               <div className="mt-2 text-sm font-semibold">
                 ایده‌پردازی
               </div>
+
               <div className="mt-1 text-xs text-white/35">
                 برای پروژه‌ها و کارهات ایده بگیر.
               </div>
@@ -138,9 +185,11 @@ export default function Home() {
 
             <div className="rounded-2xl bg-white/[0.035] p-4">
               <div className="text-xl">📚</div>
+
               <div className="mt-2 text-sm font-semibold">
                 یادگیری
               </div>
+
               <div className="mt-1 text-xs text-white/35">
                 موضوعات مختلف را ساده یاد بگیر.
               </div>
@@ -148,11 +197,13 @@ export default function Home() {
 
             <div className="rounded-2xl bg-white/[0.035] p-4">
               <div className="text-xl">🎨</div>
+
               <div className="mt-2 text-sm font-semibold">
                 خلاقیت
               </div>
+
               <div className="mt-1 text-xs text-white/35">
-                ایده‌هایت را به تصویر تبدیل کن.
+                ایده‌هایت را به تصویر و صدا تبدیل کن.
               </div>
             </div>
 
@@ -162,6 +213,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="mx-auto mt-20 max-w-5xl border-t border-white/10 py-8 text-center">
+
         <div className="text-sm text-white/35">
           Crafted by
         </div>
@@ -173,6 +225,7 @@ export default function Home() {
         <div className="mt-3 text-xs text-white/25">
           Built with curiosity. Designed for the future.
         </div>
+
       </footer>
 
     </main>
