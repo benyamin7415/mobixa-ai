@@ -210,9 +210,16 @@ export default function VoicePage() {
             </div>
           </div>
 
-          <div className="status">
-            <span className="status-dot" />
-            AI VOICE
+          <div className="header-actions">
+            <div className="status">
+              <span className="status-dot" />
+              AI VOICE
+            </div>
+
+            <Link href="/" className="back-home-button">
+              <span className="back-home-arrow">←</span>
+              <span>بازگشت به MOBIXA</span>
+            </Link>
           </div>
         </header>
 
@@ -391,12 +398,6 @@ export default function VoicePage() {
           </div>
         </div>
 
-        {/* Back to MOBIXA */}
-        <Link href="/" className="back-home-button">
-          <span className="back-home-arrow">←</span>
-          <span>بازگشت به MOBIXA</span>
-        </Link>
-
         <footer>
           Designed &amp; Developed by <strong>Benyamin</strong>
         </footer>
@@ -495,6 +496,13 @@ export default function VoicePage() {
           margin-top: 2px;
         }
 
+        .header-actions {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+        }
+
         .status {
           display: flex;
           align-items: center;
@@ -514,6 +522,47 @@ export default function VoicePage() {
           border-radius: 50%;
           background: #54ff9d;
           box-shadow: 0 0 12px #54ff9d;
+        }
+
+        .back-home-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 5px 9px;
+          border-radius: 9px;
+          border: 1px solid rgba(168, 140, 255, 0.14);
+          background: rgba(110, 80, 255, 0.045);
+          color: rgba(255, 255, 255, 0.38);
+          text-decoration: none;
+          font-size: 8px;
+          letter-spacing: 0.2px;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          transition:
+            transform 0.25s ease,
+            border-color 0.25s ease,
+            background 0.25s ease,
+            color 0.25s ease,
+            box-shadow 0.25s ease;
+        }
+
+        .back-home-button:hover {
+          transform: translateY(-1px);
+          border-color: rgba(168, 140, 255, 0.35);
+          background: rgba(110, 80, 255, 0.09);
+          color: rgba(255, 255, 255, 0.75);
+          box-shadow: 0 6px 20px rgba(110, 80, 255, 0.1);
+        }
+
+        .back-home-arrow {
+          font-size: 11px;
+          line-height: 1;
+          transition: transform 0.25s ease;
+        }
+
+        .back-home-button:hover .back-home-arrow {
+          transform: translateX(2px);
         }
 
         .hero {
@@ -988,48 +1037,6 @@ export default function VoicePage() {
         .feature small {
           color: rgba(255, 255, 255, 0.32);
           font-size: 9px;
-        }
-
-        .back-home-button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          width: fit-content;
-          margin: 28px auto 0;
-          padding: 11px 18px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.04);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          color: rgba(255, 255, 255, 0.58);
-          text-decoration: none;
-          font-size: 11px;
-          transition:
-            transform 0.25s ease,
-            border-color 0.25s ease,
-            background 0.25s ease,
-            color 0.25s ease,
-            box-shadow 0.25s ease;
-        }
-
-        .back-home-button:hover {
-          transform: translateY(-2px);
-          border-color: rgba(168, 140, 255, 0.35);
-          background: rgba(110, 80, 255, 0.08);
-          color: rgba(255, 255, 255, 0.85);
-          box-shadow: 0 10px 30px rgba(110, 80, 255, 0.12);
-        }
-
-        .back-home-arrow {
-          font-size: 17px;
-          line-height: 1;
-          transition: transform 0.25s ease;
-        }
-
-        .back-home-button:hover .back-home-arrow {
-          transform: translateX(3px);
         }
 
         footer {
