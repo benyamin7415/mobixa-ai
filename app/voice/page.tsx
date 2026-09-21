@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 const MAX_CHARS = 1000;
@@ -9,21 +10,138 @@ const voices = [
     id: "chirp",
     name: "Chirp 3 HD",
     description: "صدای طبیعی و حرفه‌ای",
-    icon: "🔥",
+    icon: "flame",
   },
   {
     id: "neural2",
     name: "Neural2",
     description: "مناسب گویندگی و نریشن",
-    icon: "🎙️",
+    icon: "microphone",
   },
   {
     id: "wavenet",
     name: "WaveNet",
     description: "سریع و باکیفیت",
-    icon: "⚡",
+    icon: "lightning",
   },
 ];
+
+function FlameIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="custom-icon flame-icon"
+    >
+      <defs>
+        <linearGradient
+          id="mobixa-flame-gradient"
+          x1="4"
+          y1="3"
+          x2="20"
+          y2="22"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#fff" />
+          <stop offset="0.35" stopColor="#c6a8ff" />
+          <stop offset="0.72" stopColor="#a36cff" />
+          <stop offset="1" stopColor="#63dfff" />
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M13.2 2.7c.3 3.1-1.2 4.7-2.8 6.2-1.1 1-1.9 2-1.9 3.7 0 1.4.8 2.5 2 3.1-.2-1.5.5-2.8 1.8-4 1.8-1.7 3.1-3.3 2.7-6.1 2.5 2.1 4.4 5.1 4.4 8.4 0 4.4-3.2 7.3-7.4 7.3S4.6 18.7 4.6 14.5c0-3.8 2.2-6.5 4.7-8.7-.1 2 .4 3.3 1.2 4.1.4-2.7 1.4-5 2.7-7.2Z"
+        fill="url(#mobixa-flame-gradient)"
+      />
+
+      <path
+        d="M12.3 13.1c-1.1 1.1-1.7 2-1.7 3.2 0 1.5 1 2.5 2.4 2.5s2.5-1 2.5-2.5c0-1.2-.7-2.2-1.8-3.4-.2.9-.6 1.5-1.4 2-.1-.7-.1-1.2 0-1.8Z"
+        fill="rgba(255,255,255,0.9)"
+      />
+    </svg>
+  );
+}
+
+function LightningIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="custom-feature-icon lightning-icon"
+    >
+      <defs>
+        <linearGradient
+          id="mobixa-lightning-gradient"
+          x1="5"
+          y1="3"
+          x2="19"
+          y2="21"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.45" stopColor="#b9a0ff" />
+          <stop offset="1" stopColor="#63dfff" />
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M13.4 2.7 5.7 13.1h5.1l-1 8.2 8.5-11.2h-5.2l.3-7.4Z"
+        fill="url(#mobixa-lightning-gradient)"
+      />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="custom-feature-icon lock-icon"
+    >
+      <defs>
+        <linearGradient
+          id="mobixa-lock-gradient"
+          x1="5"
+          y1="3"
+          x2="19"
+          y2="21"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.5" stopColor="#b9a0ff" />
+          <stop offset="1" stopColor="#63dfff" />
+        </linearGradient>
+      </defs>
+
+      <rect
+        x="5"
+        y="10"
+        width="14"
+        height="11"
+        rx="3"
+        fill="url(#mobixa-lock-gradient)"
+      />
+
+      <path
+        d="M8 10V7.5a4 4 0 0 1 8 0V10"
+        fill="none"
+        stroke="rgba(255,255,255,0.9)"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+
+      <circle cx="12" cy="15.5" r="1.25" fill="#5d43a8" />
+
+      <path
+        d="M12 16.5v2"
+        stroke="#5d43a8"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export default function VoicePage() {
   const [text, setText] = useState("");
@@ -161,7 +279,15 @@ export default function VoicePage() {
                     }`}
                     onClick={() => setSelectedVoice(voice.id)}
                   >
-                    <div className="voice-icon">{voice.icon}</div>
+                    <div className="voice-icon">
+                      {voice.icon === "flame" ? (
+                        <FlameIcon />
+                      ) : voice.icon === "microphone" ? (
+                        "🎙️"
+                      ) : (
+                        <LightningIcon />
+                      )}
+                    </div>
 
                     <div className="voice-info">
                       <strong>{voice.name}</strong>
@@ -234,7 +360,10 @@ export default function VoicePage() {
         {/* Bottom features */}
         <div className="features">
           <div className="feature">
-            <span>⚡</span>
+            <span className="custom-feature">
+              <LightningIcon />
+            </span>
+
             <div>
               <strong>سریع</strong>
               <small>تولید صدا با AI</small>
@@ -242,7 +371,8 @@ export default function VoicePage() {
           </div>
 
           <div className="feature">
-            <span>🎙️</span>
+            <span className="microphone-feature">🎙️</span>
+
             <div>
               <strong>طبیعی</strong>
               <small>صدای نزدیک به انسان</small>
@@ -250,13 +380,22 @@ export default function VoicePage() {
           </div>
 
           <div className="feature">
-            <span>🔒</span>
+            <span className="custom-feature">
+              <LockIcon />
+            </span>
+
             <div>
               <strong>امن</strong>
               <small>کلید API در سرور</small>
             </div>
           </div>
         </div>
+
+        {/* Back to MOBIXA */}
+        <Link href="/" className="back-home-button">
+          <span className="back-home-arrow">←</span>
+          <span>بازگشت به MOBIXA</span>
+        </Link>
 
         <footer>
           Designed &amp; Developed by <strong>Benyamin</strong>
@@ -592,6 +731,22 @@ export default function VoicePage() {
           font-size: 17px;
         }
 
+        .voice-icon .custom-icon {
+          width: 25px;
+          height: 25px;
+          display: block;
+        }
+
+        .voice-icon .flame-icon {
+          filter: drop-shadow(0 0 7px rgba(163, 108, 255, 0.45));
+        }
+
+        .voice-icon .lightning-icon {
+          width: 24px;
+          height: 24px;
+          filter: drop-shadow(0 0 7px rgba(99, 223, 255, 0.4));
+        }
+
         .voice-info {
           min-width: 0;
           display: flex;
@@ -793,6 +948,33 @@ export default function VoicePage() {
           font-size: 18px;
         }
 
+        .feature > span.custom-feature {
+          width: 23px;
+          height: 23px;
+          min-width: 23px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .custom-feature-icon {
+          width: 22px;
+          height: 22px;
+          display: block;
+        }
+
+        .lightning-icon {
+          filter: drop-shadow(0 0 7px rgba(99, 223, 255, 0.45));
+        }
+
+        .lock-icon {
+          filter: drop-shadow(0 0 7px rgba(163, 108, 255, 0.4));
+        }
+
+        .microphone-feature {
+          font-size: 18px;
+        }
+
         .feature div {
           display: flex;
           flex-direction: column;
@@ -806,6 +988,48 @@ export default function VoicePage() {
         .feature small {
           color: rgba(255, 255, 255, 0.32);
           font-size: 9px;
+        }
+
+        .back-home-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          width: fit-content;
+          margin: 28px auto 0;
+          padding: 11px 18px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.04);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          color: rgba(255, 255, 255, 0.58);
+          text-decoration: none;
+          font-size: 11px;
+          transition:
+            transform 0.25s ease,
+            border-color 0.25s ease,
+            background 0.25s ease,
+            color 0.25s ease,
+            box-shadow 0.25s ease;
+        }
+
+        .back-home-button:hover {
+          transform: translateY(-2px);
+          border-color: rgba(168, 140, 255, 0.35);
+          background: rgba(110, 80, 255, 0.08);
+          color: rgba(255, 255, 255, 0.85);
+          box-shadow: 0 10px 30px rgba(110, 80, 255, 0.12);
+        }
+
+        .back-home-arrow {
+          font-size: 17px;
+          line-height: 1;
+          transition: transform 0.25s ease;
+        }
+
+        .back-home-button:hover .back-home-arrow {
+          transform: translateX(3px);
         }
 
         footer {
