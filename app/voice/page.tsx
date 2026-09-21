@@ -143,6 +143,56 @@ function LockIcon() {
   );
 }
 
+function BackIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="back-home-icon"
+    >
+      <defs>
+        <linearGradient
+          id="mobixa-back-gradient"
+          x1="4"
+          y1="4"
+          x2="20"
+          y2="20"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.5" stopColor="#b9a0ff" />
+          <stop offset="1" stopColor="#63dfff" />
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M9.2 5.5 3.8 10.9l5.4 5.4"
+        fill="none"
+        stroke="url(#mobixa-back-gradient)"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M4.2 10.9h9.1c4.2 0 6.5 2.2 6.5 6.3"
+        fill="none"
+        stroke="url(#mobixa-back-gradient)"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M17.2 17.2 19.8 20"
+        fill="none"
+        stroke="rgba(255,255,255,0.7)"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function VoicePage() {
   const [text, setText] = useState("");
   const [selectedVoice, setSelectedVoice] = useState("neural2");
@@ -199,6 +249,21 @@ export default function VoicePage() {
       <section className="voice-container fade-up">
         {/* Header */}
         <header className="voice-header">
+          <div className="header-left">
+            <div className="status">
+              <span className="status-dot" />
+              AI VOICE
+            </div>
+
+            <Link href="/" className="back-home-button">
+              <BackIcon />
+
+              <span className="back-home-text">
+                بازگشت به <strong>MOBIXA</strong>
+              </span>
+            </Link>
+          </div>
+
           <div className="brand">
             <div className="brand-orb">
               <span>✦</span>
@@ -208,18 +273,6 @@ export default function VoicePage() {
               <div className="brand-name">MOBIXA</div>
               <div className="brand-subtitle">VOICE LAB</div>
             </div>
-          </div>
-
-          <div className="header-actions">
-            <div className="status">
-              <span className="status-dot" />
-              AI VOICE
-            </div>
-
-            <Link href="/" className="back-home-button">
-              <span className="back-home-arrow">←</span>
-              <span>بازگشت به MOBIXA</span>
-            </Link>
           </div>
         </header>
 
@@ -455,9 +508,15 @@ export default function VoicePage() {
 
         .voice-header {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
           margin-bottom: 70px;
+        }
+
+        .header-left {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
         }
 
         .brand {
@@ -496,13 +555,6 @@ export default function VoicePage() {
           margin-top: 2px;
         }
 
-        .header-actions {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 8px;
-        }
-
         .status {
           display: flex;
           align-items: center;
@@ -525,20 +577,30 @@ export default function VoicePage() {
         }
 
         .back-home-button {
+          position: relative;
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 5px 9px;
-          border-radius: 9px;
-          border: 1px solid rgba(168, 140, 255, 0.14);
-          background: rgba(110, 80, 255, 0.045);
-          color: rgba(255, 255, 255, 0.38);
+          gap: 7px;
+          margin-top: 9px;
+          padding: 7px 10px 7px 8px;
+          border-radius: 11px;
+          border: 1px solid rgba(168, 140, 255, 0.16);
+          background:
+            linear-gradient(
+              135deg,
+              rgba(110, 80, 255, 0.1),
+              rgba(0, 200, 255, 0.035)
+            ),
+            rgba(255, 255, 255, 0.025);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            0 6px 22px rgba(0, 0, 0, 0.16);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          color: rgba(255, 255, 255, 0.58);
           text-decoration: none;
-          font-size: 8px;
+          font-size: 9px;
           letter-spacing: 0.2px;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
           transition:
             transform 0.25s ease,
             border-color 0.25s ease,
@@ -547,22 +609,64 @@ export default function VoicePage() {
             box-shadow 0.25s ease;
         }
 
-        .back-home-button:hover {
-          transform: translateY(-1px);
-          border-color: rgba(168, 140, 255, 0.35);
-          background: rgba(110, 80, 255, 0.09);
-          color: rgba(255, 255, 255, 0.75);
-          box-shadow: 0 6px 20px rgba(110, 80, 255, 0.1);
+        .back-home-button::before {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          border-radius: inherit;
+          padding: 1px;
+          background: linear-gradient(
+            135deg,
+            rgba(168, 140, 255, 0.3),
+            transparent 45%,
+            rgba(99, 223, 255, 0.18)
+          );
+          -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          pointer-events: none;
+          opacity: 0.65;
         }
 
-        .back-home-arrow {
-          font-size: 11px;
-          line-height: 1;
+        .back-home-button:hover {
+          transform: translateY(-2px);
+          border-color: rgba(168, 140, 255, 0.3);
+          background:
+            linear-gradient(
+              135deg,
+              rgba(110, 80, 255, 0.16),
+              rgba(0, 200, 255, 0.06)
+            ),
+            rgba(255, 255, 255, 0.035);
+          color: rgba(255, 255, 255, 0.9);
+          box-shadow:
+            0 8px 28px rgba(110, 80, 255, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .back-home-icon {
+          width: 17px;
+          height: 17px;
+          flex: 0 0 17px;
+          display: block;
+          filter: drop-shadow(0 0 5px rgba(168, 140, 255, 0.3));
           transition: transform 0.25s ease;
         }
 
-        .back-home-button:hover .back-home-arrow {
-          transform: translateX(2px);
+        .back-home-button:hover .back-home-icon {
+          transform: translateX(-2px);
+        }
+
+        .back-home-text {
+          white-space: nowrap;
+        }
+
+        .back-home-text strong {
+          color: rgba(255, 255, 255, 0.82);
+          font-weight: 800;
+          letter-spacing: 0.5px;
         }
 
         .hero {
