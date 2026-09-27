@@ -9,8 +9,6 @@ type Voice = {
   id: string;
   name: string;
   description: string;
-  category?: string;
-  labels?: Record<string, string>;
 };
 
 function FlameIcon() {
@@ -139,9 +137,6 @@ export default function VoicePage() {
   const [audioUrl, setAudioUrl] = useState("");
   const [error, setError] = useState("");
 
-  /*
-    دریافت صداهای اکانت
-  */
   useEffect(() => {
     const loadVoices = async () => {
       try {
@@ -157,28 +152,21 @@ export default function VoicePage() {
 
         if (!response.ok) {
           throw new Error(
-            data?.error || "دریافت صداها با مشکل مواجه شد."
+            data?.error || "دریافت صداها ناموفق بود."
           );
         }
 
-        const availableVoices = Array.isArray(data?.voices)
-          ? data.voices
-          : [];
-
-        setVoices(availableVoices);
-
-        if (availableVoices.length > 0) {
-          setSelectedVoice(availableVoices[0].id);
-        } else {
-          setError(
-            "هیچ صدای قابل دسترسی در اکانت ElevenLabs پیدا نشد."
-          );
+        if (!Array.isArray(data?.voices) || data.voices.length === 0) {
+          throw new Error("هیچ صدای قابل استفاده‌ای پیدا نشد.");
         }
+
+        setVoices(data.voices);
+        setSelectedVoice(data.voices[0].id);
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "خطا در دریافت صداها."
+            : "دریافت صداها ناموفق بود."
         );
       } finally {
         setLoadingVoices(false);
@@ -195,26 +183,25 @@ export default function VoicePage() {
 
     setText(value);
     setError("");
+    setAudioUrl("");
   };
 
   const generateVoice = async () => {
     if (!text.trim()) {
-      setError("اول متنی که می‌خوای به صدا تبدیل بشه رو وارد کن.");
+      setError(
+        "اول متنی که می‌خوای به صدا تبدیل بشه رو وارد کن."
+      );
       return;
     }
 
     if (!selectedVoice) {
-      setError("اول یک صدا انتخاب کن.");
+      setError("اول یک مدل صدا انتخاب کن.");
       return;
     }
 
     setLoading(true);
     setError("");
-
-    if (audioUrl) {
-      URL.revokeObjectURL(audioUrl);
-      setAudioUrl("");
-    }
+    setAudioUrl("");
 
     try {
       const response = await fetch("/api/voice", {
@@ -232,18 +219,11 @@ export default function VoicePage() {
       if (!response.ok) {
         const data = await response.json().catch(() => null);
 
-        let message =
-          data?.error ||
-          "تولید صدا با مشکل مواجه شد.";
-
-        if (
-          typeof data?.details === "object" &&
-          data?.details?.detail?.message
-        ) {
-          message = data.details.detail.message;
-        }
-
-        throw new Error(message);
+        throw new Error(
+          data?.details ||
+            data?.error ||
+            "تولید صدا ناموفق بود."
+        );
       }
 
       const audioBlob = await response.blob();
@@ -290,7 +270,9 @@ export default function VoicePage() {
 
             <div>
               <div className="brand-name">MOBIXA</div>
-              <div className="brand-subtitle">VOICE LAB</div>
+              <div className="brand-subtitle">
+                VOICE LAB
+              </div>
             </div>
           </div>
 
@@ -320,7 +302,8 @@ export default function VoicePage() {
           </h1>
 
           <p>
-            با هوش مصنوعی MOBIXA متن خودت رو به صدای طبیعی و حرفه‌ای تبدیل کن.
+            با هوش مصنوعی MOBIXA متن خودت رو به صدای طبیعی و
+            حرفه‌ای تبدیل کن.
           </p>
         </div>
 
@@ -341,7 +324,7 @@ export default function VoicePage() {
               value={text}
               onChange={handleTextChange}
               maxLength={MAX_CHARS}
-              placeholder="مثلاً: به دنیای MOBIXA خوش اومدی..."
+              placeholder="مثلاً: سلام من بنیامین هستم..."
               dir="rtl"
             />
 
@@ -352,19 +335,22 @@ export default function VoicePage() {
             <div className="selection-heading">
               <h3>مدل صدا</h3>
               <span>
-                {loadingVoices ? "در حال دریافت..." : "انتخاب کن"}
+                {loadingVoices
+                  ? "در حال دریافت..."
+                  : "صداهای قابل استفاده"}
               </span>
             </div>
 
             {loadingVoices ? (
               <div className="voices-loading">
                 <span className="spinner" />
-                در حال دریافت صداهای اکانت...
+                در حال دریافت صداهای قابل استفاده...
               </div>
             ) : voices.length > 0 ? (
               <div className="voice-options">
                 {voices.slice(0, 6).map((voice, index) => {
-                  const selected = selectedVoice === voice.id;
+                  const selected =
+                    selectedVoice === voice.id;
 
                   return (
                     <button
@@ -373,24 +359,22 @@ export default function VoicePage() {
                       className={`voice-option ${
                         selected ? "selected" : ""
                       }`}
-                      onClick={() => {
-                        setSelectedVoice(voice.id);
-                        setError("");
-                      }}
+                      onClick={() =>
+                        setSelectedVoice(voice.id)
+                      }
                     >
                       <div className="voice-icon">
                         {index === 0 ? (
                           <FlameIcon />
-                        ) : index === 1 ? (
-                          "🎙️"
-                        ) : (
+                        ) : index % 2 === 0 ? (
                           <LightningIcon />
+                        ) : (
+                          "🎙️"
                         )}
                       </div>
 
                       <div className="voice-info">
                         <strong>{voice.name}</strong>
-
                         <span>
                           {voice.description ||
                             "صدای طبیعی و حرفه‌ای"}
@@ -404,22 +388,19 @@ export default function VoicePage() {
                   );
                 })}
               </div>
-            ) : (
-              <div className="empty-voices">
-                هیچ صدای قابل استفاده‌ای پیدا نشد.
-              </div>
-            )}
+            ) : null}
           </div>
 
           <button
             type="button"
-            className={`generate-button ${loading ? "loading" : ""}`}
+            className={`generate-button ${
+              loading ? "loading" : ""
+            }`}
             onClick={generateVoice}
             disabled={
               loading ||
               loadingVoices ||
-              !selectedVoice ||
-              voices.length === 0
+              !selectedVoice
             }
           >
             {loading ? (
@@ -447,7 +428,10 @@ export default function VoicePage() {
             <div className="audio-result">
               <div className="audio-result-header">
                 <div>
-                  <strong>صدای شما آماده است 🎧</strong>
+                  <strong>
+                    صدای شما آماده است 🎧
+                  </strong>
+
                   <span>MOBIXA AI VOICE</span>
                 </div>
 
@@ -480,7 +464,9 @@ export default function VoicePage() {
           </div>
 
           <div className="feature">
-            <span className="microphone-feature">🎙️</span>
+            <span className="microphone-feature">
+              🎙️
+            </span>
 
             <div>
               <strong>طبیعی</strong>
@@ -501,7 +487,8 @@ export default function VoicePage() {
         </div>
 
         <footer>
-          Designed &amp; Developed by <strong>Benyamin</strong>
+          Designed &amp; Developed by{" "}
+          <strong>Benyamin</strong>
         </footer>
       </section>
 
@@ -638,21 +625,13 @@ export default function VoicePage() {
           color: rgba(255, 255, 255, 0.38);
           text-decoration: none;
           font-size: 8px;
+          letter-spacing: 0.2px;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          transition: all 0.25s ease;
-        }
-
-        .back-home-button:hover {
-          transform: translateY(-1px);
-          border-color: rgba(168, 140, 255, 0.35);
-          background: rgba(110, 80, 255, 0.09);
-          color: rgba(255, 255, 255, 0.75);
         }
 
         .back-home-arrow {
           font-size: 11px;
-          line-height: 1;
         }
 
         .hero {
@@ -735,7 +714,6 @@ export default function VoicePage() {
         .section-title h2 {
           margin: 0;
           font-size: 17px;
-          font-weight: 700;
         }
 
         .section-title p {
@@ -773,7 +751,6 @@ export default function VoicePage() {
           line-height: 2;
           position: relative;
           z-index: 1;
-          transition: all 0.25s ease;
         }
 
         textarea::placeholder {
@@ -838,13 +815,6 @@ export default function VoicePage() {
           background: rgba(255, 255, 255, 0.035);
           color: white;
           cursor: pointer;
-          transition: all 0.25s ease;
-        }
-
-        .voice-option:hover {
-          transform: translateY(-2px);
-          border-color: rgba(255, 255, 255, 0.18);
-          background: rgba(255, 255, 255, 0.06);
         }
 
         .voice-option.selected {
@@ -865,14 +835,9 @@ export default function VoicePage() {
           font-size: 17px;
         }
 
-        .voice-icon .custom-icon {
+        .custom-icon {
           width: 25px;
           height: 25px;
-          display: block;
-        }
-
-        .voice-icon .flame-icon {
-          filter: drop-shadow(0 0 7px rgba(163, 108, 255, 0.45));
         }
 
         .voice-info {
@@ -884,9 +849,6 @@ export default function VoicePage() {
 
         .voice-info strong {
           font-size: 12px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
         }
 
         .voice-info span {
@@ -917,17 +879,16 @@ export default function VoicePage() {
           box-shadow: 0 0 10px rgba(156, 130, 255, 0.8);
         }
 
-        .voices-loading,
-        .empty-voices {
-          min-height: 90px;
+        .voices-loading {
+          min-height: 100px;
           border-radius: 17px;
           border: 1px solid rgba(255, 255, 255, 0.08);
           background: rgba(255, 255, 255, 0.035);
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          color: rgba(255, 255, 255, 0.45);
+          gap: 12px;
+          color: rgba(255, 255, 255, 0.5);
           font-size: 11px;
         }
 
@@ -954,19 +915,11 @@ export default function VoicePage() {
           box-shadow:
             0 15px 40px rgba(110, 80, 255, 0.25),
             inset 0 1px 0 rgba(255, 255, 255, 0.2);
-          transition: all 0.25s ease;
-        }
-
-        .generate-button:hover:not(:disabled) {
-          transform: translateY(-3px);
-          box-shadow:
-            0 20px 55px rgba(110, 80, 255, 0.35),
-            inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .generate-button:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
+          cursor: wait;
+          opacity: 0.55;
         }
 
         .button-icon {
@@ -996,10 +949,6 @@ export default function VoicePage() {
           background: rgba(255, 70, 90, 0.08);
           border: 1px solid rgba(255, 70, 90, 0.15);
           color: rgba(255, 170, 180, 0.9);
-        }
-
-        .error-box span {
-          font-size: 16px;
         }
 
         .error-box p {
@@ -1066,10 +1015,6 @@ export default function VoicePage() {
           cursor: pointer;
         }
 
-        .download-button:hover {
-          background: rgba(255, 255, 255, 0.09);
-        }
-
         .features {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -1103,15 +1048,6 @@ export default function VoicePage() {
         .custom-feature-icon {
           width: 22px;
           height: 22px;
-          display: block;
-        }
-
-        .lightning-icon {
-          filter: drop-shadow(0 0 7px rgba(99, 223, 255, 0.45));
-        }
-
-        .lock-icon {
-          filter: drop-shadow(0 0 7px rgba(163, 108, 255, 0.4));
         }
 
         .feature div {
@@ -1138,6 +1074,18 @@ export default function VoicePage() {
 
         footer strong {
           color: rgba(255, 255, 255, 0.45);
+        }
+
+        .lightning-icon {
+          filter: drop-shadow(
+            0 0 7px rgba(99, 223, 255, 0.45)
+          );
+        }
+
+        .lock-icon {
+          filter: drop-shadow(
+            0 0 7px rgba(163, 108, 255, 0.4)
+          );
         }
 
         @keyframes spin {
@@ -1209,16 +1157,8 @@ export default function VoicePage() {
             grid-template-columns: 1fr;
           }
 
-          .voice-option {
-            padding: 13px;
-          }
-
           .features {
             grid-template-columns: 1fr;
-          }
-
-          .feature {
-            padding: 13px;
           }
 
           textarea {
