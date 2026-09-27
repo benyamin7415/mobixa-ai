@@ -225,7 +225,7 @@ export default function VoicePage() {
               value={text}
               onChange={handleTextChange}
               maxLength={MAX_CHARS}
-              placeholder="کلماتت رو به صدا تبدیل کن"
+              placeholder="از متن خودت، صدای حرفه‌ای بساز…"
               dir="rtl"
             />
 
