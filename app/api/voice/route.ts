@@ -22,9 +22,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const selectedVoice = voiceId || "21m00Tcm4TlvDq8ikWAM";
+    const selectedVoice =
+      voiceId || "21m00Tcm4TlvDq8ikWAM";
 
-    const selectedModel = modelId || "eleven_multilingual_v2";
+    const selectedModel =
+      modelId || "eleven_multilingual_v2";
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}`,
@@ -69,9 +71,7 @@ export async function POST(req: NextRequest) {
         "Cache-Control": "no-store",
       },
     });
-  } catch (error) {
-    console.error("Voice API error:", error);
-
+  } catch {
     return Response.json(
       { error: "خطایی در پردازش درخواست رخ داد." },
       { status: 500 }
