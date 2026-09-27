@@ -1,27 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const MAX_CHARS = 1000;
+const MODEL_ID = "eleven_multilingual_v2";
 
 const voices = [
   {
-    id: "chirp",
-    name: "Chirp 3 HD",
-    description: "صدای طبیعی و حرفه‌ای",
+    id: "21m00Tcm4TlvDq8ikWAM",
+    name: "Rachel",
+    description: "طبیعی و حرفه‌ای",
     icon: "flame",
   },
   {
-    id: "neural2",
-    name: "Neural2",
-    description: "مناسب گویندگی و نریشن",
+    id: "pNInz6obpgDQGcFmaJgB",
+    name: "Adam",
+    description: "مناسب نریشن",
     icon: "microphone",
   },
   {
-    id: "wavenet",
-    name: "WaveNet",
-    description: "سریع و باکیفیت",
+    id: "ErXwobaYiN019PkySvjV",
+    name: "Antoni",
+    description: "گرم و قدرتمند",
     icon: "lightning",
   },
 ];
@@ -145,10 +146,20 @@ function LockIcon() {
 
 export default function VoicePage() {
   const [text, setText] = useState("");
-  const [selectedVoice, setSelectedVoice] = useState("neural2");
+  const [selectedVoice, setSelectedVoice] = useState(
+    "21m00Tcm4TlvDq8ikWAM"
+  );
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
 
   const handleTextChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
@@ -168,15 +179,82 @@ export default function VoicePage() {
     setLoading(true);
     setError("");
 
-    /*
-      اتصال واقعی به Google Cloud TTS
-      در مرحله بعد این قسمت را به /api/tts وصل می‌کنیم.
-    */
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl("");
+    }
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/voice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: text.trim(),
+          voiceId: selectedVoice,
+          modelId: MODEL_ID,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = "خطا در ساخت صدا.";
+
+        try {
+          const data = await response.json();
+
+          if (data?.error) {
+            message = data.error;
+          }
+
+          if (data?.details) {
+            try {
+              const details =
+                typeof data.details === "string"
+                  ? JSON.parse(data.details)
+                  : data.details;
+
+              const apiMessage =
+                details?.detail?.message ||
+                details?.message ||
+                details?.detail;
+
+              if (apiMessage) {
+                message = apiMessage;
+              }
+            } catch {
+              // اگر details JSON نبود، همان error اصلی نمایش داده می‌شود.
+            }
+          }
+        } catch {
+          const textError = await response.text();
+
+          if (textError) {
+            message = textError;
+          }
+        }
+
+        throw new Error(message);
+      }
+
+      const audioBlob = await response.blob();
+
+      if (!audioBlob.size) {
+        throw new Error("فایل صوتی خالی دریافت شد.");
+      }
+
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "خطایی هنگام ساخت صدا رخ داد.";
+
+      setError(message);
+    } finally {
       setLoading(false);
-      setError("سرویس تولید صدا هنوز متصل نشده؛ مرحله بعد API رو وصل می‌کنیم.");
-    }, 700);
+    }
   };
 
   const downloadAudio = () => {
@@ -197,7 +275,6 @@ export default function VoicePage() {
       <div className="background-orb orb-three" />
 
       <section className="voice-container fade-up">
-        {/* Header */}
         <header className="voice-header">
           <div className="brand">
             <div className="brand-orb">
@@ -223,7 +300,6 @@ export default function VoicePage() {
           </div>
         </header>
 
-        {/* Hero */}
         <div className="hero">
           <div className="hero-badge">
             <span>✦</span>
@@ -241,7 +317,6 @@ export default function VoicePage() {
           </p>
         </div>
 
-        {/* Main Card */}
         <section className="voice-card glass-card">
           <div className="section-title">
             <div>
@@ -266,7 +341,6 @@ export default function VoicePage() {
             <div className="textarea-glow" />
           </div>
 
-          {/* Voice selection */}
           <div className="voice-selection">
             <div className="selection-heading">
               <h3>مدل صدا</h3>
@@ -284,7 +358,10 @@ export default function VoicePage() {
                     className={`voice-option ${
                       selected ? "selected" : ""
                     }`}
-                    onClick={() => setSelectedVoice(voice.id)}
+                    onClick={() => {
+                      setSelectedVoice(voice.id);
+                      setError("");
+                    }}
                   >
                     <div className="voice-icon">
                       {voice.icon === "flame" ? (
@@ -310,7 +387,6 @@ export default function VoicePage() {
             </div>
           </div>
 
-          {/* Generate button */}
           <button
             type="button"
             className={`generate-button ${loading ? "loading" : ""}`}
@@ -331,7 +407,6 @@ export default function VoicePage() {
             )}
           </button>
 
-          {/* Error */}
           {error && (
             <div className="error-box">
               <span>⚠</span>
@@ -339,7 +414,6 @@ export default function VoicePage() {
             </div>
           )}
 
-          {/* Audio result */}
           {audioUrl && (
             <div className="audio-result">
               <div className="audio-result-header">
@@ -364,7 +438,6 @@ export default function VoicePage() {
           )}
         </section>
 
-        {/* Bottom features */}
         <div className="features">
           <div className="feature">
             <span className="custom-feature">
@@ -558,11 +631,6 @@ export default function VoicePage() {
         .back-home-arrow {
           font-size: 11px;
           line-height: 1;
-          transition: transform 0.25s ease;
-        }
-
-        .back-home-button:hover .back-home-arrow {
-          transform: translateX(2px);
         }
 
         .hero {
@@ -875,11 +943,6 @@ export default function VoicePage() {
 
         .button-arrow {
           font-size: 19px;
-          transition: transform 0.2s ease;
-        }
-
-        .generate-button:hover .button-arrow {
-          transform: translateX(4px);
         }
 
         .spinner {
@@ -911,6 +974,7 @@ export default function VoicePage() {
           margin: 0;
           font-size: 11px;
           line-height: 1.7;
+          word-break: break-word;
         }
 
         .audio-result {
@@ -1067,6 +1131,7 @@ export default function VoicePage() {
           from {
             transform: translate(0, 0);
           }
+
           to {
             transform: translate(60px, 50px);
           }
@@ -1076,6 +1141,7 @@ export default function VoicePage() {
           from {
             transform: translate(0, 0);
           }
+
           to {
             transform: translate(-50px, -40px);
           }
@@ -1085,6 +1151,7 @@ export default function VoicePage() {
           from {
             transform: translate(0, 0);
           }
+
           to {
             transform: translate(40px, -50px);
           }
