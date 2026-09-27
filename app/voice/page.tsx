@@ -1,180 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const MAX_CHARS = 1000;
 
-type Voice = {
-  id: string;
-  name: string;
-  description: string;
-};
-
-function FlameIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="custom-icon flame-icon"
-    >
-      <defs>
-        <linearGradient
-          id="mobixa-flame-gradient"
-          x1="4"
-          y1="3"
-          x2="20"
-          y2="22"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stopColor="#fff" />
-          <stop offset="0.35" stopColor="#c6a8ff" />
-          <stop offset="0.72" stopColor="#a36cff" />
-          <stop offset="1" stopColor="#63dfff" />
-        </linearGradient>
-      </defs>
-
-      <path
-        d="M13.2 2.7c.3 3.1-1.2 4.7-2.8 6.2-1.1 1-1.9 2-1.9 3.7 0 1.4.8 2.5 2 3.1-.2-1.5.5-2.8 1.8-4 1.8-1.7 3.1-3.3 2.7-6.1 2.5 2.1 4.4 5.1 4.4 8.4 0 4.4-3.2 7.3-7.4 7.3S4.6 18.7 4.6 14.5c0-3.8 2.2-6.5 4.7-8.7-.1 2 .4 3.3 1.2 4.1.4-2.7 1.4-5 2.7-7.2Z"
-        fill="url(#mobixa-flame-gradient)"
-      />
-
-      <path
-        d="M12.3 13.1c-1.1 1.1-1.7 2-1.7 3.2 0 1.5 1 2.5 2.4 2.5s2.5-1 2.5-2.5c0-1.2-.7-2.2-1.8-3.4-.2.9-.6 1.5-1.4 2-.1-.7-.1-1.2 0-1.8Z"
-        fill="rgba(255,255,255,0.9)"
-      />
-    </svg>
-  );
-}
-
-function LightningIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="custom-feature-icon lightning-icon"
-    >
-      <defs>
-        <linearGradient
-          id="mobixa-lightning-gradient"
-          x1="5"
-          y1="3"
-          x2="19"
-          y2="21"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.45" stopColor="#b9a0ff" />
-          <stop offset="1" stopColor="#63dfff" />
-        </linearGradient>
-      </defs>
-
-      <path
-        d="M13.4 2.7 5.7 13.1h5.1l-1 8.2 8.5-11.2h-5.2l.3-7.4Z"
-        fill="url(#mobixa-lightning-gradient)"
-      />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="custom-feature-icon lock-icon"
-    >
-      <defs>
-        <linearGradient
-          id="mobixa-lock-gradient"
-          x1="5"
-          y1="3"
-          x2="19"
-          y2="21"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.5" stopColor="#b9a0ff" />
-          <stop offset="1" stopColor="#63dfff" />
-        </linearGradient>
-      </defs>
-
-      <rect
-        x="5"
-        y="10"
-        width="14"
-        height="11"
-        rx="3"
-        fill="url(#mobixa-lock-gradient)"
-      />
-
-      <path
-        d="M8 10V7.5a4 4 0 0 1 8 0V10"
-        fill="none"
-        stroke="rgba(255,255,255,0.9)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-
-      <circle cx="12" cy="15.5" r="1.25" fill="#5d43a8" />
-
-      <path
-        d="M12 16.5v2"
-        stroke="#5d43a8"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export default function VoicePage() {
   const [text, setText] = useState("");
-  const [voices, setVoices] = useState<Voice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState("");
-  const [loadingVoices, setLoadingVoices] = useState(true);
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const loadVoices = async () => {
-      try {
-        setLoadingVoices(true);
-        setError("");
-
-        const response = await fetch("/api/voice", {
-          method: "GET",
-          cache: "no-store",
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data?.error || "دریافت صداها ناموفق بود."
-          );
-        }
-
-        if (!Array.isArray(data?.voices) || data.voices.length === 0) {
-          throw new Error("هیچ صدای قابل استفاده‌ای پیدا نشد.");
-        }
-
-        setVoices(data.voices);
-        setSelectedVoice(data.voices[0].id);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "دریافت صداها ناموفق بود."
-        );
-      } finally {
-        setLoadingVoices(false);
-      }
-    };
-
-    loadVoices();
-  }, []);
 
   const handleTextChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
@@ -183,59 +18,69 @@ export default function VoicePage() {
 
     setText(value);
     setError("");
-    setAudioUrl("");
   };
 
   const generateVoice = async () => {
     if (!text.trim()) {
-      setError(
-        "اول متنی که می‌خوای به صدا تبدیل بشه رو وارد کن."
-      );
-      return;
-    }
-
-    if (!selectedVoice) {
-      setError("اول یک مدل صدا انتخاب کن.");
+      setError("اول متنی که می‌خوای به صدا تبدیل بشه رو وارد کن.");
       return;
     }
 
     setLoading(true);
     setError("");
-    setAudioUrl("");
+
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl("");
+    }
 
     try {
       const response = await fetch("/api/voice", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
-          text,
-          voiceId: selectedVoice,
-          modelId: "eleven_multilingual_v2",
+          text: text.trim(),
         }),
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
+        let message = "ساخت صدا با خطا مواجه شد.";
 
-        throw new Error(
-          data?.details ||
-            data?.error ||
-            "تولید صدا ناموفق بود."
-        );
+        try {
+          const data = await response.json();
+
+          if (data?.details) {
+            message = data.details;
+          } else if (data?.error) {
+            message = data.error;
+          }
+        } catch {
+          // پاسخ JSON نبود
+        }
+
+        throw new Error(message);
       }
 
       const audioBlob = await response.blob();
+
+      if (!audioBlob.size) {
+        throw new Error("فایل صوتی خالی دریافت شد.");
+      }
 
       const url = URL.createObjectURL(audioBlob);
 
       setAudioUrl(url);
     } catch (err) {
+      console.error(err);
+
       setError(
         err instanceof Error
           ? err.message
-          : "خطایی هنگام ساخت صدا رخ داد."
+          : "ساخت صدا با خطا مواجه شد."
       );
     } finally {
       setLoading(false);
@@ -262,6 +107,7 @@ export default function VoicePage() {
       <div className="background-orb orb-three" />
 
       <section className="voice-container fade-up">
+
         <header className="voice-header">
           <div className="brand">
             <div className="brand-orb">
@@ -282,9 +128,17 @@ export default function VoicePage() {
               AI VOICE
             </div>
 
-            <Link href="/" className="back-home-button">
-              <span className="back-home-arrow">←</span>
-              <span>بازگشت به MOBIXA</span>
+            <Link
+              href="/"
+              className="back-home-button"
+            >
+              <span className="back-home-arrow">
+                ←
+              </span>
+
+              <span>
+                بازگشت به MOBIXA
+              </span>
             </Link>
           </div>
         </header>
@@ -298,97 +152,89 @@ export default function VoicePage() {
           <h1>
             متن بده،
             <br />
-            <span>صدا تحویل بگیر.</span>
+
+            <span>
+              صدا تحویل بگیر.
+            </span>
           </h1>
 
           <p>
-            با هوش مصنوعی MOBIXA متن خودت رو به صدای طبیعی و
-            حرفه‌ای تبدیل کن.
+            با هوش مصنوعی MOBIXA متن خودت رو به
+            صدای طبیعی و حرفه‌ای تبدیل کن.
           </p>
         </div>
 
         <section className="voice-card glass-card">
+
           <div className="section-title">
+
             <div>
-              <h2>متن خودت رو وارد کن</h2>
-              <p>متنی که می‌خوای به صدا تبدیل بشه</p>
+              <h2>
+                متن خودت رو وارد کن
+              </h2>
+
+              <p>
+                متنی که می‌خوای به صدا تبدیل بشه
+              </p>
             </div>
 
             <div className="character-counter">
-              <strong>{text.length}</strong> / {MAX_CHARS}
+              <strong>
+                {text.length}
+              </strong>{" "}
+              / {MAX_CHARS}
             </div>
+
           </div>
 
           <div className="textarea-wrapper">
+
             <textarea
               value={text}
               onChange={handleTextChange}
               maxLength={MAX_CHARS}
-              placeholder="مثلاً: سلام من بنیامین هستم..."
+              placeholder="مثلاً: سلام من بنیامین هستم و به MOBIXA خوش اومدی..."
               dir="rtl"
             />
 
             <div className="textarea-glow" />
+
           </div>
 
           <div className="voice-selection">
+
             <div className="selection-heading">
-              <h3>مدل صدا</h3>
+              <h3>
+                مدل صدا
+              </h3>
+
               <span>
-                {loadingVoices
-                  ? "در حال دریافت..."
-                  : "صداهای قابل استفاده"}
+                انتخاب خودکار
               </span>
             </div>
 
-            {loadingVoices ? (
-              <div className="voices-loading">
-                <span className="spinner" />
-                در حال دریافت صداهای قابل استفاده...
+            <div className="single-voice">
+
+              <div className="voice-icon">
+                🔥
               </div>
-            ) : voices.length > 0 ? (
-              <div className="voice-options">
-                {voices.slice(0, 6).map((voice, index) => {
-                  const selected =
-                    selectedVoice === voice.id;
 
-                  return (
-                    <button
-                      key={voice.id}
-                      type="button"
-                      className={`voice-option ${
-                        selected ? "selected" : ""
-                      }`}
-                      onClick={() =>
-                        setSelectedVoice(voice.id)
-                      }
-                    >
-                      <div className="voice-icon">
-                        {index === 0 ? (
-                          <FlameIcon />
-                        ) : index % 2 === 0 ? (
-                          <LightningIcon />
-                        ) : (
-                          "🎙️"
-                        )}
-                      </div>
+              <div className="voice-info">
+                <strong>
+                  MOBIXA Voice
+                </strong>
 
-                      <div className="voice-info">
-                        <strong>{voice.name}</strong>
-                        <span>
-                          {voice.description ||
-                            "صدای طبیعی و حرفه‌ای"}
-                        </span>
-                      </div>
-
-                      <div className="radio">
-                        {selected && <span />}
-                      </div>
-                    </button>
-                  );
-                })}
+                <span>
+                  صدای اصلی هوش مصنوعی
+                </span>
               </div>
-            ) : null}
+
+              <div className="radio">
+                <span />
+              </div>
+
+            </div>
+
           </div>
 
           <button
@@ -397,48 +243,70 @@ export default function VoicePage() {
               loading ? "loading" : ""
             }`}
             onClick={generateVoice}
-            disabled={
-              loading ||
-              loadingVoices ||
-              !selectedVoice
-            }
+            disabled={loading}
           >
+
             {loading ? (
               <>
                 <span className="spinner" />
+
                 در حال ساخت صدا...
               </>
             ) : (
               <>
-                <span className="button-icon">✦</span>
+                <span className="button-arrow">
+                  →
+                </span>
+
                 ساخت صدا
-                <span className="button-arrow">→</span>
+
+                <span className="button-icon">
+                  ✦
+                </span>
               </>
             )}
+
           </button>
 
           {error && (
             <div className="error-box">
-              <span>⚠</span>
-              <p>{error}</p>
+
+              <span>
+                ⚠️
+              </span>
+
+              <p>
+                {error}
+              </p>
+
             </div>
           )}
 
           {audioUrl && (
             <div className="audio-result">
+
               <div className="audio-result-header">
+
                 <div>
                   <strong>
                     صدای شما آماده است 🎧
                   </strong>
 
-                  <span>MOBIXA AI VOICE</span>
+                  <span>
+                    MOBIXA AI VOICE
+                  </span>
                 </div>
 
-                <div className="success-icon">✓</div>
+                <div className="success-icon">
+                  ✓
+                </div>
+
               </div>
 
-              <audio controls src={audioUrl} />
+              <audio
+                controls
+                src={audioUrl}
+              />
 
               <button
                 type="button"
@@ -447,52 +315,75 @@ export default function VoicePage() {
               >
                 ↓ دانلود صدا
               </button>
+
             </div>
           )}
+
         </section>
 
         <div className="features">
+
           <div className="feature">
-            <span className="custom-feature">
-              <LightningIcon />
+            <span>
+              ⚡
             </span>
 
             <div>
-              <strong>سریع</strong>
-              <small>تولید صدا با AI</small>
+              <strong>
+                سریع
+              </strong>
+
+              <small>
+                تولید صدا با AI
+              </small>
             </div>
           </div>
 
           <div className="feature">
-            <span className="microphone-feature">
+            <span>
               🎙️
             </span>
 
             <div>
-              <strong>طبیعی</strong>
-              <small>صدای نزدیک به انسان</small>
+              <strong>
+                طبیعی
+              </strong>
+
+              <small>
+                صدای نزدیک به انسان
+              </small>
             </div>
           </div>
 
           <div className="feature">
-            <span className="custom-feature">
-              <LockIcon />
+            <span>
+              🔒
             </span>
 
             <div>
-              <strong>امن</strong>
-              <small>کلید API در سرور</small>
+              <strong>
+                امن
+              </strong>
+
+              <small>
+                کلید API در سرور
+              </small>
             </div>
           </div>
+
         </div>
 
         <footer>
           Designed &amp; Developed by{" "}
-          <strong>Benyamin</strong>
+          <strong>
+            Benyamin
+          </strong>
         </footer>
+
       </section>
 
       <style jsx>{`
+
         .voice-page {
           min-height: 100vh;
           position: relative;
@@ -625,13 +516,15 @@ export default function VoicePage() {
           color: rgba(255, 255, 255, 0.38);
           text-decoration: none;
           font-size: 8px;
-          letter-spacing: 0.2px;
           backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          transition: 0.25s ease;
         }
 
-        .back-home-arrow {
-          font-size: 11px;
+        .back-home-button:hover {
+          transform: translateY(-1px);
+          border-color: rgba(168, 140, 255, 0.35);
+          background: rgba(110, 80, 255, 0.09);
+          color: rgba(255, 255, 255, 0.75);
         }
 
         .hero {
@@ -714,6 +607,7 @@ export default function VoicePage() {
         .section-title h2 {
           margin: 0;
           font-size: 17px;
+          font-weight: 700;
         }
 
         .section-title p {
@@ -751,6 +645,8 @@ export default function VoicePage() {
           line-height: 2;
           position: relative;
           z-index: 1;
+          box-sizing: border-box;
+          transition: 0.25s ease;
         }
 
         textarea::placeholder {
@@ -797,73 +693,49 @@ export default function VoicePage() {
           color: rgba(255, 255, 255, 0.35);
         }
 
-        .voice-options {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-        }
-
-        .voice-option {
-          position: relative;
+        .single-voice {
           display: flex;
           align-items: center;
-          gap: 11px;
-          padding: 14px;
-          text-align: right;
-          border-radius: 17px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(255, 255, 255, 0.035);
-          color: white;
-          cursor: pointer;
-        }
-
-        .voice-option.selected {
-          border-color: rgba(130, 100, 255, 0.55);
+          gap: 13px;
+          padding: 17px;
+          border-radius: 18px;
+          border: 1px solid rgba(130, 100, 255, 0.55);
           background: rgba(110, 80, 255, 0.1);
           box-shadow: 0 0 25px rgba(110, 80, 255, 0.08);
         }
 
         .voice-icon {
-          width: 38px;
-          height: 38px;
-          min-width: 38px;
+          width: 42px;
+          height: 42px;
+          min-width: 42px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 12px;
-          background: rgba(255, 255, 255, 0.06);
-          font-size: 17px;
-        }
-
-        .custom-icon {
-          width: 25px;
-          height: 25px;
+          border-radius: 13px;
+          background: rgba(255, 255, 255, 0.07);
+          font-size: 21px;
         }
 
         .voice-info {
-          min-width: 0;
           display: flex;
           flex-direction: column;
           gap: 4px;
+          min-width: 0;
         }
 
         .voice-info strong {
-          font-size: 12px;
+          font-size: 13px;
         }
 
         .voice-info span {
+          color: rgba(255, 255, 255, 0.4);
           font-size: 9px;
-          color: rgba(255, 255, 255, 0.38);
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
         }
 
         .radio {
           margin-left: auto;
-          width: 16px;
-          height: 16px;
-          min-width: 16px;
+          width: 17px;
+          height: 17px;
           border: 1px solid rgba(255, 255, 255, 0.25);
           border-radius: 50%;
           display: flex;
@@ -872,24 +744,11 @@ export default function VoicePage() {
         }
 
         .radio span {
-          width: 7px;
-          height: 7px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
           background: #9c82ff;
           box-shadow: 0 0 10px rgba(156, 130, 255, 0.8);
-        }
-
-        .voices-loading {
-          min-height: 100px;
-          border-radius: 17px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(255, 255, 255, 0.035);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          color: rgba(255, 255, 255, 0.5);
-          font-size: 11px;
         }
 
         .generate-button {
@@ -915,11 +774,19 @@ export default function VoicePage() {
           box-shadow:
             0 15px 40px rgba(110, 80, 255, 0.25),
             inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          transition: 0.25s ease;
+        }
+
+        .generate-button:hover:not(:disabled) {
+          transform: translateY(-3px);
+          box-shadow:
+            0 20px 55px rgba(110, 80, 255, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .generate-button:disabled {
           cursor: wait;
-          opacity: 0.55;
+          opacity: 0.75;
         }
 
         .button-icon {
@@ -955,6 +822,7 @@ export default function VoicePage() {
           margin: 0;
           font-size: 11px;
           line-height: 1.7;
+          direction: rtl;
         }
 
         .audio-result {
@@ -1036,20 +904,6 @@ export default function VoicePage() {
           font-size: 18px;
         }
 
-        .feature > span.custom-feature {
-          width: 23px;
-          height: 23px;
-          min-width: 23px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .custom-feature-icon {
-          width: 22px;
-          height: 22px;
-        }
-
         .feature div {
           display: flex;
           flex-direction: column;
@@ -1074,18 +928,6 @@ export default function VoicePage() {
 
         footer strong {
           color: rgba(255, 255, 255, 0.45);
-        }
-
-        .lightning-icon {
-          filter: drop-shadow(
-            0 0 7px rgba(99, 223, 255, 0.45)
-          );
-        }
-
-        .lock-icon {
-          filter: drop-shadow(
-            0 0 7px rgba(163, 108, 255, 0.4)
-          );
         }
 
         @keyframes spin {
@@ -1131,6 +973,7 @@ export default function VoicePage() {
         }
 
         @media (max-width: 700px) {
+
           .voice-page {
             padding: 20px 14px 35px;
           }
@@ -1153,12 +996,12 @@ export default function VoicePage() {
             border-radius: 22px;
           }
 
-          .voice-options {
+          .features {
             grid-template-columns: 1fr;
           }
 
-          .features {
-            grid-template-columns: 1fr;
+          .feature {
+            padding: 13px;
           }
 
           textarea {
@@ -1167,6 +1010,7 @@ export default function VoicePage() {
         }
 
         @media (max-width: 400px) {
+
           .hero h1 {
             font-size: 40px;
           }
@@ -1179,6 +1023,7 @@ export default function VoicePage() {
             font-size: 8px;
           }
         }
+
       `}</style>
     </main>
   );
