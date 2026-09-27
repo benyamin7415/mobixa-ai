@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, voiceId, modelId } = await req.json();
+    const { text, modelId } = await req.json();
 
     if (!text || typeof text !== "string") {
       return Response.json(
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.ELEVENLABS_API_KEY;
+    const voiceId = process.env.ELEVENLABS_VOICE_ID;
 
     if (!apiKey) {
       return Response.json(
@@ -22,14 +23,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const selectedVoice =
-      voiceId || "21m00Tcm4TlvDq8ikWAM";
+    if (!voiceId) {
+      return Response.json(
+        {
+          error:
+            "ELEVENLABS_VOICE_ID تنظیم نشده است. Voice ID مجاز اکانتت را در Environment Variables قرار بده.",
+        },
+        { status: 500 }
+      );
+    }
 
-    const selectedModel =
-      modelId || "eleven_multilingual_v2";
+    const selectedModel = modelId || "eleven_multilingual_v2";
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoice}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
         method: "POST",
         headers: {
@@ -71,7 +78,9 @@ export async function POST(req: NextRequest) {
         "Cache-Control": "no-store",
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("Voice API Error:", error);
+
     return Response.json(
       { error: "خطایی در پردازش درخواست رخ داد." },
       { status: 500 }
