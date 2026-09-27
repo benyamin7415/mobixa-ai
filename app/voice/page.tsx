@@ -109,13 +109,21 @@ export default function VoicePage() {
       <section className="voice-container fade-up">
 
         <header className="voice-header">
+
           <div className="brand">
             <div className="brand-orb">
-              <span>✦</span>
+              <span className="brand-wave">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
             </div>
 
             <div>
               <div className="brand-name">MOBIXA</div>
+
               <div className="brand-subtitle">
                 VOICE LAB
               </div>
@@ -123,6 +131,7 @@ export default function VoicePage() {
           </div>
 
           <div className="header-actions">
+
             <div className="status">
               <span className="status-dot" />
               AI VOICE
@@ -130,20 +139,28 @@ export default function VoicePage() {
 
             <Link
               href="/"
-              className="back-home-button"
+              className="voice-tool-button"
             >
-              <span className="back-home-arrow">
-                ←
+              <span className="voice-tool-icon">
+                <span className="voice-tool-line line-one" />
+                <span className="voice-tool-line line-two" />
+                <span className="voice-tool-line line-three" />
+                <span className="voice-tool-line line-four" />
+                <span className="voice-tool-line line-five" />
               </span>
 
-              <span>
-                بازگشت به MOBIXA
+              <span className="voice-tool-text">
+                کلماتت رو به صدا تبدیل کن
               </span>
+
+              <span className="voice-tool-glow" />
             </Link>
+
           </div>
         </header>
 
         <div className="hero">
+
           <div className="hero-badge">
             <span>✦</span>
             AI TEXT TO SPEECH
@@ -162,6 +179,7 @@ export default function VoicePage() {
             با هوش مصنوعی MOBIXA متن خودت رو به
             صدای طبیعی و حرفه‌ای تبدیل کن.
           </p>
+
         </div>
 
         <section className="voice-card glass-card">
@@ -193,7 +211,7 @@ export default function VoicePage() {
               value={text}
               onChange={handleTextChange}
               maxLength={MAX_CHARS}
-              placeholder="مثلاً: سلام من بنیامین هستم و به MOBIXA خوش اومدی..."
+              placeholder="اینجا بنویس... مثلاً یک متن معرفی، داستان کوتاه یا هر چیزی که می‌خوای بشنوی."
               dir="rtl"
             />
 
@@ -204,6 +222,7 @@ export default function VoicePage() {
           <div className="voice-selection">
 
             <div className="selection-heading">
+
               <h3>
                 مدل صدا
               </h3>
@@ -211,15 +230,24 @@ export default function VoicePage() {
               <span>
                 انتخاب خودکار
               </span>
+
             </div>
 
             <div className="single-voice">
 
               <div className="voice-icon">
-                🔥
+                <span className="voice-icon-wave">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
               </div>
 
               <div className="voice-info">
+
                 <strong>
                   MOBIXA Voice
                 </strong>
@@ -227,6 +255,7 @@ export default function VoicePage() {
                 <span>
                   صدای اصلی هوش مصنوعی
                 </span>
+
               </div>
 
               <div className="radio">
@@ -254,14 +283,22 @@ export default function VoicePage() {
               </>
             ) : (
               <>
-                <span className="button-arrow">
-                  →
+                <span className="generate-sound-icon">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
                 </span>
 
-                ساخت صدا
+                <span>
+                  ساخت صدا
+                </span>
 
-                <span className="button-icon">
-                  ✦
+                <span className="generate-spark">
+                  <i />
+                  <i />
+                  <i />
                 </span>
               </>
             )}
@@ -289,7 +326,7 @@ export default function VoicePage() {
 
                 <div>
                   <strong>
-                    صدای شما آماده است 🎧
+                    صدای شما آماده است
                   </strong>
 
                   <span>
@@ -324,8 +361,11 @@ export default function VoicePage() {
         <div className="features">
 
           <div className="feature">
-            <span>
-              ⚡
+
+            <span className="feature-icon speed-icon">
+              <i />
+              <i />
+              <i />
             </span>
 
             <div>
@@ -337,11 +377,17 @@ export default function VoicePage() {
                 تولید صدا با AI
               </small>
             </div>
+
           </div>
 
           <div className="feature">
-            <span>
-              🎙️
+
+            <span className="feature-icon natural-icon">
+              <i />
+              <i />
+              <i />
+              <i />
+              <i />
             </span>
 
             <div>
@@ -353,11 +399,13 @@ export default function VoicePage() {
                 صدای نزدیک به انسان
               </small>
             </div>
+
           </div>
 
           <div className="feature">
-            <span>
-              🔒
+
+            <span className="feature-icon secure-icon">
+              <span />
             </span>
 
             <div>
@@ -369,6 +417,7 @@ export default function VoicePage() {
                 کلید API در سرور
               </small>
             </div>
+
           </div>
 
         </div>
@@ -460,7 +509,50 @@ export default function VoicePage() {
           );
           border: 1px solid rgba(255, 255, 255, 0.16);
           box-shadow: 0 0 30px rgba(110, 80, 255, 0.25);
-          font-size: 21px;
+        }
+
+        .brand-wave {
+          height: 22px;
+          display: flex;
+          align-items: center;
+          gap: 3px;
+        }
+
+        .brand-wave i {
+          display: block;
+          width: 3px;
+          border-radius: 10px;
+          background: linear-gradient(
+            180deg,
+            #c7b7ff,
+            #64dfff
+          );
+          box-shadow: 0 0 8px rgba(139, 104, 255, 0.7);
+          animation: brandWave 1.2s ease-in-out infinite alternate;
+        }
+
+        .brand-wave i:nth-child(1) {
+          height: 8px;
+          animation-delay: -0.3s;
+        }
+
+        .brand-wave i:nth-child(2) {
+          height: 15px;
+          animation-delay: -0.1s;
+        }
+
+        .brand-wave i:nth-child(3) {
+          height: 22px;
+        }
+
+        .brand-wave i:nth-child(4) {
+          height: 13px;
+          animation-delay: -0.2s;
+        }
+
+        .brand-wave i:nth-child(5) {
+          height: 18px;
+          animation-delay: -0.4s;
         }
 
         .brand-name {
@@ -480,7 +572,7 @@ export default function VoicePage() {
           display: flex;
           flex-direction: column;
           align-items: flex-end;
-          gap: 8px;
+          gap: 9px;
         }
 
         .status {
@@ -504,27 +596,131 @@ export default function VoicePage() {
           box-shadow: 0 0 12px #54ff9d;
         }
 
-        .back-home-button {
+        /*
+          PERSONALIZED VOICE BUTTON
+        */
+
+        .voice-tool-button {
+          position: relative;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          padding: 5px 9px;
-          border-radius: 9px;
-          border: 1px solid rgba(168, 140, 255, 0.14);
-          background: rgba(110, 80, 255, 0.045);
-          color: rgba(255, 255, 255, 0.38);
+          gap: 9px;
+          min-height: 34px;
+          padding: 7px 12px 7px 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(151, 122, 255, 0.3);
+          background:
+            linear-gradient(
+              135deg,
+              rgba(110, 80, 255, 0.14),
+              rgba(0, 200, 255, 0.06)
+            ),
+            rgba(255, 255, 255, 0.035);
+          color: rgba(255, 255, 255, 0.72);
           text-decoration: none;
-          font-size: 8px;
-          backdrop-filter: blur(12px);
-          transition: 0.25s ease;
+          font-size: 9px;
+          font-weight: 600;
+          overflow: hidden;
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.16),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          transition:
+            transform 0.25s ease,
+            border-color 0.25s ease,
+            background 0.25s ease,
+            box-shadow 0.25s ease;
         }
 
-        .back-home-button:hover {
-          transform: translateY(-1px);
-          border-color: rgba(168, 140, 255, 0.35);
-          background: rgba(110, 80, 255, 0.09);
-          color: rgba(255, 255, 255, 0.75);
+        .voice-tool-button:hover {
+          transform: translateY(-2px);
+          border-color: rgba(154, 128, 255, 0.6);
+          background:
+            linear-gradient(
+              135deg,
+              rgba(110, 80, 255, 0.22),
+              rgba(0, 200, 255, 0.1)
+            ),
+            rgba(255, 255, 255, 0.05);
+          box-shadow:
+            0 12px 32px rgba(78, 55, 190, 0.25),
+            0 0 25px rgba(110, 80, 255, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .voice-tool-button:active {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .voice-tool-text {
+          position: relative;
+          z-index: 2;
+          direction: rtl;
+          white-space: nowrap;
+        }
+
+        .voice-tool-icon {
+          position: relative;
+          z-index: 2;
+          width: 23px;
+          height: 23px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
+            0 0 14px rgba(110, 80, 255, 0.14);
+        }
+
+        .voice-tool-line {
+          width: 2px;
+          border-radius: 5px;
+          background: linear-gradient(
+            180deg,
+            #cbbdff,
+            #5bdcff
+          );
+          box-shadow: 0 0 6px rgba(130, 100, 255, 0.6);
+        }
+
+        .line-one {
+          height: 6px;
+        }
+
+        .line-two {
+          height: 11px;
+        }
+
+        .line-three {
+          height: 15px;
+        }
+
+        .line-four {
+          height: 9px;
+        }
+
+        .line-five {
+          height: 5px;
+        }
+
+        .voice-tool-glow {
+          position: absolute;
+          width: 70px;
+          height: 30px;
+          right: -20px;
+          top: 50%;
+          transform: translateY(-50%);
+          border-radius: 50%;
+          background: #6e50ff;
+          filter: blur(25px);
+          opacity: 0.16;
+          pointer-events: none;
         }
 
         .hero {
@@ -712,8 +908,59 @@ export default function VoicePage() {
           align-items: center;
           justify-content: center;
           border-radius: 13px;
-          background: rgba(255, 255, 255, 0.07);
-          font-size: 21px;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(110, 80, 255, 0.22),
+              rgba(0, 200, 255, 0.08)
+            ),
+            rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
+            0 0 20px rgba(110, 80, 255, 0.12);
+        }
+
+        .voice-icon-wave {
+          height: 20px;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .voice-icon-wave i {
+          width: 2px;
+          border-radius: 5px;
+          background: linear-gradient(
+            180deg,
+            #c7b7ff,
+            #57dfff
+          );
+          box-shadow: 0 0 7px rgba(118, 91, 255, 0.65);
+        }
+
+        .voice-icon-wave i:nth-child(1) {
+          height: 7px;
+        }
+
+        .voice-icon-wave i:nth-child(2) {
+          height: 12px;
+        }
+
+        .voice-icon-wave i:nth-child(3) {
+          height: 18px;
+        }
+
+        .voice-icon-wave i:nth-child(4) {
+          height: 14px;
+        }
+
+        .voice-icon-wave i:nth-child(5) {
+          height: 20px;
+        }
+
+        .voice-icon-wave i:nth-child(6) {
+          height: 10px;
         }
 
         .voice-info {
@@ -770,11 +1017,31 @@ export default function VoicePage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 12px;
+          gap: 13px;
           box-shadow:
             0 15px 40px rgba(110, 80, 255, 0.25),
             inset 0 1px 0 rgba(255, 255, 255, 0.2);
           transition: 0.25s ease;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .generate-button::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            110deg,
+            transparent 25%,
+            rgba(255, 255, 255, 0.14) 50%,
+            transparent 75%
+          );
+          transform: translateX(-100%);
+          transition: transform 0.6s ease;
+        }
+
+        .generate-button:hover:not(:disabled)::before {
+          transform: translateX(100%);
         }
 
         .generate-button:hover:not(:disabled) {
@@ -789,12 +1056,79 @@ export default function VoicePage() {
           opacity: 0.75;
         }
 
-        .button-icon {
-          font-size: 16px;
+        .generate-sound-icon {
+          position: relative;
+          width: 25px;
+          height: 25px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          z-index: 2;
         }
 
-        .button-arrow {
-          font-size: 19px;
+        .generate-sound-icon span {
+          width: 3px;
+          border-radius: 8px;
+          background: white;
+          box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+          animation: soundPulse 1s ease-in-out infinite alternate;
+        }
+
+        .generate-sound-icon span:nth-child(1) {
+          height: 8px;
+          animation-delay: -0.4s;
+        }
+
+        .generate-sound-icon span:nth-child(2) {
+          height: 15px;
+          animation-delay: -0.2s;
+        }
+
+        .generate-sound-icon span:nth-child(3) {
+          height: 22px;
+        }
+
+        .generate-sound-icon span:nth-child(4) {
+          height: 16px;
+          animation-delay: -0.25s;
+        }
+
+        .generate-sound-icon span:nth-child(5) {
+          height: 9px;
+          animation-delay: -0.45s;
+        }
+
+        .generate-spark {
+          position: relative;
+          width: 16px;
+          height: 16px;
+          z-index: 2;
+          transform: rotate(45deg);
+        }
+
+        .generate-spark i {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          display: block;
+          width: 2px;
+          height: 16px;
+          border-radius: 5px;
+          background: white;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 0 7px rgba(255, 255, 255, 0.55);
+        }
+
+        .generate-spark i:nth-child(2) {
+          transform:
+            translate(-50%, -50%)
+            rotate(90deg);
+        }
+
+        .generate-spark i:nth-child(3) {
+          height: 7px;
+          opacity: 0.8;
         }
 
         .spinner {
@@ -900,8 +1234,108 @@ export default function VoicePage() {
           border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .feature > span {
-          font-size: 18px;
+        .feature-icon {
+          width: 32px;
+          height: 32px;
+          min-width: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          border-radius: 10px;
+          background:
+            linear-gradient(
+              135deg,
+              rgba(110, 80, 255, 0.16),
+              rgba(0, 200, 255, 0.06)
+            );
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            0 0 15px rgba(110, 80, 255, 0.08);
+        }
+
+        .speed-icon {
+          gap: 2px;
+        }
+
+        .speed-icon i {
+          width: 2px;
+          border-radius: 5px;
+          background: linear-gradient(
+            180deg,
+            #bcaeff,
+            #56dcff
+          );
+          box-shadow: 0 0 6px rgba(110, 80, 255, 0.55);
+        }
+
+        .speed-icon i:nth-child(1) {
+          height: 8px;
+        }
+
+        .speed-icon i:nth-child(2) {
+          height: 14px;
+        }
+
+        .speed-icon i:nth-child(3) {
+          height: 20px;
+        }
+
+        .natural-icon {
+          gap: 2px;
+        }
+
+        .natural-icon i {
+          width: 2px;
+          border-radius: 5px;
+          background: linear-gradient(
+            180deg,
+            #c7b7ff,
+            #5bdcff
+          );
+          box-shadow: 0 0 6px rgba(110, 80, 255, 0.55);
+        }
+
+        .natural-icon i:nth-child(1) {
+          height: 7px;
+        }
+
+        .natural-icon i:nth-child(2) {
+          height: 13px;
+        }
+
+        .natural-icon i:nth-child(3) {
+          height: 18px;
+        }
+
+        .natural-icon i:nth-child(4) {
+          height: 13px;
+        }
+
+        .natural-icon i:nth-child(5) {
+          height: 8px;
+        }
+
+        .secure-icon::before {
+          content: "";
+          position: absolute;
+          width: 13px;
+          height: 11px;
+          bottom: 7px;
+          border-radius: 3px;
+          border: 1.5px solid #a88cff;
+          box-shadow: 0 0 8px rgba(168, 140, 255, 0.35);
+        }
+
+        .secure-icon span {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          top: 7px;
+          border: 1.5px solid #63dfff;
+          border-bottom: none;
+          border-radius: 7px 7px 0 0;
         }
 
         .feature div {
@@ -972,6 +1406,30 @@ export default function VoicePage() {
           }
         }
 
+        @keyframes brandWave {
+          from {
+            transform: scaleY(0.65);
+            opacity: 0.65;
+          }
+
+          to {
+            transform: scaleY(1);
+            opacity: 1;
+          }
+        }
+
+        @keyframes soundPulse {
+          from {
+            transform: scaleY(0.65);
+            opacity: 0.7;
+          }
+
+          to {
+            transform: scaleY(1);
+            opacity: 1;
+          }
+        }
+
         @media (max-width: 700px) {
 
           .voice-page {
@@ -980,6 +1438,21 @@ export default function VoicePage() {
 
           .voice-header {
             margin-bottom: 50px;
+          }
+
+          .voice-tool-button {
+            max-width: 185px;
+            padding: 7px 9px;
+            gap: 7px;
+          }
+
+          .voice-tool-text {
+            font-size: 8px;
+          }
+
+          .voice-tool-icon {
+            width: 21px;
+            height: 21px;
           }
 
           .hero h1 {
@@ -1007,6 +1480,66 @@ export default function VoicePage() {
           textarea {
             min-height: 170px;
           }
+
+        }
+
+        @media (max-width: 480px) {
+
+          .voice-header {
+            align-items: flex-start;
+          }
+
+          .header-actions {
+            max-width: 52%;
+          }
+
+          .voice-tool-button {
+            width: 100%;
+            max-width: 190px;
+            box-sizing: border-box;
+          }
+
+          .voice-tool-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .status {
+            font-size: 8px;
+            padding: 7px 10px;
+          }
+
+          .brand {
+            gap: 9px;
+          }
+
+          .brand-orb {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
+          }
+
+          .brand-name {
+            font-size: 17px;
+          }
+
+          .brand-subtitle {
+            font-size: 8px;
+            letter-spacing: 2px;
+          }
+
+          .section-title {
+            gap: 10px;
+          }
+
+          .section-title h2 {
+            font-size: 15px;
+          }
+
+          .section-title p {
+            font-size: 10px;
+          }
+
         }
 
         @media (max-width: 400px) {
@@ -1016,12 +1549,17 @@ export default function VoicePage() {
           }
 
           .brand-subtitle {
-            font-size: 8px;
+            font-size: 7px;
           }
 
-          .status {
-            font-size: 8px;
+          .voice-tool-button {
+            max-width: 165px;
           }
+
+          .voice-tool-text {
+            font-size: 7px;
+          }
+
         }
 
       `}</style>
