@@ -139,21 +139,35 @@ export default function VoicePage() {
 
             <Link
               href="/"
-              className="voice-tool-button"
+              className="back-home-button"
+              aria-label="بازگشت به صفحه اصلی"
+              title="بازگشت"
             >
-              <span className="voice-tool-icon">
-                <span className="voice-tool-line line-one" />
-                <span className="voice-tool-line line-two" />
-                <span className="voice-tool-line line-three" />
-                <span className="voice-tool-line line-four" />
-                <span className="voice-tool-line line-five" />
+              <span className="back-home-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M14.5 5 8 12l6.5 7"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+
+                  <path
+                    d="M8.5 12H20"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </span>
 
-              <span className="voice-tool-text">
-                کلماتت رو به صدا تبدیل کن
-              </span>
-
-              <span className="voice-tool-glow" />
+              <span className="back-home-glow" />
             </Link>
 
           </div>
@@ -211,7 +225,7 @@ export default function VoicePage() {
               value={text}
               onChange={handleTextChange}
               maxLength={MAX_CHARS}
-              placeholder="اینجا بنویس... مثلاً یک متن معرفی، داستان کوتاه یا هر چیزی که می‌خوای بشنوی."
+              placeholder="کلماتت رو به صدا تبدیل کن"
               dir="rtl"
             />
 
@@ -596,18 +610,13 @@ export default function VoicePage() {
           box-shadow: 0 0 12px #54ff9d;
         }
 
-        /*
-          PERSONALIZED VOICE BUTTON
-        */
-
-        .voice-tool-button {
+        .back-home-button {
           position: relative;
-          display: inline-flex;
+          width: 38px;
+          height: 38px;
+          display: flex;
           align-items: center;
           justify-content: center;
-          gap: 9px;
-          min-height: 34px;
-          padding: 7px 12px 7px 10px;
           border-radius: 12px;
           border: 1px solid rgba(151, 122, 255, 0.3);
           background:
@@ -617,10 +626,8 @@ export default function VoicePage() {
               rgba(0, 200, 255, 0.06)
             ),
             rgba(255, 255, 255, 0.035);
-          color: rgba(255, 255, 255, 0.72);
+          color: rgba(255, 255, 255, 0.78);
           text-decoration: none;
-          font-size: 9px;
-          font-weight: 600;
           overflow: hidden;
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
@@ -634,7 +641,7 @@ export default function VoicePage() {
             box-shadow 0.25s ease;
         }
 
-        .voice-tool-button:hover {
+        .back-home-button:hover {
           transform: translateY(-2px);
           border-color: rgba(154, 128, 255, 0.6);
           background:
@@ -650,75 +657,39 @@ export default function VoicePage() {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
-        .voice-tool-button:active {
-          transform: translateY(0) scale(0.98);
+        .back-home-button:active {
+          transform: scale(0.96);
         }
 
-        .voice-tool-text {
+        .back-home-icon {
           position: relative;
           z-index: 2;
-          direction: rtl;
-          white-space: nowrap;
-        }
-
-        .voice-tool-icon {
-          position: relative;
-          z-index: 2;
-          width: 23px;
-          height: 23px;
-          border-radius: 8px;
+          width: 21px;
+          height: 21px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 2px;
-          background: rgba(255, 255, 255, 0.07);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.08),
-            0 0 14px rgba(110, 80, 255, 0.14);
         }
 
-        .voice-tool-line {
-          width: 2px;
-          border-radius: 5px;
-          background: linear-gradient(
-            180deg,
-            #cbbdff,
-            #5bdcff
+        .back-home-icon svg {
+          width: 21px;
+          height: 21px;
+          display: block;
+          filter: drop-shadow(
+            0 0 7px rgba(140, 110, 255, 0.45)
           );
-          box-shadow: 0 0 6px rgba(130, 100, 255, 0.6);
         }
 
-        .line-one {
-          height: 6px;
-        }
-
-        .line-two {
-          height: 11px;
-        }
-
-        .line-three {
-          height: 15px;
-        }
-
-        .line-four {
-          height: 9px;
-        }
-
-        .line-five {
-          height: 5px;
-        }
-
-        .voice-tool-glow {
+        .back-home-glow {
           position: absolute;
-          width: 70px;
+          width: 45px;
           height: 30px;
-          right: -20px;
+          left: 50%;
           top: 50%;
-          transform: translateY(-50%);
+          transform: translate(-50%, -50%);
           border-radius: 50%;
           background: #6e50ff;
-          filter: blur(25px);
+          filter: blur(20px);
           opacity: 0.16;
           pointer-events: none;
         }
@@ -1440,21 +1411,6 @@ export default function VoicePage() {
             margin-bottom: 50px;
           }
 
-          .voice-tool-button {
-            max-width: 185px;
-            padding: 7px 9px;
-            gap: 7px;
-          }
-
-          .voice-tool-text {
-            font-size: 8px;
-          }
-
-          .voice-tool-icon {
-            width: 21px;
-            height: 21px;
-          }
-
           .hero h1 {
             font-size: 46px;
             letter-spacing: -2px;
@@ -1487,21 +1443,6 @@ export default function VoicePage() {
 
           .voice-header {
             align-items: flex-start;
-          }
-
-          .header-actions {
-            max-width: 52%;
-          }
-
-          .voice-tool-button {
-            width: 100%;
-            max-width: 190px;
-            box-sizing: border-box;
-          }
-
-          .voice-tool-text {
-            overflow: hidden;
-            text-overflow: ellipsis;
           }
 
           .status {
@@ -1540,6 +1481,18 @@ export default function VoicePage() {
             font-size: 10px;
           }
 
+          .back-home-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+          }
+
+          .back-home-icon,
+          .back-home-icon svg {
+            width: 20px;
+            height: 20px;
+          }
+
         }
 
         @media (max-width: 400px) {
@@ -1552,12 +1505,16 @@ export default function VoicePage() {
             font-size: 7px;
           }
 
-          .voice-tool-button {
-            max-width: 165px;
+          .back-home-button {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
           }
 
-          .voice-tool-text {
-            font-size: 7px;
+          .back-home-icon,
+          .back-home-icon svg {
+            width: 19px;
+            height: 19px;
           }
 
         }
