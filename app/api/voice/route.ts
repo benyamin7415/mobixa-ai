@@ -10,10 +10,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const text = body?.text;
+    const voiceId = body?.voiceId || DEFAULT_VOICE_ID;
 
     if (!text || typeof text !== "string") {
       return Response.json(
         { error: "متن وارد نشده است." },
+        { status: 400 }
+      );
+    }
+
+    if (typeof voiceId !== "string" || !voiceId.trim()) {
+      return Response.json(
+        { error: "مدل صدا انتخاب نشده است." },
         { status: 400 }
       );
     }
@@ -31,7 +39,9 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${DEFAULT_VOICE_ID}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(
+        voiceId
+      )}`,
       {
         method: "POST",
 
@@ -65,6 +75,11 @@ export async function POST(req: NextRequest) {
 
         if (parsed?.detail?.message) {
           details = parsed.detail.message;
+        } else if (parsed?.detail) {
+          details =
+            typeof parsed.detail === "string"
+              ? parsed.detail
+              : JSON.stringify(parsed.detail);
         }
       } catch {
         // متن خطا JSON نبود
