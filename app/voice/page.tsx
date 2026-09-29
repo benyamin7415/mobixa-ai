@@ -10,22 +10,26 @@ const VOICES = {
     {
       name: "Liam",
       id: "dtqbhKQTKfVe9T23mwwa",
-      description: "جوان، طبیعی و خوش‌بیان؛ مناسب محتوای روزمره و شبکه‌های اجتماعی.",
+      description:
+        "جوان، طبیعی و خوش‌بیان؛ مناسب محتوای روزمره و شبکه‌های اجتماعی.",
     },
     {
       name: "Brian",
       id: "gPPH6SLdL8XSX6GNJ40G",
-      description: "صمیمی، عمیق و طبیعی؛ مناسب محتوای دوستانه و توضیحی.",
+      description:
+        "صمیمی، عمیق و طبیعی؛ مناسب محتوای دوستانه و توضیحی.",
     },
     {
       name: "Adam",
       id: "QIhD5ivPGEoYZQDocuHI",
-      description: "مردانه و طبیعی؛ مناسب محتوای عمومی و ویدیوهای حرفه‌ای.",
+      description:
+        "مردانه و طبیعی؛ مناسب محتوای عمومی و ویدیوهای حرفه‌ای.",
     },
     {
       name: "George",
       id: "HVls8FPCdrYsty3uUV9E",
-      description: "گرم و روایت‌محور؛ مناسب توضیحات، داستان و محتوای مستند.",
+      description:
+        "گرم و روایت‌محور؛ مناسب توضیحات، داستان و محتوای مستند.",
     },
   ],
 
@@ -33,22 +37,26 @@ const VOICES = {
     {
       name: "Sarah",
       id: "y1LQSw6x4O5I1qZEI77j",
-      description: "واضح، حرفه‌ای و قابل اعتماد؛ مناسب آموزش و توضیحات.",
+      description:
+        "واضح، حرفه‌ای و قابل اعتماد؛ مناسب آموزش و توضیحات.",
     },
     {
       name: "Matilda",
       id: "NihRgaLj2HWAjvZ5XNxl",
-      description: "نرم و خوش‌آوا؛ مناسب محتوای دوستانه و سبک.",
+      description:
+        "نرم و خوش‌آوا؛ مناسب محتوای دوستانه و سبک.",
     },
     {
       name: "Jessica",
       id: "r1KmysJdVYZjJCm4mL3b",
-      description: "طبیعی و پرانرژی؛ مناسب شبکه‌های اجتماعی و محتوای جذاب.",
+      description:
+        "طبیعی و پرانرژی؛ مناسب شبکه‌های اجتماعی و محتوای جذاب.",
     },
     {
       name: "Amelia",
       id: "pGAwIQNN9UjOkKxjAyGQ",
-      description: "جوان، طبیعی و گرم؛ مناسب روایت و محتوای روزمره.",
+      description:
+        "جوان، طبیعی و گرم؛ مناسب روایت و محتوای روزمره.",
     },
   ],
 
@@ -56,22 +64,26 @@ const VOICES = {
     {
       name: "Nathaniel",
       id: "pFQStpMdprGFILRDrWR2",
-      description: "عمیق و آرام؛ مناسب نریشن، داستان و محتوای سینمایی.",
+      description:
+        "عمیق و آرام؛ مناسب نریشن، داستان و محتوای سینمایی.",
     },
     {
       name: "David",
       id: "VJwFZoxTZo5aI0IowiXA",
-      description: "عمیق، گرم و پایدار؛ مناسب مستند و روایت حرفه‌ای.",
+      description:
+        "عمیق، گرم و پایدار؛ مناسب مستند و روایت حرفه‌ای.",
     },
     {
       name: "Jonathan",
       id: "xnLd1PNITY1Y4iALLfii",
-      description: "واضح و متعادل؛ مناسب نریشن و توضیحات حرفه‌ای.",
+      description:
+        "واضح و متعادل؛ مناسب نریشن و توضیحات حرفه‌ای.",
     },
     {
       name: "Johnny Kid",
       id: "8JVbfL6oEdmuxKn5DK2C",
-      description: "متفاوت و شخصیت‌محور؛ مناسب محتوای خلاقانه و سرگرمی.",
+      description:
+        "متفاوت و شخصیت‌محور؛ مناسب محتوای خلاقانه و سرگرمی.",
     },
   ],
 
@@ -79,27 +91,34 @@ const VOICES = {
     {
       name: "Callum",
       id: "wNrcUqZN35sbTl2vAQU2",
-      description: "عمیق و شخصیت‌دار؛ مناسب محتوای خاص، داستانی و متفاوت.",
+      description:
+        "عمیق و شخصیت‌دار؛ مناسب محتوای خاص، داستانی و متفاوت.",
     },
     {
       name: "Roger",
       id: "CwhRBWXzGAHq8TQ4Fs17",
-      description: "خودمانی و آرام؛ مناسب محتوای غیررسمی و گفت‌وگویی.",
+      description:
+        "خودمانی و آرام؛ مناسب محتوای غیررسمی و گفت‌وگویی.",
     },
     {
       name: "Laura",
       id: "FGY2WhTYpPnrIDTdsKH5",
-      description: "پرنشاط و خاص؛ مناسب محتوای سرگرمی و شبکه‌های اجتماعی.",
+      description:
+        "پرنشاط و خاص؛ مناسب محتوای سرگرمی و شبکه‌های اجتماعی.",
     },
     {
       name: "Bella",
       id: "hpp4J3VqNfWAUOO0d1Us",
-      description: "گرم، روشن و حرفه‌ای؛ مناسب توضیح، آموزش و محتوای عمومی.",
+      description:
+        "گرم، روشن و حرفه‌ای؛ مناسب توضیح، آموزش و محتوای عمومی.",
     },
   ],
 } as const;
 
 type VoiceCategory = keyof typeof VOICES;
+
+/* FIX: selectedVoice باید بتواند تمام صداها را قبول کند */
+type Voice = (typeof VOICES)[VoiceCategory][number];
 
 const DEFAULT_VOICE = VOICES.مرد[0];
 
@@ -109,8 +128,12 @@ export default function VoicePage() {
   const [audioUrl, setAudioUrl] = useState("");
   const [error, setError] = useState("");
 
-  const [selectedVoice, setSelectedVoice] = useState(DEFAULT_VOICE);
+  /* FIX اصلی اینجاست */
+  const [selectedVoice, setSelectedVoice] =
+    useState<Voice>(DEFAULT_VOICE);
+
   const [showVoicePicker, setShowVoicePicker] = useState(false);
+
   const [activeCategory, setActiveCategory] =
     useState<VoiceCategory>("مرد");
 
@@ -125,7 +148,9 @@ export default function VoicePage() {
 
   const generateVoice = async () => {
     if (!text.trim()) {
-      setError("اول متنی که می‌خوای به صدا تبدیل بشه رو وارد کن.");
+      setError(
+        "اول متنی که می‌خوای به صدا تبدیل بشه رو وارد کن."
+      );
       return;
     }
 
@@ -204,9 +229,7 @@ export default function VoicePage() {
     document.body.removeChild(link);
   };
 
-  const chooseVoice = (
-    voice: (typeof VOICES)[VoiceCategory][number]
-  ) => {
+  const chooseVoice = (voice: Voice) => {
     setSelectedVoice(voice);
     setShowVoicePicker(false);
   };
@@ -218,9 +241,7 @@ export default function VoicePage() {
       <div className="background-orb orb-three" />
 
       <section className="voice-container fade-up">
-
         <header className="voice-header">
-
           <div className="brand">
             <div className="brand-orb">
               <span className="brand-wave">
@@ -242,7 +263,6 @@ export default function VoicePage() {
           </div>
 
           <div className="header-actions">
-
             <div className="status">
               <span className="status-dot" />
               AI VOICE
@@ -280,12 +300,10 @@ export default function VoicePage() {
 
               <span className="back-home-glow" />
             </Link>
-
           </div>
         </header>
 
         <div className="hero">
-
           <div className="hero-badge">
             <span>✦</span>
             AI TEXT TO SPEECH
@@ -304,13 +322,10 @@ export default function VoicePage() {
             با هوش مصنوعی MOBIXA متن خودت رو به
             صدای طبیعی و حرفه‌ای تبدیل کن.
           </p>
-
         </div>
 
         <section className="voice-card glass-card">
-
           <div className="section-title">
-
             <div>
               <h2>
                 متن خودت رو وارد کن
@@ -327,11 +342,9 @@ export default function VoicePage() {
               </strong>{" "}
               / {MAX_CHARS}
             </div>
-
           </div>
 
           <div className="textarea-wrapper">
-
             <textarea
               value={text}
               onChange={handleTextChange}
@@ -341,13 +354,10 @@ export default function VoicePage() {
             />
 
             <div className="textarea-glow" />
-
           </div>
 
           <div className="voice-selection">
-
             <div className="selection-heading">
-
               <h3>
                 مدل صدا
               </h3>
@@ -356,7 +366,9 @@ export default function VoicePage() {
                 type="button"
                 className="voice-more-button"
                 onClick={() =>
-                  setShowVoicePicker((previous) => !previous)
+                  setShowVoicePicker(
+                    (previous) => !previous
+                  )
                 }
               >
                 <span>
@@ -371,17 +383,17 @@ export default function VoicePage() {
                   ›
                 </span>
               </button>
-
             </div>
 
             <button
               type="button"
               className="single-voice"
               onClick={() =>
-                setShowVoicePicker((previous) => !previous)
+                setShowVoicePicker(
+                  (previous) => !previous
+                )
               }
             >
-
               <div className="voice-icon">
                 <span className="voice-icon-wave">
                   <i />
@@ -394,7 +406,6 @@ export default function VoicePage() {
               </div>
 
               <div className="voice-info">
-
                 <strong>
                   {selectedVoice.name}
                 </strong>
@@ -402,7 +413,6 @@ export default function VoicePage() {
                 <span>
                   {selectedVoice.description}
                 </span>
-
               </div>
 
               <div className="selected-indicator">
@@ -416,12 +426,10 @@ export default function VoicePage() {
               >
                 ›
               </div>
-
             </button>
 
             {showVoicePicker && (
               <div className="voice-picker">
-
                 <div className="voice-picker-header">
                   <div>
                     <strong>
@@ -439,9 +447,10 @@ export default function VoicePage() {
                 </div>
 
                 <div className="voice-categories">
-
                   {(
-                    Object.keys(VOICES) as VoiceCategory[]
+                    Object.keys(
+                      VOICES
+                    ) as VoiceCategory[]
                   ).map((category) => (
                     <button
                       key={category}
@@ -458,59 +467,56 @@ export default function VoicePage() {
                       {category}
                     </button>
                   ))}
-
                 </div>
 
                 <div className="voice-grid">
+                  {VOICES[activeCategory].map(
+                    (voice) => (
+                      <button
+                        type="button"
+                        key={voice.id}
+                        className={`voice-option ${
+                          selectedVoice.id ===
+                          voice.id
+                            ? "selected"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          chooseVoice(voice)
+                        }
+                      >
+                        <div className="voice-option-top">
+                          <div className="voice-option-icon">
+                            <span className="mini-wave">
+                              <i />
+                              <i />
+                              <i />
+                              <i />
+                              <i />
+                            </span>
+                          </div>
 
-                  {VOICES[activeCategory].map((voice) => (
-                    <button
-                      type="button"
-                      key={voice.id}
-                      className={`voice-option ${
-                        selectedVoice.id === voice.id
-                          ? "selected"
-                          : ""
-                      }`}
-                      onClick={() => chooseVoice(voice)}
-                    >
-
-                      <div className="voice-option-top">
-
-                        <div className="voice-option-icon">
-                          <span className="mini-wave">
-                            <i />
-                            <i />
-                            <i />
-                            <i />
-                            <i />
-                          </span>
+                          {selectedVoice.id ===
+                            voice.id && (
+                            <span className="selected-badge">
+                              ✓
+                            </span>
+                          )}
                         </div>
 
-                        {selectedVoice.id === voice.id && (
-                          <span className="selected-badge">
-                            ✓
-                          </span>
-                        )}
+                        <div className="voice-option-name">
+                          {voice.name}
+                        </div>
 
-                      </div>
-
-                      <div className="voice-option-name">
-                        {voice.name}
-                      </div>
-
-                      <div className="voice-option-description">
-                        {voice.description}
-                      </div>
-
-                    </button>
-                  ))}
-
+                        <div className="voice-option-description">
+                          {voice.description}
+                        </div>
+                      </button>
+                    )
+                  )}
                 </div>
-
               </div>
             )}
-
           </div>
 
           <button
@@ -521,7 +527,6 @@ export default function VoicePage() {
             onClick={generateVoice}
             disabled={loading}
           >
-
             {loading ? (
               <>
                 <span className="spinner" />
@@ -549,12 +554,10 @@ export default function VoicePage() {
                 </span>
               </>
             )}
-
           </button>
 
           {error && (
             <div className="error-box">
-
               <span>
                 ⚠️
               </span>
@@ -562,15 +565,12 @@ export default function VoicePage() {
               <p>
                 {error}
               </p>
-
             </div>
           )}
 
           {audioUrl && (
             <div className="audio-result">
-
               <div className="audio-result-header">
-
                 <div>
                   <strong>
                     صدای شما آماده است
@@ -584,7 +584,6 @@ export default function VoicePage() {
                 <div className="success-icon">
                   ✓
                 </div>
-
               </div>
 
               <audio
@@ -599,16 +598,12 @@ export default function VoicePage() {
               >
                 ↓ دانلود صدا
               </button>
-
             </div>
           )}
-
         </section>
 
         <div className="features">
-
           <div className="feature">
-
             <span className="feature-icon speed-icon">
               <i />
               <i />
@@ -624,11 +619,9 @@ export default function VoicePage() {
                 تولید صدا با AI
               </small>
             </div>
-
           </div>
 
           <div className="feature">
-
             <span className="feature-icon natural-icon">
               <i />
               <i />
@@ -646,11 +639,9 @@ export default function VoicePage() {
                 صدای نزدیک به انسان
               </small>
             </div>
-
           </div>
 
           <div className="feature">
-
             <span className="feature-icon secure-icon">
               <span />
             </span>
@@ -664,9 +655,7 @@ export default function VoicePage() {
                 کلید API در سرور
               </small>
             </div>
-
           </div>
-
         </div>
 
         <footer>
@@ -675,11 +664,9 @@ export default function VoicePage() {
             Benyamin
           </strong>
         </footer>
-
       </section>
 
       <style jsx>{`
-
         .voice-page {
           min-height: 100vh;
           position: relative;
@@ -1927,7 +1914,6 @@ export default function VoicePage() {
         }
 
         @media (max-width: 700px) {
-
           .voice-page {
             padding: 20px 14px 35px;
           }
@@ -1961,11 +1947,9 @@ export default function VoicePage() {
           textarea {
             min-height: 170px;
           }
-
         }
 
         @media (max-width: 480px) {
-
           .voice-header {
             align-items: flex-start;
           }
@@ -2025,11 +2009,9 @@ export default function VoicePage() {
           .voice-picker {
             padding: 14px;
           }
-
         }
 
         @media (max-width: 400px) {
-
           .hero h1 {
             font-size: 40px;
           }
@@ -2049,9 +2031,7 @@ export default function VoicePage() {
             width: 19px;
             height: 19px;
           }
-
         }
-
       `}</style>
     </main>
   );
