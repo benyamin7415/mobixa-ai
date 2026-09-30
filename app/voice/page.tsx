@@ -5,139 +5,11 @@ import { useState } from "react";
 
 const MAX_CHARS = 1000;
 
-const VOICES = {
-  مرد: [
-    {
-      name: "Liam",
-      id: "dtqbhKQTKfVe9T23mwwa",
-      description:
-        "جوان و طبیعی؛ مناسب محتوای روزمره، شبکه‌های اجتماعی و ویدیوهای صمیمی.",
-    },
-    {
-      name: "Brian",
-      id: "gPPH6SLdL8XSX6GNJ40G",
-      description:
-        "صمیمی و عمیق؛ مناسب محتوای دوستانه، توضیحی و ویدیوهای آموزشی.",
-    },
-    {
-      name: "Adam",
-      id: "QIhD5ivPGEoYZQDocuHI",
-      description:
-        "مردانه و طبیعی؛ مناسب محتوای عمومی، تبلیغاتی و ویدیوهای حرفه‌ای.",
-    },
-    {
-      name: "George",
-      id: "HVls8FPCdrYsty3uUV9E",
-      description:
-        "گرم و روایت‌محور؛ مناسب داستان، توضیحات و محتوای مستند.",
-    },
-  ],
-
-  زن: [
-    {
-      name: "Sarah",
-      id: "y1LQSw6x4O5I1qZEI77j",
-      description:
-        "واضح و حرفه‌ای؛ مناسب آموزش، توضیحات و محتوای قابل اعتماد.",
-    },
-    {
-      name: "Matilda",
-      id: "NihRgaLj2HWAjvZ5XNxl",
-      description:
-        "نرم و خوش‌آوا؛ مناسب محتوای دوستانه، سبک و روزمره.",
-    },
-    {
-      name: "Jessica",
-      id: "r1KmysJdVYZjJCm4mL3b",
-      description:
-        "طبیعی و پرانرژی؛ مناسب شبکه‌های اجتماعی و محتوای سرگرم‌کننده.",
-    },
-    {
-      name: "Amelia",
-      id: "pGAwIQNN9UjOkKxjAyGQ",
-      description:
-        "جوان، طبیعی و گرم؛ مناسب روایت، محتوای روزمره و ویدیوهای کوتاه.",
-    },
-  ],
-
-  راوی: [
-    {
-      name: "Nathaniel",
-      id: "pFQStpMdprGFILRDrWR2",
-      description:
-        "عمیق و آرام؛ مناسب نریشن، داستان، ویدیوهای سینمایی و روایت.",
-    },
-    {
-      name: "David",
-      id: "VJwFZoxTZo5aI0IowiXA",
-      description:
-        "عمیق و گرم؛ مناسب مستند، روایت حرفه‌ای و محتوای جدی.",
-    },
-    {
-      name: "Jonathan",
-      id: "xnLd1PNITY1Y4iALLfii",
-      description:
-        "واضح و متعادل؛ مناسب نریشن، توضیحات و محتوای حرفه‌ای.",
-    },
-    {
-      name: "Johnny Kid",
-      id: "8JVbfL6oEdmuxKn5DK2C",
-      description:
-        "متفاوت و شخصیت‌محور؛ مناسب محتوای خلاقانه و سرگرمی.",
-    },
-  ],
-
-  متفاوت: [
-    {
-      name: "Callum",
-      id: "wNrcUqZN35sbTl2vAQU2",
-      description:
-        "عمیق و شخصیت‌دار؛ مناسب محتوای خاص، داستانی و متفاوت.",
-    },
-    {
-      name: "Roger",
-      id: "CwhRBWXzGAHq8TQ4Fs17",
-      description:
-        "خودمانی و آرام؛ مناسب محتوای غیررسمی و گفت‌وگویی.",
-    },
-    {
-      name: "Laura",
-      id: "FGY2WhTYpPnrIDTdsKH5",
-      description:
-        "پرنشاط و متفاوت؛ مناسب محتوای سرگرمی و شبکه‌های اجتماعی.",
-    },
-    {
-      name: "Bella",
-      id: "hpp4J3VqNfWAUOO0d1Us",
-      description:
-        "گرم، روشن و حرفه‌ای؛ مناسب توضیح، آموزش و محتوای عمومی.",
-    },
-  ],
-} as const;
-
-type Voice = {
-  name: string;
-  id: string;
-  description: string;
-};
-
-type VoiceCategory = keyof typeof VOICES;
-
-const DEFAULT_VOICE: Voice = VOICES.مرد[0];
-
 export default function VoicePage() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState("");
   const [error, setError] = useState("");
-
-  const [selectedVoice, setSelectedVoice] =
-    useState<Voice>(DEFAULT_VOICE);
-
-  const [showVoicePicker, setShowVoicePicker] = useState(false);
-
-  const [activeCategory, setActiveCategory] =
-    useState<VoiceCategory>("مرد");
 
   const handleTextChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
@@ -172,7 +44,6 @@ export default function VoicePage() {
         },
         body: JSON.stringify({
           text: text.trim(),
-          voiceId: selectedVoice.id,
         }),
       });
 
@@ -227,11 +98,6 @@ export default function VoicePage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const chooseVoice = (voice: Voice) => {
-    setSelectedVoice(voice);
-    setShowVoicePicker(false);
   };
 
   return (
@@ -372,44 +238,16 @@ export default function VoicePage() {
           <div className="voice-selection">
 
             <div className="selection-heading">
-
               <h3>
-                مدل صدا
+                مدل صدای MOBIXA
               </h3>
 
-              <button
-                type="button"
-                className="voice-more-button"
-                onClick={() =>
-                  setShowVoicePicker(
-                    (previous) => !previous
-                  )
-                }
-              >
-                <span>
-                  مدل‌های بیشتر
-                </span>
-
-                <span
-                  className={`voice-more-arrow ${
-                    showVoicePicker ? "open" : ""
-                  }`}
-                >
-                  ›
-                </span>
-              </button>
-
+              <span className="voice-fixed-label">
+                VOICE AI
+              </span>
             </div>
 
-            <button
-              type="button"
-              className="single-voice"
-              onClick={() =>
-                setShowVoicePicker(
-                  (previous) => !previous
-                )
-              }
-            >
+            <div className="single-voice">
 
               <div className="voice-icon">
                 <span className="voice-icon-wave">
@@ -425,11 +263,11 @@ export default function VoicePage() {
               <div className="voice-info">
 
                 <strong>
-                  {selectedVoice.name}
+                  صدای اصلی MOBIXA
                 </strong>
 
                 <span>
-                  {selectedVoice.description}
+                  صدای هوش مصنوعی اصلی برای تولید نریشن و محتوای صوتی
                 </span>
 
               </div>
@@ -438,119 +276,7 @@ export default function VoicePage() {
                 <span />
               </div>
 
-              <div
-                className={`voice-expand-icon ${
-                  showVoicePicker ? "open" : ""
-                }`}
-              >
-                ›
-              </div>
-
-            </button>
-
-            {showVoicePicker && (
-              <div className="voice-picker">
-
-                <div className="voice-picker-header">
-
-                  <div>
-                    <strong>
-                      انتخاب مدل صدا
-                    </strong>
-
-                    <span>
-                      مدل مناسب متن خودت رو انتخاب کن
-                    </span>
-                  </div>
-
-                  <div className="voice-count">
-                    16 VOICES
-                  </div>
-
-                </div>
-
-                <div className="voice-categories">
-
-                  {(
-                    Object.keys(
-                      VOICES
-                    ) as VoiceCategory[]
-                  ).map((category) => (
-                    <button
-                      key={category}
-                      type="button"
-                      className={`category-button ${
-                        activeCategory === category
-                          ? "active"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        setActiveCategory(category)
-                      }
-                    >
-                      {category}
-                    </button>
-                  ))}
-
-                </div>
-
-                <div className="voice-grid">
-
-                  {VOICES[activeCategory].map(
-                    (voice) => (
-                      <button
-                        type="button"
-                        key={voice.id}
-                        className={`voice-option ${
-                          selectedVoice.id ===
-                          voice.id
-                            ? "selected"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          chooseVoice(voice)
-                        }
-                      >
-
-                        <div className="voice-option-top">
-
-                          <div className="voice-option-icon">
-
-                            <span className="mini-wave">
-                              <i />
-                              <i />
-                              <i />
-                              <i />
-                              <i />
-                            </span>
-
-                          </div>
-
-                          {selectedVoice.id ===
-                            voice.id && (
-                            <span className="selected-badge">
-                              ✓
-                            </span>
-                          )}
-
-                        </div>
-
-                        <div className="voice-option-name">
-                          {voice.name}
-                        </div>
-
-                        <div className="voice-option-description">
-                          {voice.description}
-                        </div>
-
-                      </button>
-                    )
-                  )}
-
-                </div>
-
-              </div>
-            )}
+            </div>
 
           </div>
 
@@ -918,17 +644,9 @@ export default function VoicePage() {
         .back-home-button:hover {
           transform: translateY(-2px);
           border-color: rgba(154, 128, 255, 0.6);
-          background:
-            linear-gradient(
-              135deg,
-              rgba(110, 80, 255, 0.22),
-              rgba(0, 200, 255, 0.1)
-            ),
-            rgba(255, 255, 255, 0.05);
           box-shadow:
             0 12px 32px rgba(78, 55, 190, 0.25),
-            0 0 25px rgba(110, 80, 255, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 0 25px rgba(110, 80, 255, 0.12);
         }
 
         .back-home-button:active {
@@ -940,9 +658,6 @@ export default function VoicePage() {
           z-index: 2;
           width: 21px;
           height: 21px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
 
         .back-home-icon svg {
@@ -965,7 +680,6 @@ export default function VoicePage() {
           background: #6e50ff;
           filter: blur(20px);
           opacity: 0.16;
-          pointer-events: none;
         }
 
         .hero {
@@ -1134,26 +848,15 @@ export default function VoicePage() {
           font-size: 14px;
         }
 
-        .voice-more-button {
-          border: 0;
-          background: transparent;
-          color: rgba(168, 140, 255, 0.85);
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 10px;
-          cursor: pointer;
-          padding: 5px;
-        }
-
-        .voice-more-arrow {
-          font-size: 18px;
-          line-height: 10px;
-          transition: transform 0.25s ease;
-        }
-
-        .voice-more-arrow.open {
-          transform: rotate(90deg);
+        .voice-fixed-label {
+          color: rgba(168, 140, 255, 0.8);
+          font-size: 9px;
+          letter-spacing: 1.2px;
+          font-weight: 800;
+          padding: 6px 9px;
+          border-radius: 999px;
+          border: 1px solid rgba(168, 140, 255, 0.18);
+          background: rgba(110, 80, 255, 0.08);
         }
 
         .single-voice {
@@ -1168,18 +871,7 @@ export default function VoicePage() {
           box-shadow: 0 0 25px rgba(110, 80, 255, 0.08);
           color: white;
           text-align: right;
-          cursor: pointer;
-          font-family: inherit;
-          transition:
-            transform 0.25s ease,
-            border-color 0.25s ease,
-            background 0.25s ease;
-        }
-
-        .single-voice:hover {
-          transform: translateY(-1px);
-          border-color: rgba(160, 135, 255, 0.75);
-          background: rgba(110, 80, 255, 0.14);
+          box-sizing: border-box;
         }
 
         .voice-icon {
@@ -1256,7 +948,6 @@ export default function VoicePage() {
         .voice-info strong {
           font-size: 15px;
           font-weight: 900;
-          letter-spacing: 0.2px;
         }
 
         .voice-info span {
@@ -1282,277 +973,6 @@ export default function VoicePage() {
           border-radius: 50%;
           background: #9c82ff;
           box-shadow: 0 0 10px rgba(156, 130, 255, 0.8);
-        }
-
-        .voice-expand-icon {
-          font-size: 22px;
-          color: rgba(255, 255, 255, 0.45);
-          line-height: 15px;
-          transition: transform 0.25s ease;
-        }
-
-        .voice-expand-icon.open {
-          transform: rotate(90deg);
-        }
-
-        .voice-picker {
-          margin-top: 12px;
-          padding: 18px;
-          border-radius: 22px;
-          background:
-            linear-gradient(
-              145deg,
-              rgba(110, 80, 255, 0.09),
-              rgba(0, 200, 255, 0.025)
-            ),
-            rgba(0, 0, 0, 0.18);
-          border: 1px solid rgba(255, 255, 255, 0.09);
-          box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.25),
-            inset 0 1px 0 rgba(255, 255, 255, 0.04);
-          animation: voicePickerIn 0.25s ease both;
-        }
-
-        .voice-picker-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-          margin-bottom: 16px;
-        }
-
-        .voice-picker-header > div:first-child {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-        }
-
-        .voice-picker-header strong {
-          font-size: 15px;
-          font-weight: 900;
-          color: rgba(255, 255, 255, 0.95);
-        }
-
-        .voice-picker-header span {
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 10px;
-          font-weight: 500;
-        }
-
-        .voice-count {
-          color: rgba(168, 140, 255, 0.85);
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 1px;
-          white-space: nowrap;
-        }
-
-        .voice-categories {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 6px;
-          margin-bottom: 14px;
-          scrollbar-width: none;
-        }
-
-        .voice-categories::-webkit-scrollbar {
-          display: none;
-        }
-
-        .category-button {
-          flex: 0 0 auto;
-          min-width: 64px;
-          border: 1px solid rgba(255, 255, 255, 0.11);
-          background: rgba(255, 255, 255, 0.045);
-          color: rgba(255, 255, 255, 0.68);
-          border-radius: 999px;
-          padding: 9px 16px;
-          font-family:
-            "Vazirmatn",
-            "IRANSansX",
-            Tahoma,
-            Arial,
-            sans-serif;
-          font-size: 11px;
-          font-weight: 800;
-          cursor: pointer;
-          transition:
-            0.2s ease,
-            transform 0.2s ease;
-        }
-
-        .category-button:hover {
-          color: white;
-          border-color: rgba(168, 140, 255, 0.5);
-          transform: translateY(-1px);
-        }
-
-        .category-button.active {
-          color: white;
-          border-color: rgba(138, 108, 255, 0.75);
-          background:
-            linear-gradient(
-              135deg,
-              rgba(110, 80, 255, 0.25),
-              rgba(0, 200, 255, 0.09)
-            );
-          box-shadow:
-            0 0 22px rgba(110, 80, 255, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .voice-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 9px;
-        }
-
-        .voice-option {
-          position: relative;
-          min-width: 0;
-          padding: 15px;
-          border-radius: 17px;
-          border: 1px solid rgba(255, 255, 255, 0.075);
-          background: rgba(255, 255, 255, 0.035);
-          color: white;
-          text-align: right;
-          font-family: inherit;
-          cursor: pointer;
-          overflow: hidden;
-          transition:
-            transform 0.22s ease,
-            border-color 0.22s ease,
-            background 0.22s ease,
-            box-shadow 0.22s ease;
-        }
-
-        .voice-option::before {
-          content: "";
-          position: absolute;
-          width: 70px;
-          height: 70px;
-          right: -35px;
-          top: -35px;
-          border-radius: 50%;
-          background: #7555ff;
-          filter: blur(30px);
-          opacity: 0;
-          transition: opacity 0.25s ease;
-        }
-
-        .voice-option:hover {
-          transform: translateY(-2px);
-          border-color: rgba(151, 122, 255, 0.4);
-          background: rgba(255, 255, 255, 0.055);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-        }
-
-        .voice-option:hover::before,
-        .voice-option.selected::before {
-          opacity: 0.12;
-        }
-
-        .voice-option.selected {
-          border-color: rgba(137, 108, 255, 0.65);
-          background: rgba(110, 80, 255, 0.11);
-          box-shadow:
-            0 0 25px rgba(110, 80, 255, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        }
-
-        .voice-option-top {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 10px;
-        }
-
-        .voice-option-icon {
-          width: 34px;
-          height: 34px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 11px;
-          background:
-            linear-gradient(
-              135deg,
-              rgba(110, 80, 255, 0.18),
-              rgba(0, 200, 255, 0.06)
-            ),
-            rgba(255, 255, 255, 0.045);
-          border: 1px solid rgba(255, 255, 255, 0.065);
-        }
-
-        .mini-wave {
-          height: 17px;
-          display: flex;
-          align-items: center;
-          gap: 2px;
-        }
-
-        .mini-wave i {
-          width: 2px;
-          border-radius: 5px;
-          background: linear-gradient(
-            180deg,
-            #c7b7ff,
-            #5bdcff
-          );
-          box-shadow: 0 0 5px rgba(110, 80, 255, 0.5);
-        }
-
-        .mini-wave i:nth-child(1) {
-          height: 6px;
-        }
-
-        .mini-wave i:nth-child(2) {
-          height: 11px;
-        }
-
-        .mini-wave i:nth-child(3) {
-          height: 16px;
-        }
-
-        .mini-wave i:nth-child(4) {
-          height: 12px;
-        }
-
-        .mini-wave i:nth-child(5) {
-          height: 8px;
-        }
-
-        .selected-badge {
-          width: 19px;
-          height: 19px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          background: rgba(110, 80, 255, 0.2);
-          border: 1px solid rgba(160, 135, 255, 0.45);
-          color: #c8baff !important;
-          font-size: 10px !important;
-        }
-
-        .voice-option-name {
-          position: relative;
-          font-size: 15px;
-          font-weight: 900;
-          margin-bottom: 6px;
-          color: rgba(255, 255, 255, 0.96);
-          letter-spacing: 0.1px;
-        }
-
-        .voice-option-description {
-          position: relative;
-          color: rgba(255, 255, 255, 0.58);
-          font-size: 10px;
-          font-weight: 500;
-          line-height: 1.9;
-          min-height: 38px;
         }
 
         .generate-button {
@@ -1628,7 +1048,6 @@ export default function VoicePage() {
           width: 3px;
           border-radius: 8px;
           background: white;
-          box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
           animation: soundPulse 1s ease-in-out infinite alternate;
         }
 
@@ -1674,7 +1093,6 @@ export default function VoicePage() {
           border-radius: 5px;
           background: white;
           transform: translate(-50%, -50%);
-          box-shadow: 0 0 7px rgba(255, 255, 255, 0.55);
         }
 
         .generate-spark i:nth-child(2) {
@@ -1805,18 +1223,17 @@ export default function VoicePage() {
               135deg,
               rgba(110, 80, 255, 0.16),
               rgba(0, 200, 255, 0.06)
-            );
+            ),
+            rgba(255, 255, 255, 0.035);
           border: 1px solid rgba(255, 255, 255, 0.07);
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.06),
-            0 0 15px rgba(110, 80, 255, 0.08);
         }
 
         .speed-icon {
           gap: 2px;
         }
 
-        .speed-icon i {
+        .speed-icon i,
+        .natural-icon i {
           width: 2px;
           border-radius: 5px;
           background: linear-gradient(
@@ -1841,17 +1258,6 @@ export default function VoicePage() {
 
         .natural-icon {
           gap: 2px;
-        }
-
-        .natural-icon i {
-          width: 2px;
-          border-radius: 5px;
-          background: linear-gradient(
-            180deg,
-            #c7b7ff,
-            #5bdcff
-          );
-          box-shadow: 0 0 6px rgba(110, 80, 255, 0.55);
         }
 
         .natural-icon i:nth-child(1) {
@@ -1882,7 +1288,6 @@ export default function VoicePage() {
           bottom: 7px;
           border-radius: 3px;
           border: 1.5px solid #a88cff;
-          box-shadow: 0 0 8px rgba(168, 140, 255, 0.35);
         }
 
         .secure-icon span {
@@ -1987,18 +1392,6 @@ export default function VoicePage() {
           }
         }
 
-        @keyframes voicePickerIn {
-          from {
-            opacity: 0;
-            transform: translateY(-7px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
         @media (max-width: 700px) {
 
           .voice-page {
@@ -2091,26 +1484,12 @@ export default function VoicePage() {
             height: 20px;
           }
 
-          .voice-grid {
-            grid-template-columns: 1fr;
+          .voice-info strong {
+            font-size: 14px;
           }
 
-          .voice-picker {
-            padding: 14px;
-          }
-
-          .category-button {
-            font-size: 11px;
-            padding: 9px 14px;
-          }
-
-          .voice-option-name {
-            font-size: 16px;
-          }
-
-          .voice-option-description {
-            font-size: 10px;
-            line-height: 1.9;
+          .voice-info span {
+            font-size: 9px;
           }
 
         }
