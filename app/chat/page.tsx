@@ -932,10 +932,13 @@ export default function ChatPage() {
     useState<string | null>(null);
 
   /*
-    آخرین عکس واقعی که کاربر فرستاده.
-    این باعث می‌شود اگر کاربر اول عکس را بفرستد
-    و بعد در پیام بعدی سؤال کند، همان عکس دوباره
-    برای API ارسال شود.
+    آخرین عکس واقعی کاربر.
+
+    اگر کاربر:
+    1. عکس بفرستد
+    2. بعداً درباره همان عکس سؤال کند
+
+    همان عکس دوباره برای API فرستاده می‌شود.
   */
   const lastImageDataUrlRef =
     useRef<string | null>(null);
@@ -1095,9 +1098,8 @@ export default function ChatPage() {
       );
 
     /*
-      تصویر را قبل از ارسال کوچک می‌کنیم.
-      این کار برای موبایل و Cloudflare بهتر است
-      و احتمال خطای request بزرگ را کم می‌کند.
+      برای جلوگیری از درخواست‌های خیلی سنگین،
+      تصویر در مرورگر کوچک می‌شود.
     */
 
     return await new Promise<string>(
@@ -1175,7 +1177,7 @@ export default function ChatPage() {
 
             resolve(
               compressed ||
-                rawDataUrl
+              rawDataUrl
             );
           } catch {
             resolve(rawDataUrl);
@@ -1191,6 +1193,12 @@ export default function ChatPage() {
     );
   }
 
+  /*
+  ==========================================================
+  SEND MESSAGE
+  ==========================================================
+  */
+
   async function sendMessage(
     customMessage?: string
   ) {
@@ -1201,9 +1209,15 @@ export default function ChatPage() {
       ).trim();
 
     /*
-      اگر نه متن داریم و نه عکس،
-      هیچ درخواستی ارسال نمی‌شود.
+      سه حالت داریم:
+
+      1. فقط متن
+      2. فقط عکس
+      3. متن + عکس
+
+      هر سه باید قابل ارسال باشند.
     */
+
     if (
       !message &&
       !selectedImage &&
@@ -1222,14 +1236,15 @@ export default function ChatPage() {
     const imagePreviewForMessage =
       imagePreview;
 
-    let imageDataUrl: string | null =
-      null;
+    let imageDataUrl:
+      string | null = null;
 
     try {
       /*
-        اگر کاربر همین الان عکس انتخاب کرده،
-        همان عکس را ارسال کن.
+        اگر کاربر عکس جدید انتخاب کرده،
+        آن را به Data URL تبدیل می‌کنیم.
       */
+
       if (imageFile) {
         if (
           imageFile.size >
@@ -1256,8 +1271,9 @@ export default function ChatPage() {
           );
 
         /*
-          این عکس برای سؤال بعدی هم نگه داشته می‌شود.
+          برای سؤال بعدی هم ذخیره می‌کنیم.
         */
+
         lastImageDataUrlRef.current =
           imageDataUrl;
       }
@@ -1272,18 +1288,22 @@ export default function ChatPage() {
     }
 
     /*
-      اگر این پیام فقط سؤال متنی درباره عکس قبلی است،
-      عکس قبلی را دوباره برای API بفرست.
+      اگر عکس جدید داریم، همان عکس را بفرست.
+
+      اگر عکس جدید نداریم ولی قبلاً عکس ارسال شده،
+      همان عکس قبلی را برای سؤال جدید بفرست.
     */
+
     const imageForRequest =
       imageDataUrl ||
       lastImageDataUrlRef.current ||
       null;
 
     /*
-      History فقط متن را نگه می‌دارد.
-      خود عکس جداگانه در image ارسال می‌شود.
+      فقط متن پیام‌های قبلی در history می‌رود.
+      عکس فعلی جداگانه در image ارسال می‌شود.
     */
+
     const history: HistoryMessage[] =
       messages
         .filter(
@@ -1302,6 +1322,12 @@ export default function ChatPage() {
 
     setInput("");
 
+    /*
+      فقط عکس انتخاب‌شده از composer پاک می‌شود.
+      lastImageDataUrlRef باقی می‌ماند تا سؤال بعدی
+      همچنان بتواند درباره همان عکس باشد.
+    */
+
     removeSelectedImage();
 
     const userId =
@@ -1311,13 +1337,14 @@ export default function ChatPage() {
       crypto.randomUUID();
 
     /*
-      نکته مهم:
-      اگر فقط عکس ارسال شده،
-      content خالی می‌ماند.
-      هیچ متن مصنوعی مثل
-      «این عکس را بررسی کن...»
-      در حباب کاربر نوشته نمی‌شود.
+      اگر فقط عکس باشد:
+
+      content = ""
+
+      بنابراین هیچ جمله مصنوعی داخل پیام کاربر
+      نمایش داده نمی‌شود.
     */
+
     setMessages((old) => [
       ...old,
       {
@@ -1349,17 +1376,16 @@ export default function ChatPage() {
           "/api/chat",
           {
             method: "POST",
+
             headers: {
               "Content-Type":
                 "application/json",
             },
+
             signal:
               controller.signal,
+
             body: JSON.stringify({
-              /*
-                اگر فقط عکس است، message خالی می‌رود.
-                Route خودش تصویر را تحلیل می‌کند.
-              */
               message,
               history,
               image:
@@ -1451,6 +1477,10 @@ export default function ChatPage() {
         );
       }
 
+      /*
+        باقی‌مانده decoder
+      */
+
       const finalChunk =
         decoder.decode();
 
@@ -1472,10 +1502,6 @@ export default function ChatPage() {
         );
       }
 
-      /*
-        اگر سرویس بدون متن پاسخ داد،
-        حباب خالی باقی نماند.
-      */
       if (!assistantText.trim()) {
         setMessages((old) =>
           old.map((item) =>
@@ -1518,6 +1544,7 @@ export default function ChatPage() {
       );
     } finally {
       setLoading(false);
+
       abortControllerRef.current =
         null;
     }
@@ -1738,10 +1765,6 @@ export default function ChatPage() {
                           />
                         ) : (
                           <>
-                            /*
-                              عکس دقیقاً بالای متن
-                              و به صورت کوچک نمایش داده می‌شود.
-                            */
                             {message.image && (
                               <img
                                 src={
@@ -1919,8 +1942,7 @@ export default function ChatPage() {
           </div>
         </div>
       </section>
-
-      <style jsx global>{`
+            <style jsx global>{`
         * {
           box-sizing: border-box;
         }
@@ -2644,6 +2666,11 @@ export default function ChatPage() {
               rgba(0, 130, 255, 0.06);
         }
 
+        /*
+          عکس ارسال‌شده:
+          کوچک و دقیقاً بالای متن
+        */
+
         .sent-image {
           display: block;
           width: 74px;
@@ -2810,8 +2837,7 @@ export default function ChatPage() {
           line-height: 1.65;
           white-space: pre;
         }
-
-        .composer-zone {
+                .composer-zone {
           position: relative;
           z-index: 20;
           width: 100%;
@@ -3067,6 +3093,7 @@ export default function ChatPage() {
         /*
           نور چرخان دور دکمه ارسال
         */
+
         .send::before {
           content: "";
           position: absolute;
