@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
@@ -13,6 +14,7 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string;
 };
 
 type ChatHistoryMessage = {
@@ -20,9 +22,13 @@ type ChatHistoryMessage = {
   content: string;
 };
 
-/* =========================
-   ICONS
-========================= */
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
 
 function BackIcon() {
   return (
@@ -88,6 +94,93 @@ function StopIcon() {
         height="10"
         rx="2"
         fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function UploadIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        d="M12 16V4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="m7 9 5-5 5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ImageIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="4"
+        width="18"
+        height="16"
+        rx="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <circle
+        cx="8.5"
+        cy="9"
+        r="1.5"
+        fill="currentColor"
+      />
+
+      <path
+        d="m4.5 17 4.2-4.2 3.2 3 2.4-2.4 5.2 4.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function RemoveIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        d="M6 6l12 12M18 6 6 18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -205,10 +298,6 @@ function IdeaIcon() {
   );
 }
 
-/* =========================
-   MARKDOWN / MESSAGE RENDERER
-========================= */
-
 function CodeBlock({
   code,
   language,
@@ -221,7 +310,6 @@ function CodeBlock({
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(code);
-
       setCopied(true);
 
       window.setTimeout(() => {
@@ -345,9 +433,7 @@ function MessageContent({
           {text.split("\n").map((line, index) => {
             const trimmed = line.trim();
 
-            if (
-              trimmed.startsWith("### ")
-            ) {
+            if (trimmed.startsWith("### ")) {
               return (
                 <h3
                   key={index}
@@ -360,9 +446,7 @@ function MessageContent({
               );
             }
 
-            if (
-              trimmed.startsWith("## ")
-            ) {
+            if (trimmed.startsWith("## ")) {
               return (
                 <h2
                   key={index}
@@ -375,9 +459,7 @@ function MessageContent({
               );
             }
 
-            if (
-              trimmed.startsWith("# ")
-            ) {
+            if (trimmed.startsWith("# ")) {
               return (
                 <h1
                   key={index}
@@ -412,9 +494,7 @@ function MessageContent({
               );
             }
 
-            if (
-              /^\d+\.\s/.test(trimmed)
-            ) {
+            if (/^\d+\.\s/.test(trimmed)) {
               const match =
                 trimmed.match(
                   /^(\d+)\.\s(.+)$/
@@ -488,10 +568,8 @@ function MessageContent({
     if (fence) {
       if (!insideCode) {
         flushText();
-
         insideCode = true;
-        codeLanguage =
-          fence[1] || "";
+        codeLanguage = fence[1] || "";
       } else {
         flushCode();
         insideCode = false;
@@ -520,23 +598,16 @@ function MessageContent({
   );
 }
 
-/* =========================
-   COPY FULL MESSAGE
-========================= */
-
 function CopyMessageButton({
   content,
 }: {
   content: string;
 }) {
-  const [copied, setCopied] =
-    useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function copyMessage() {
     try {
-      await navigator.clipboard.writeText(
-        content
-      );
+      await navigator.clipboard.writeText(content);
 
       setCopied(true);
 
@@ -569,10 +640,6 @@ function CopyMessageButton({
     </button>
   );
 }
-
-/* =========================
-   MOBIXA LOGO
-========================= */
 
 function MobixaLogo() {
   return (
@@ -611,10 +678,6 @@ function MobixaLogo() {
     </div>
   );
 }
-
-/* =========================
-   ROBOT
-========================= */
 
 function MobixaRobot() {
   return (
@@ -877,10 +940,6 @@ function MobixaRobot() {
   );
 }
 
-/* =========================
-   HAND
-========================= */
-
 function Hand() {
   return (
     <span
@@ -891,10 +950,6 @@ function Hand() {
     </span>
   );
 }
-
-/* =========================
-   PAGE
-========================= */
 
 export default function ChatPage() {
   const router = useRouter();
@@ -908,10 +963,20 @@ export default function ChatPage() {
   const [loading, setLoading] =
     useState(false);
 
+  const [selectedImage, setSelectedImage] =
+    useState<string | null>(null);
+
+  const [imageName, setImageName] =
+    useState("");
+
+  const [imageError, setImageError] =
+    useState("");
+
+  const fileInputRef =
+    useRef<HTMLInputElement | null>(null);
+
   const textareaRef =
-    useRef<HTMLTextAreaElement | null>(
-      null
-    );
+    useRef<HTMLTextAreaElement | null>(null);
 
   const scrollRef =
     useRef<HTMLDivElement | null>(null);
@@ -935,6 +1000,83 @@ export default function ChatPage() {
     });
   }
 
+  function openImagePicker() {
+    if (loading) return;
+
+    setImageError("");
+    fileInputRef.current?.click();
+  }
+
+  function removeImage() {
+    setSelectedImage(null);
+    setImageName("");
+    setImageError("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  function handleImageChange(
+    event: ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+
+    setImageError("");
+
+    if (!file) return;
+
+    if (
+      !ALLOWED_IMAGE_TYPES.includes(
+        file.type
+      )
+    ) {
+      setImageError(
+        "فرمت تصویر باید JPG، PNG یا WEBP باشد."
+      );
+
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError(
+        "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."
+      );
+
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result;
+
+      if (
+        typeof result !== "string" ||
+        !result.startsWith("data:image/")
+      ) {
+        setImageError(
+          "خواندن تصویر انجام نشد."
+        );
+
+        return;
+      }
+
+      setSelectedImage(result);
+      setImageName(file.name);
+    };
+
+    reader.onerror = () => {
+      setImageError(
+        "خواندن تصویر انجام نشد."
+      );
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   function stopGeneration() {
     abortControllerRef.current?.abort();
   }
@@ -944,12 +1086,15 @@ export default function ChatPage() {
       custom ?? input
     ).trim();
 
-    if (!message || loading) return;
+    if (
+      !message &&
+      !selectedImage
+    ) {
+      return;
+    }
 
-    /*
-      تاریخچه فقط از پیام‌های کامل
-      و غیرخالی ساخته می‌شود.
-    */
+    if (loading) return;
+
     const history: ChatHistoryMessage[] =
       messages
         .filter(
@@ -967,7 +1112,17 @@ export default function ChatPage() {
           })
         );
 
+    const imageToSend =
+      selectedImage;
+
     setInput("");
+    setSelectedImage(null);
+    setImageName("");
+    setImageError("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
 
     const userId =
       crypto.randomUUID();
@@ -981,7 +1136,10 @@ export default function ChatPage() {
       {
         id: userId,
         role: "user",
-        content: message,
+        content:
+          message ||
+          "این تصویر رو بررسی کن.",
+        image: imageToSend || undefined,
       },
 
       {
@@ -1015,6 +1173,7 @@ export default function ChatPage() {
 
           body: JSON.stringify({
             message,
+            image: imageToSend,
             history,
           }),
         }
@@ -1106,12 +1265,6 @@ export default function ChatPage() {
         );
       }
     } catch (error) {
-      /*
-        Stop با AbortController
-        نباید پیام خطا بسازد.
-        متن ناقص همان‌طور که هست
-        باقی می‌ماند.
-      */
       if (
         error instanceof Error &&
         error.name === "AbortError"
@@ -1343,6 +1496,20 @@ export default function ChatPage() {
                       <div className="message-wrapper">
                         <div className="bubble">
                           {message.role ===
+                            "user" &&
+                            message.image && (
+                              <div className="sent-image-wrapper">
+                                <img
+                                  src={
+                                    message.image
+                                  }
+                                  alt="تصویر ارسال شده"
+                                  className="sent-image"
+                                />
+                              </div>
+                            )}
+
+                          {message.role ===
                           "assistant" ? (
                             <MessageContent
                               content={
@@ -1385,6 +1552,39 @@ export default function ChatPage() {
         </div>
 
         <div className="composer-zone">
+          {selectedImage && (
+            <div className="image-preview">
+              <div className="image-preview-inner">
+                <img
+                  src={selectedImage}
+                  alt="پیش‌نمایش تصویر"
+                />
+
+                <button
+                  type="button"
+                  className="remove-image"
+                  onClick={removeImage}
+                  aria-label="حذف تصویر"
+                >
+                  <RemoveIcon />
+                </button>
+
+                <div className="image-preview-info">
+                  <ImageIcon />
+                  <span>
+                    {imageName || "تصویر آماده ارسال"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {imageError && (
+            <div className="image-error">
+              {imageError}
+            </div>
+          )}
+
           <form
             className="composer"
             onSubmit={(event) => {
@@ -1395,6 +1595,24 @@ export default function ChatPage() {
               }
             }}
           >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageChange}
+              hidden
+            />
+
+            <button
+              type="button"
+              className="upload"
+              onClick={openImagePicker}
+              disabled={loading}
+              aria-label="آپلود تصویر"
+            >
+              <UploadIcon />
+            </button>
+
             <textarea
               ref={textareaRef}
               value={input}
@@ -1414,6 +1632,7 @@ export default function ChatPage() {
               className="send"
               disabled={
                 !input.trim() &&
+                !selectedImage &&
                 !loading
               }
               onClick={() => {
@@ -1473,7 +1692,6 @@ export default function ChatPage() {
             ),
             #02030b;
           color: white;
-
           font-family:
             Arial,
             Tahoma,
@@ -1529,7 +1747,6 @@ export default function ChatPage() {
           border: 1px solid
             rgba(122, 77, 255, 0.35);
           border-radius: 50%;
-          filter: blur(0.2px);
         }
 
         .wave-one {
@@ -2137,10 +2354,6 @@ export default function ChatPage() {
           color: #c06cff;
         }
 
-        /* =========================
-           MESSAGES
-        ========================= */
-
         .messages {
           width: 100%;
           max-width: 750px;
@@ -2209,7 +2422,6 @@ export default function ChatPage() {
           border:
             1px solid
               rgba(32, 196, 255, 0.4);
-
           box-shadow:
             0 4px 25px
               rgba(0, 100, 255, 0.07);
@@ -2221,6 +2433,27 @@ export default function ChatPage() {
           white-space: pre-wrap;
           overflow-wrap: anywhere;
           word-break: break-word;
+        }
+
+        .sent-image-wrapper {
+          width: 100%;
+          max-width: 330px;
+          margin-bottom: 10px;
+          border-radius: 14px;
+          overflow: hidden;
+          border:
+            1px solid
+              rgba(180, 130, 255, 0.35);
+          background:
+            rgba(0, 0, 0, 0.22);
+        }
+
+        .sent-image {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          max-height: 340px;
+          object-fit: contain;
         }
 
         .rich-message {
@@ -2339,10 +2572,6 @@ export default function ChatPage() {
           font-weight: 800;
         }
 
-        /* =========================
-           CODE BLOCK
-        ========================= */
-
         .code-block {
           direction: ltr;
           width: 100%;
@@ -2410,15 +2639,6 @@ export default function ChatPage() {
           font-family: inherit;
           font-size: 10px;
           font-weight: 700;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
-        }
-
-        .code-copy:hover {
-          background:
-            rgba(137, 88, 255, 0.2);
-          color: white;
         }
 
         .code-copy svg {
@@ -2453,10 +2673,6 @@ export default function ChatPage() {
           font-weight: 500;
         }
 
-        /* =========================
-           COPY MESSAGE
-        ========================= */
-
         .message-copy {
           margin-top: 3px;
           margin-left: 3px;
@@ -2476,15 +2692,6 @@ export default function ChatPage() {
           font-family: inherit;
           font-size: 8px;
           font-weight: 700;
-          transition:
-            color 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .message-copy:hover {
-          color: white;
-          background:
-            rgba(135, 83, 255, 0.18);
         }
 
         .message-copy svg {
@@ -2500,10 +2707,6 @@ export default function ChatPage() {
             blink 0.7s infinite;
         }
 
-        /* =========================
-           COMPOSER
-        ========================= */
-
         .composer-zone {
           position: relative;
           z-index: 20;
@@ -2516,6 +2719,107 @@ export default function ChatPage() {
               transparent,
               rgba(2, 3, 11, 0.25)
             );
+        }
+
+        .image-preview {
+          width: 100%;
+          max-width: 760px;
+          margin: 0 auto 7px;
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .image-preview-inner {
+          position: relative;
+          width: 105px;
+          height: 105px;
+          border-radius: 14px;
+          overflow: hidden;
+          border:
+            1px solid
+              rgba(102, 143, 255, 0.7);
+          background:
+            rgba(8, 15, 40, 0.9);
+          box-shadow:
+            0 0 20px
+              rgba(83, 70, 255, 0.22);
+        }
+
+        .image-preview-inner img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+
+        .remove-image {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 27px;
+          height: 27px;
+          border: 0;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          background:
+            rgba(5, 7, 20, 0.78);
+          backdrop-filter: blur(8px);
+          cursor: pointer;
+        }
+
+        .remove-image svg {
+          width: 15px;
+          height: 15px;
+        }
+
+        .image-preview-info {
+          position: absolute;
+          left: 4px;
+          right: 4px;
+          bottom: 4px;
+          height: 25px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 0 6px;
+          border-radius: 7px;
+          color: rgba(255,255,255,.88);
+          background:
+            rgba(3, 5, 15, .68);
+          backdrop-filter: blur(8px);
+          font-size: 7px;
+          overflow: hidden;
+        }
+
+        .image-preview-info svg {
+          width: 12px;
+          height: 12px;
+          flex: 0 0 auto;
+        }
+
+        .image-preview-info span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .image-error {
+          width: 100%;
+          max-width: 760px;
+          margin: 0 auto 6px;
+          padding: 7px 10px;
+          border-radius: 9px;
+          color: #ffb6d0;
+          background:
+            rgba(115, 20, 60, 0.28);
+          border:
+            1px solid
+              rgba(255, 80, 145, 0.28);
+          font-size: 10px;
+          text-align: right;
         }
 
         .composer {
@@ -2541,6 +2845,46 @@ export default function ChatPage() {
           backdrop-filter: blur(20px);
         }
 
+        .upload {
+          position: relative;
+          width: 42px;
+          height: 42px;
+          flex: 0 0 42px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid
+            rgba(112, 138, 255, 0.32);
+          border-radius: 13px;
+          background:
+            rgba(48, 61, 125, 0.22);
+          color:
+            rgba(196, 211, 255, 0.82);
+          cursor: pointer;
+          transition:
+            transform .2s ease,
+            background .2s ease,
+            color .2s ease;
+        }
+
+        .upload:hover {
+          transform: translateY(-1px);
+          color: white;
+          background:
+            rgba(104, 74, 220, 0.28);
+        }
+
+        .upload:disabled {
+          opacity: .45;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .upload svg {
+          width: 20px;
+          height: 20px;
+        }
+
         .composer textarea {
           flex: 1;
           min-width: 0;
@@ -2563,10 +2907,6 @@ export default function ChatPage() {
           color:
             rgba(173, 183, 230, 0.72);
         }
-
-        /* =========================
-           SEND BUTTON
-        ========================= */
 
         .send {
           position: relative;
@@ -2657,35 +2997,10 @@ export default function ChatPage() {
             translateY(-2px)
             scale(1.045);
           filter: brightness(1.12);
-          box-shadow:
-            0 0 10px
-              rgba(195, 103, 255, 1),
-            0 0 26px
-              rgba(157, 66, 255, 0.9),
-            0 0 48px
-              rgba(0, 215, 255, 0.4),
-            inset 0 1px 3px
-              rgba(255, 255, 255, 0.52),
-            inset 0 -8px 16px
-              rgba(13, 10, 62, 0.38);
         }
 
         .send:active {
           transform: scale(0.91);
-          box-shadow:
-            0 0 8px
-              rgba(177, 83, 255, 0.8),
-            0 0 18px
-              rgba(0, 208, 255, 0.25),
-            inset 0 4px 12px
-              rgba(11, 8, 48, 0.58);
-        }
-
-        .send:focus-visible {
-          outline:
-            2px solid
-              rgba(42, 222, 255, 0.9);
-          outline-offset: 4px;
         }
 
         .send:disabled {
@@ -2693,16 +3008,6 @@ export default function ChatPage() {
           cursor: not-allowed;
           transform: none;
           filter: grayscale(0.15);
-          box-shadow:
-            0 0 8px
-              rgba(126, 78, 190, 0.22),
-            inset 0 1px 2px
-              rgba(255, 255, 255, 0.15);
-        }
-
-        .send:disabled::before {
-          animation: none;
-          opacity: 0.25;
         }
 
         .send-icon {
@@ -2720,30 +3025,6 @@ export default function ChatPage() {
                 rgba(28, 224, 255, 0.38)
             );
           transform: translateX(1px);
-          transition:
-            transform 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .send:hover .send-icon {
-          transform:
-            translateX(3px)
-            scale(1.07);
-          filter:
-            drop-shadow(
-              0 0 5px
-                rgba(255, 255, 255, 0.95)
-            )
-            drop-shadow(
-              0 0 13px
-                rgba(31, 225, 255, 0.58)
-            );
-        }
-
-        .send:active .send-icon {
-          transform:
-            translateX(4px)
-            scale(0.94);
         }
 
         .stop-icon {
@@ -2752,15 +3033,6 @@ export default function ChatPage() {
           width: 15px;
           height: 15px;
           color: white;
-          filter:
-            drop-shadow(
-              0 0 4px
-                rgba(255, 255, 255, 0.75)
-            )
-            drop-shadow(
-              0 0 8px
-                rgba(28, 224, 255, 0.35)
-            );
         }
 
         @keyframes sendRing {
@@ -2910,6 +3182,19 @@ export default function ChatPage() {
           .composer {
             min-height: 59px;
             border-radius: 20px;
+            gap: 6px;
+          }
+
+          .upload {
+            width: 39px;
+            height: 39px;
+            flex-basis: 39px;
+            border-radius: 11px;
+          }
+
+          .upload svg {
+            width: 18px;
+            height: 18px;
           }
 
           .send {
@@ -2949,6 +3234,10 @@ export default function ChatPage() {
             padding: 13px 14px;
           }
 
+          .sent-image-wrapper {
+            max-width: 270px;
+          }
+
           .code-block {
             max-width: 100%;
             margin: 12px 0;
@@ -2978,6 +3267,15 @@ export default function ChatPage() {
 
           .heading-3 {
             font-size: 16px;
+          }
+
+          .image-preview-inner {
+            width: 88px;
+            height: 88px;
+          }
+
+          .image-preview-info {
+            display: none;
           }
         }
 
