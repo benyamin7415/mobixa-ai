@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
@@ -13,16 +14,25 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string | null;
 };
 
-type ChatHistoryMessage = {
+type HistoryMessage = {
   role: "user" | "assistant";
   content: string;
 };
 
-/* =========================
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+/* =========================================================
    ICONS
-========================= */
+========================================================= */
 
 function BackIcon() {
   return (
@@ -47,10 +57,10 @@ function SendIcon() {
       className="send-icon"
     >
       <path
-        d="M19 6v5a3 3 0 0 1-3 3H5M9.5 9.5 5 14l4.5 4.5"
+        d="M12 19V5M5.5 11.5 12 5l6.5 6.5"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -189,10 +199,6 @@ function IdeaIcon() {
   );
 }
 
-/* =========================
-   IMAGE UPLOAD ICON
-========================= */
-
 function ImageUploadIcon() {
   return (
     <svg
@@ -252,9 +258,9 @@ function CloseIcon() {
   );
 }
 
-/* =========================
-   MARKDOWN / MESSAGE RENDERER
-========================= */
+/* =========================================================
+   MARKDOWN
+========================================================= */
 
 function CodeBlock({
   code,
@@ -268,7 +274,6 @@ function CodeBlock({
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(code);
-
       setCopied(true);
 
       window.setTimeout(() => {
@@ -282,9 +287,9 @@ function CodeBlock({
   return (
     <div className="code-block">
       <div className="code-header">
-        <div className="code-language">
+        <span className="code-language">
           {language || "CODE"}
-        </div>
+        </span>
 
         <button
           type="button"
@@ -367,180 +372,172 @@ function MessageContent({
 }: {
   content: string;
 }) {
-  const blocks: ReactNode[] = [];
+  if (!content) {
+    return null;
+  }
 
   const lines = content
     .replace(/\r/g, "")
     .split("\n");
+
+  const output: ReactNode[] = [];
 
   let textBuffer: string[] = [];
   let codeBuffer: string[] = [];
   let codeLanguage = "";
   let insideCode = false;
 
-  function flushText() {
-    if (!textBuffer.length) return;
+  const flushText = () => {
+    if (!textBuffer.length) {
+      return;
+    }
 
     const text = textBuffer.join("\n");
 
-    if (text.trim()) {
-      blocks.push(
-        <div
-          key={`text-${blocks.length}`}
-          className="message-text"
-        >
-          {text.split("\n").map((line, index) => {
-            const trimmed = line.trim();
+    if (!text.trim()) {
+      textBuffer = [];
+      return;
+    }
 
-            if (
-              trimmed.startsWith("### ")
-            ) {
-              return (
-                <h3
-                  key={index}
-                  className="message-heading heading-3"
-                >
-                  <InlineText
-                    text={trimmed.slice(4)}
-                  />
-                </h3>
-              );
-            }
+    output.push(
+      <div
+        key={`text-${output.length}`}
+        className="message-text"
+      >
+        {text.split("\n").map((line, index) => {
+          const trimmed = line.trim();
 
-            if (
-              trimmed.startsWith("## ")
-            ) {
-              return (
-                <h2
-                  key={index}
-                  className="message-heading heading-2"
-                >
-                  <InlineText
-                    text={trimmed.slice(3)}
-                  />
-                </h2>
-              );
-            }
-
-            if (
-              trimmed.startsWith("# ")
-            ) {
-              return (
-                <h1
-                  key={index}
-                  className="message-heading heading-1"
-                >
-                  <InlineText
-                    text={trimmed.slice(2)}
-                  />
-                </h1>
-              );
-            }
-
-            if (
-              trimmed.startsWith("- ") ||
-              trimmed.startsWith("• ")
-            ) {
-              return (
-                <div
-                  key={index}
-                  className="message-list-item"
-                >
-                  <span className="list-dot">
-                    •
-                  </span>
-
-                  <span className="list-content">
-                    <InlineText
-                      text={trimmed.slice(2)}
-                    />
-                  </span>
-                </div>
-              );
-            }
-
-            if (
-              /^\d+\.\s/.test(trimmed)
-            ) {
-              const match =
-                trimmed.match(
-                  /^(\d+)\.\s(.+)$/
-                );
-
-              if (match) {
-                return (
-                  <div
-                    key={index}
-                    className="message-list-item numbered"
-                  >
-                    <span className="list-number">
-                      {match[1]}.
-                    </span>
-
-                    <span className="list-content">
-                      <InlineText
-                        text={match[2]}
-                      />
-                    </span>
-                  </div>
-                );
-              }
-            }
-
-            if (!trimmed) {
-              return (
-                <div
-                  key={index}
-                  className="message-space"
+          if (trimmed.startsWith("### ")) {
+            return (
+              <h3
+                key={index}
+                className="message-heading heading-3"
+              >
+                <InlineText
+                  text={trimmed.slice(4)}
                 />
-              );
-            }
+              </h3>
+            );
+          }
 
+          if (trimmed.startsWith("## ")) {
+            return (
+              <h2
+                key={index}
+                className="message-heading heading-2"
+              >
+                <InlineText
+                  text={trimmed.slice(3)}
+                />
+              </h2>
+            );
+          }
+
+          if (trimmed.startsWith("# ")) {
+            return (
+              <h1
+                key={index}
+                className="message-heading heading-1"
+              >
+                <InlineText
+                  text={trimmed.slice(2)}
+                />
+              </h1>
+            );
+          }
+
+          if (
+            trimmed.startsWith("- ") ||
+            trimmed.startsWith("• ")
+          ) {
             return (
               <div
                 key={index}
-                className="message-line"
+                className="message-list-item"
               >
-                <InlineText text={line} />
+                <span className="list-dot">
+                  •
+                </span>
+
+                <span className="list-content">
+                  <InlineText
+                    text={trimmed.slice(2)}
+                  />
+                </span>
               </div>
             );
-          })}
-        </div>
-      );
-    }
+          }
+
+          const numbered =
+            trimmed.match(
+              /^(\d+)\.\s(.+)$/
+            );
+
+          if (numbered) {
+            return (
+              <div
+                key={index}
+                className="message-list-item numbered"
+              >
+                <span className="list-number">
+                  {numbered[1]}.
+                </span>
+
+                <span className="list-content">
+                  <InlineText
+                    text={numbered[2]}
+                  />
+                </span>
+              </div>
+            );
+          }
+
+          if (!trimmed) {
+            return (
+              <div
+                key={index}
+                className="message-space"
+              />
+            );
+          }
+
+          return (
+            <div
+              key={index}
+              className="message-line"
+            >
+              <InlineText text={line} />
+            </div>
+          );
+        })}
+      </div>
+    );
 
     textBuffer = [];
-  }
-
-  function flushCode() {
-    if (!codeBuffer.length) return;
-
-    blocks.push(
-      <CodeBlock
-        key={`code-${blocks.length}`}
-        code={codeBuffer.join("\n")}
-        language={codeLanguage}
-      />
-    );
-
-    codeBuffer = [];
-    codeLanguage = "";
-  }
+  };
 
   for (const line of lines) {
-    const fence = line.match(
-      /^```([\w#+.-]*)\s*$/
+    const match = line.match(
+      /^```(.*)$/
     );
 
-    if (fence) {
+    if (match) {
       if (!insideCode) {
         flushText();
-
         insideCode = true;
-        codeLanguage =
-          fence[1] || "";
+        codeLanguage = match[1].trim();
+        codeBuffer = [];
       } else {
-        flushCode();
+        output.push(
+          <CodeBlock
+            key={`code-${output.length}`}
+            code={codeBuffer.join("\n")}
+            language={codeLanguage}
+          />
+        );
+
+        codeBuffer = [];
+        codeLanguage = "";
         insideCode = false;
       }
 
@@ -555,71 +552,23 @@ function MessageContent({
   }
 
   if (insideCode) {
-    flushCode();
-  } else {
-    flushText();
+    output.push(
+      <CodeBlock
+        key={`code-${output.length}`}
+        code={codeBuffer.join("\n")}
+        language={codeLanguage}
+      />
+    );
   }
 
-  return (
-    <div className="rich-message">
-      {blocks}
-    </div>
-  );
+  flushText();
+
+  return <>{output}</>;
 }
 
-/* =========================
-   COPY FULL MESSAGE
-========================= */
-
-function CopyMessageButton({
-  content,
-}: {
-  content: string;
-}) {
-  const [copied, setCopied] =
-    useState(false);
-
-  async function copyMessage() {
-    try {
-      await navigator.clipboard.writeText(
-        content
-      );
-
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      className="message-copy"
-      onClick={copyMessage}
-      aria-label="کپی پاسخ"
-    >
-      {copied ? (
-        <>
-          <CheckIcon />
-          <span>کپی شد</span>
-        </>
-      ) : (
-        <>
-          <CopyIcon />
-          <span>کپی</span>
-        </>
-      )}
-    </button>
-  );
-}
-
-/* =========================
-   MOBIXA LOGO
-========================= */
+/* =========================================================
+   LOGO
+========================================================= */
 
 function MobixaLogo() {
   return (
@@ -634,15 +583,15 @@ function MobixaLogo() {
           <span className="m2" />
           <span className="m3" />
         </div>
-
-        <span className="hero-star hero-star-one">
-          ✦
-        </span>
-
-        <span className="hero-star hero-star-two">
-          ✦
-        </span>
       </div>
+
+      <span className="hero-star hero-star-one">
+        ✦
+      </span>
+
+      <span className="hero-star hero-star-two">
+        ✧
+      </span>
 
       <span className="logo-spark spark-a">
         ✦
@@ -653,15 +602,15 @@ function MobixaLogo() {
       </span>
 
       <span className="logo-spark spark-c">
-        ✦
+        ·
       </span>
     </div>
   );
 }
 
-/* =========================
+/* =========================================================
    ROBOT
-========================= */
+========================================================= */
 
 function MobixaRobot() {
   return (
@@ -669,10 +618,9 @@ function MobixaRobot() {
       <div className="robot-aura" />
 
       <svg
-        className="robot-svg"
         viewBox="0 0 240 240"
-        role="img"
-        aria-label="Mobixa AI robot"
+        className="robot-svg"
+        aria-hidden="true"
       >
         <defs>
           <linearGradient
@@ -684,12 +632,14 @@ function MobixaRobot() {
           >
             <stop
               offset="0%"
-              stopColor="#a975ff"
+              stopColor="#9d7cff"
             />
+
             <stop
               offset="45%"
               stopColor="#372a86"
             />
+
             <stop
               offset="100%"
               stopColor="#080a22"
@@ -707,10 +657,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#6950db"
             />
+
             <stop
               offset="50%"
               stopColor="#17164d"
             />
+
             <stop
               offset="100%"
               stopColor="#070918"
@@ -728,10 +680,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#e3d4ff"
             />
+
             <stop
               offset="50%"
               stopColor="#8b5cf6"
             />
+
             <stop
               offset="100%"
               stopColor="#19d9ff"
@@ -924,9 +878,9 @@ function MobixaRobot() {
   );
 }
 
-/* =========================
+/* =========================================================
    HAND
-========================= */
+========================================================= */
 
 function Hand() {
   return (
@@ -939,9 +893,9 @@ function Hand() {
   );
 }
 
-/* =========================
+/* =========================================================
    PAGE
-========================= */
+========================================================= */
 
 export default function ChatPage() {
   const router = useRouter();
@@ -960,6 +914,18 @@ export default function ChatPage() {
 
   const [imagePreview, setImagePreview] =
     useState<string | null>(null);
+
+  /*
+    آخرین عکس واقعی کاربر.
+
+    اگر کاربر:
+    1. عکس بفرستد
+    2. بعداً درباره همان عکس سؤال کند
+
+    همان عکس دوباره برای API فرستاده می‌شود.
+  */
+  const lastImageDataUrlRef =
+    useRef<string | null>(null);
 
   const textareaRef =
     useRef<HTMLTextAreaElement | null>(
@@ -997,26 +963,44 @@ export default function ChatPage() {
   }
 
   function openImagePicker() {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     imageInputRef.current?.click();
   }
 
   function handleImageSelect(
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) {
     const file =
       event.target.files?.[0];
 
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      event.target.value = "";
+    if (!file) {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (
+      !ALLOWED_IMAGE_TYPES.includes(
+        file.type
+      )
+    ) {
       event.target.value = "";
+
+      window.alert(
+        "فقط تصاویر JPG، PNG و WEBP پشتیبانی می‌شوند."
+      );
+
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      event.target.value = "";
+
+      window.alert(
+        "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."
+      );
+
       return;
     }
 
@@ -1061,59 +1045,272 @@ export default function ChatPage() {
     abortControllerRef.current?.abort();
   }
 
-  async function sendMessage(custom?: string) {
-    const message = (
-      custom ?? input
-    ).trim();
+  async function fileToDataUrl(
+    file: File
+  ): Promise<string> {
+    const rawDataUrl =
+      await new Promise<string>(
+        (resolve, reject) => {
+          const reader =
+            new FileReader();
+
+          reader.onload = () => {
+            if (
+              typeof reader.result ===
+              "string"
+            ) {
+              resolve(reader.result);
+            } else {
+              reject(
+                new Error(
+                  "نتوانستم تصویر را آماده کنم."
+                )
+              );
+            }
+          };
+
+          reader.onerror = () => {
+            reject(
+              new Error(
+                "خواندن تصویر ناموفق بود."
+              )
+            );
+          };
+
+          reader.readAsDataURL(file);
+        }
+      );
 
     /*
-      در این نسخه تصویر در UI انتخاب می‌شود.
-      اتصال واقعی تصویر به API را در مرحله
-      بعدی به /api/chat اضافه می‌کنیم.
+      برای جلوگیری از درخواست‌های خیلی سنگین،
+      تصویر در مرورگر کوچک می‌شود.
+    */
+
+    return await new Promise<string>(
+      (resolve) => {
+        const img = new Image();
+
+        img.onload = () => {
+          try {
+            const maxDimension = 2048;
+
+            const originalWidth =
+              img.naturalWidth ||
+              img.width;
+
+            const originalHeight =
+              img.naturalHeight ||
+              img.height;
+
+            const largest =
+              Math.max(
+                originalWidth,
+                originalHeight
+              );
+
+            const scale =
+              largest > maxDimension
+                ? maxDimension / largest
+                : 1;
+
+            const width =
+              Math.max(
+                1,
+                Math.round(
+                  originalWidth * scale
+                )
+              );
+
+            const height =
+              Math.max(
+                1,
+                Math.round(
+                  originalHeight * scale
+                )
+              );
+
+            const canvas =
+              document.createElement(
+                "canvas"
+              );
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const context =
+              canvas.getContext("2d");
+
+            if (!context) {
+              resolve(rawDataUrl);
+              return;
+            }
+
+            context.drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+            const compressed =
+              canvas.toDataURL(
+                "image/jpeg",
+                0.84
+              );
+
+            resolve(
+              compressed ||
+              rawDataUrl
+            );
+          } catch {
+            resolve(rawDataUrl);
+          }
+        };
+
+        img.onerror = () => {
+          resolve(rawDataUrl);
+        };
+
+        img.src = rawDataUrl;
+      }
+    );
+  }
+
+  /*
+  ==========================================================
+  SEND MESSAGE
+  ==========================================================
+  */
+
+  async function sendMessage(
+    customMessage?: string
+  ) {
+    const message =
+      (
+        customMessage ??
+        input
+      ).trim();
+
+    /*
+      سه حالت داریم:
+
+      1. فقط متن
+      2. فقط عکس
+      3. متن + عکس
+
+      هر سه باید قابل ارسال باشند.
     */
 
     if (
       !message &&
-      !selectedImage
+      !selectedImage &&
+      !lastImageDataUrlRef.current
     ) {
       return;
     }
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
-    const history: ChatHistoryMessage[] =
+    const imageFile =
+      selectedImage;
+
+    const imagePreviewForMessage =
+      imagePreview;
+
+    let imageDataUrl:
+      string | null = null;
+
+    try {
+      /*
+        اگر کاربر عکس جدید انتخاب کرده،
+        آن را به Data URL تبدیل می‌کنیم.
+      */
+
+      if (imageFile) {
+        if (
+          imageFile.size >
+          MAX_IMAGE_BYTES
+        ) {
+          throw new Error(
+            "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."
+          );
+        }
+
+        if (
+          !ALLOWED_IMAGE_TYPES.includes(
+            imageFile.type
+          )
+        ) {
+          throw new Error(
+            "فقط تصاویر JPG، PNG و WEBP پشتیبانی می‌شوند."
+          );
+        }
+
+        imageDataUrl =
+          await fileToDataUrl(
+            imageFile
+          );
+
+        /*
+          برای سؤال بعدی هم ذخیره می‌کنیم.
+        */
+
+        lastImageDataUrlRef.current =
+          imageDataUrl;
+      }
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "تصویر آماده ارسال نشد."
+      );
+
+      return;
+    }
+
+    /*
+      اگر عکس جدید داریم، همان عکس را بفرست.
+
+      اگر عکس جدید نداریم ولی قبلاً عکس ارسال شده،
+      همان عکس قبلی را برای سؤال جدید بفرست.
+    */
+
+    const imageForRequest =
+      imageDataUrl ||
+      lastImageDataUrlRef.current ||
+      null;
+
+    /*
+      فقط متن پیام‌های قبلی در history می‌رود.
+      عکس فعلی جداگانه در image ارسال می‌شود.
+    */
+
+    const history: HistoryMessage[] =
       messages
         .filter(
           (item) =>
             item.content.trim()
         )
-        .slice(-30)
-        .map(
-          ({
-            role,
-            content,
-          }) => ({
-            role,
-            content,
-          })
-        );
-
-    let finalMessage = message;
-
-    if (
-      !finalMessage &&
-      selectedImage
-    ) {
-      finalMessage =
-        "این تصویر را بررسی کن.";
-    }
-
-    if (selectedImage) {
-      finalMessage =
-        `${finalMessage}\n\n[تصویر انتخاب شد: ${selectedImage.name}]`;
-    }
+        .slice(-12)
+        .map((item) => ({
+          role: item.role,
+          content:
+            item.content.slice(
+              0,
+              20000
+            ),
+        }));
 
     setInput("");
+
+    /*
+      فقط عکس انتخاب‌شده از composer پاک می‌شود.
+      lastImageDataUrlRef باقی می‌ماند تا سؤال بعدی
+      همچنان بتواند درباره همان عکس باشد.
+    */
 
     removeSelectedImage();
 
@@ -1123,15 +1320,25 @@ export default function ChatPage() {
     const assistantId =
       crypto.randomUUID();
 
+    /*
+      اگر فقط عکس باشد:
+
+      content = ""
+
+      بنابراین هیچ جمله مصنوعی داخل پیام کاربر
+      نمایش داده نمی‌شود.
+    */
+
     setMessages((old) => [
       ...old,
-
       {
         id: userId,
         role: "user",
-        content: finalMessage,
+        content: message,
+        image:
+          imageDataUrl ||
+          imagePreviewForMessage,
       },
-
       {
         id: assistantId,
         role: "assistant",
@@ -1148,25 +1355,28 @@ export default function ChatPage() {
       controller;
 
     try {
-      const response = await fetch(
-        "/api/chat",
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          "/api/chat",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          signal:
-            controller.signal,
+            signal:
+              controller.signal,
 
-          body: JSON.stringify({
-            message: finalMessage,
-            history,
-          }),
-        }
-      );
+            body: JSON.stringify({
+              message,
+              history,
+              image:
+                imageForRequest,
+            }),
+          }
+        );
 
       if (!response.ok) {
         let errorMessage =
@@ -1176,10 +1386,17 @@ export default function ChatPage() {
           const data =
             await response.json();
 
-          errorMessage =
-            data?.error ||
-            errorMessage;
-        } catch {}
+          if (
+            data &&
+            typeof data.error ===
+              "string"
+          ) {
+            errorMessage =
+              data.error;
+          }
+        } catch {
+          // پاسخ JSON نبود.
+        }
 
         throw new Error(
           errorMessage
@@ -1196,28 +1413,44 @@ export default function ChatPage() {
         response.body.getReader();
 
       const decoder =
-        new TextDecoder("utf-8");
+        new TextDecoder(
+          "utf-8"
+        );
 
       let assistantText = "";
 
       while (true) {
-        const { value, done } =
-          await reader.read();
+        const {
+          value,
+          done,
+        } = await reader.read();
 
-        if (done) break;
+        if (done) {
+          break;
+        }
+
+        if (!value) {
+          continue;
+        }
 
         const chunk =
-          decoder.decode(value, {
-            stream: true,
-          });
+          decoder.decode(
+            value,
+            {
+              stream: true,
+            }
+          );
 
-        if (!chunk) continue;
+        if (!chunk) {
+          continue;
+        }
 
         assistantText += chunk;
 
         setMessages((old) =>
           old.map((item) =>
-            item.id === assistantId
+            item.id ===
+            assistantId
               ? {
                   ...item,
                   content:
@@ -1228,6 +1461,10 @@ export default function ChatPage() {
         );
       }
 
+      /*
+        باقی‌مانده decoder
+      */
+
       const finalChunk =
         decoder.decode();
 
@@ -1237,7 +1474,8 @@ export default function ChatPage() {
 
         setMessages((old) =>
           old.map((item) =>
-            item.id === assistantId
+            item.id ===
+            assistantId
               ? {
                   ...item,
                   content:
@@ -1249,83 +1487,87 @@ export default function ChatPage() {
       }
 
       if (!assistantText.trim()) {
-        throw new Error(
-          "پاسخی دریافت نشد."
+        setMessages((old) =>
+          old.map((item) =>
+            item.id ===
+            assistantId
+              ? {
+                  ...item,
+                  content:
+                    "پاسخی از هوش مصنوعی دریافت نشد.",
+                }
+              : item
+          )
         );
       }
     } catch (error) {
       if (
-        error instanceof Error &&
-        error.name === "AbortError"
+        error instanceof DOMException &&
+        error.name ===
+          "AbortError"
       ) {
         return;
       }
 
-      const errorText =
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "خطایی رخ داد.";
+          : "در دریافت پاسخ مشکلی پیش آمد.";
 
       setMessages((old) =>
         old.map((item) =>
-          item.id === assistantId
+          item.id ===
+          assistantId
             ? {
                 ...item,
                 content:
-                  `⚠️ ${errorText}`,
+                  `⚠️ ${errorMessage}`,
               }
             : item
         )
       );
     } finally {
-      if (
-        abortControllerRef.current ===
-        controller
-      ) {
-        abortControllerRef.current =
-          null;
-      }
-
       setLoading(false);
+
+      abortControllerRef.current =
+        null;
     }
   }
 
-  function keyDown(
+  function handleKeyDown(
     event: KeyboardEvent<HTMLTextAreaElement>
   ) {
-    /*
-      Enter باید مثل یک textarea معمولی عمل کند
-      و واقعاً خط جدید بسازد.
-      ارسال فقط با دکمه ارسال انجام می‌شود.
-    */
+    // Enter فقط خط جدید می‌سازد؛
+    // ارسال فقط با دکمه ارسال انجام می‌شود.
     if (event.key === "Enter") {
       return;
     }
   }
 
-  function handleTextareaChange(
-    event: React.ChangeEvent<HTMLTextAreaElement>
-  ) {
-    const textarea = event.target;
+  useEffect(() => {
+    const textarea = textareaRef.current;
 
-    setInput(textarea.value);
+    if (!textarea) {
+      return;
+    }
 
     textarea.style.height = "auto";
 
-    const nextHeight = Math.min(
-      textarea.scrollHeight,
+    textarea.style.height = `${Math.min(
+      Math.max(44, textarea.scrollHeight),
       110
-    );
-
-    textarea.style.height = `${Math.max(44, nextHeight)}px`;
-  }
+    )}px`;
+  }, [input]);
 
   useEffect(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current) {
+      return;
+    }
 
     scrollRef.current.scrollTo({
       top:
-        scrollRef.current.scrollHeight,
+        scrollRef.current
+          .scrollHeight,
       behavior: "smooth",
     });
   }, [messages]);
@@ -1337,6 +1579,8 @@ export default function ChatPage() {
           previewUrlRef.current
         );
       }
+
+      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -1399,7 +1643,9 @@ export default function ChatPage() {
                 </div>
 
                 <h1>
-                  <span>بزن بریم</span>{" "}
+                  <span>
+                    بزن بریم
+                  </span>{" "}
                   <strong>
                     مهندس
                   </strong>
@@ -1492,60 +1738,76 @@ export default function ChatPage() {
           ) : (
             <div className="messages">
               {messages.map(
-                (message, index) => {
-                  const isLast =
-                    index ===
-                    messages.length - 1;
-
-                  return (
-                    <div
-                      key={message.id}
-                      className={
-                        message.role ===
-                        "user"
-                          ? "message user-message"
-                          : "message ai-message"
-                      }
-                    >
-                      <div className="message-wrapper">
-                        <div className="bubble">
-                          {message.role ===
-                          "assistant" ? (
-                            <MessageContent
-                              content={
-                                message.content
-                              }
-                            />
-                          ) : (
-                            <div className="user-text">
-                              {message.content}
-                            </div>
-                          )}
-
-                          {message.role ===
-                            "assistant" &&
-                            loading &&
-                            isLast && (
-                              <span className="cursor">
-                                ▋
-                              </span>
-                            )}
-                        </div>
-
+                (message) => (
+                  <div
+                    key={message.id}
+                    className={
+                      message.role ===
+                      "user"
+                        ? "message user-message"
+                        : "message ai-message"
+                    }
+                  >
+                    <div className="message-wrapper">
+                      <div className="bubble">
                         {message.role ===
-                          "assistant" &&
-                          message.content.trim() &&
-                          !loading && (
-                            <CopyMessageButton
-                              content={
-                                message.content
-                              }
-                            />
-                          )}
+                        "assistant" ? (
+                          <MessageContent
+                            content={
+                              message.content
+                            }
+                          />
+                        ) : (
+                          <>
+                            {message.image && (
+                              <img
+                                src={
+                                  message.image
+                                }
+                                alt="تصویر ارسال‌شده"
+                                className="sent-image"
+                              />
+                            )}
+
+                            {message.content && (
+                              <div className="user-text">
+                                <InlineText
+                                  text={
+                                    message.content
+                                  }
+                                />
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
+
+                      {message.role ===
+                        "assistant" &&
+                        message.content &&
+                        !message.content.startsWith(
+                          "⚠️"
+                        ) && (
+                          <button
+                            type="button"
+                            className="message-copy"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(
+                                  message.content
+                                );
+                              } catch {}
+                            }}
+                          >
+                            <CopyIcon />
+                            <span>
+                              کپی
+                            </span>
+                          </button>
+                        )}
                     </div>
-                  );
-                }
+                  </div>
+                )
               )}
             </div>
           )}
@@ -1563,12 +1825,12 @@ export default function ChatPage() {
 
                 <div className="image-preview-info">
                   <span>
-                    {selectedImage?.name ||
-                      "تصویر انتخاب شده"}
+                    تصویر آماده ارسال است
                   </span>
 
                   <small>
-                    تصویر آماده ارسال
+                    می‌تونی بدون متن هم
+                    ارسالش کنی
                   </small>
                 </div>
 
@@ -1586,95 +1848,74 @@ export default function ChatPage() {
             </div>
           )}
 
-          <form
-            className="composer"
-            onSubmit={(event) => {
-              event.preventDefault();
-
-              if (!loading) {
-                sendMessage();
-              }
-            }}
-          >
+          <div className="composer">
             <input
               ref={imageInputRef}
               type="file"
-              accept="image/*"
-              className="hidden-file-input"
+              accept="image/jpeg,image/png,image/webp"
               onChange={
                 handleImageSelect
               }
+              hidden
             />
-
-            <textarea
-              ref={textareaRef}
-              value={input}
-              disabled={loading}
-              onChange={handleTextareaChange}
-              onKeyDown={keyDown}
-              enterKeyHint="enter"
-              rows={1}
-              placeholder="پیامت رو برای موبیکسا بنویس..."
-            />
-
-            {imagePreview && (
-              <div className="composer-image-thumb">
-                <img
-                  src={imagePreview}
-                  alt="تصویر انتخاب‌شده"
-                />
-
-                <button
-                  type="button"
-                  className="composer-image-remove"
-                  onClick={removeSelectedImage}
-                  aria-label="حذف تصویر انتخاب‌شده"
-                >
-                  <CloseIcon />
-                </button>
-              </div>
-            )}
 
             <button
               type="button"
-              className={`upload ${
-                imagePreview
-                  ? "upload-active"
-                  : ""
-              }`}
+              className="upload"
               onClick={
                 openImagePicker
               }
               disabled={loading}
-              aria-label="آپلود تصویر"
-              title="آپلود تصویر"
+              aria-label="انتخاب تصویر"
             >
               <ImageUploadIcon />
 
               <span className="upload-tooltip">
-                آپلود تصویر
+                ارسال تصویر
               </span>
             </button>
+
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(event) =>
+                setInput(
+                  event.target.value
+                )
+              }
+              onKeyDown={
+                handleKeyDown
+              }
+              disabled={loading}
+              rows={1}
+              enterKeyHint="enter"
+              placeholder={
+                imagePreview
+                  ? "اگر می‌خوای درباره عکس چیزی بپرسی، بنویس..."
+                  : "پیامت رو برای موبیکسا بنویس..."
+              }
+            />
 
             <button
               type="button"
               className="send"
-              disabled={
-                !input.trim() &&
-                !loading &&
-                !imagePreview
-              }
               onClick={() => {
                 if (loading) {
                   stopGeneration();
                 } else {
-                  sendMessage();
+                  void sendMessage();
                 }
               }}
+              disabled={
+                !loading &&
+                !input.trim() &&
+                !selectedImage &&
+                !lastImageDataUrlRef.current
+              }
               aria-label={
                 loading
-                  ? "توقف تولید پاسخ"
-                  : "ارسال پیام"
+                  ? "توقف"
+                  : "ارسال"
               }
             >
               {loading ? (
@@ -1683,49 +1924,67 @@ export default function ChatPage() {
                 <SendIcon />
               )}
             </button>
-          </form>
+          </div>
 
           <div className="footer">
             <span>
-              ✦ Mobixa AI
+              Mobixa AI ✦
             </span>
 
             <span>
-              ممکن است گاهی پاسخ نادرست
-              باشد.
+              ممکن است گاهی پاسخ نادرست باشد.
             </span>
           </div>
         </div>
       </section>
 
-      <style jsx>{`
+      <style jsx global>{`
         * {
           box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          min-height: 100%;
+          background: #03040d;
+        }
+
+        body {
+          overflow: hidden;
+          font-family:
+            Tahoma,
+            Arial,
+            sans-serif;
+        }
+
+        button,
+        textarea,
+        input {
+          font: inherit;
         }
 
         .mobixa {
           position: relative;
           width: 100%;
           height: 100svh;
+          min-height: 100svh;
           overflow: hidden;
+          color: white;
           background:
             radial-gradient(
-              circle at 15% 45%,
-              rgba(89, 21, 180, 0.35),
-              transparent 30%
+              circle at 75% 65%,
+              rgba(0, 84, 180, 0.22),
+              transparent 32%
             ),
             radial-gradient(
-              circle at 90% 75%,
-              rgba(0, 84, 190, 0.3),
-              transparent 34%
+              circle at 15% 65%,
+              rgba(102, 24, 255, 0.3),
+              transparent 35%
             ),
             #02030b;
-          color: white;
-
-          font-family:
-            Arial,
-            Tahoma,
-            sans-serif;
         }
 
         .background {
@@ -1735,141 +1994,148 @@ export default function ChatPage() {
           pointer-events: none;
         }
 
-        .purple-cloud {
+        .purple-cloud,
+        .blue-cloud {
           position: absolute;
           border-radius: 50%;
-          filter: blur(75px);
-          opacity: 0.4;
+          filter: blur(65px);
+          opacity: 0.45;
         }
 
         .cloud-one {
-          width: 330px;
-          height: 330px;
-          left: -190px;
-          top: 270px;
-          background: #681cff;
+          width: 320px;
+          height: 320px;
+          left: -140px;
+          top: 28%;
+          background: #5417d8;
         }
 
         .cloud-two {
-          width: 270px;
-          height: 270px;
-          left: 30%;
-          bottom: -160px;
-          background: #4f18d6;
+          width: 300px;
+          height: 300px;
+          right: -130px;
+          bottom: 5%;
+          background: #2511b5;
         }
 
         .cloud-three {
-          position: absolute;
-          width: 300px;
-          height: 300px;
-          right: -190px;
-          top: 500px;
-          border-radius: 50%;
-          background: #006cff;
-          filter: blur(90px);
-          opacity: 0.28;
+          width: 280px;
+          height: 280px;
+          right: -100px;
+          top: 42%;
+          background: #0058cf;
+          opacity: 0.22;
         }
 
         .neon-wave {
           position: absolute;
-          width: 850px;
-          height: 260px;
-          border: 1px solid
-            rgba(122, 77, 255, 0.35);
+          width: 130%;
+          height: 180px;
+          left: -15%;
           border-radius: 50%;
-          filter: blur(0.2px);
+          border-top: 1px solid
+            rgba(118, 92, 255, 0.45);
+          transform: rotate(-10deg);
+          filter:
+            drop-shadow(
+              0 0 8px
+                rgba(107, 61, 255, 0.3)
+            );
         }
 
         .wave-one {
-          left: -480px;
-          top: 550px;
-          transform: rotate(-22deg);
-          box-shadow:
-            0 0 14px
-              rgba(91, 58, 255, 0.3);
+          bottom: 17%;
         }
 
         .wave-two {
-          right: -500px;
-          top: 690px;
-          transform: rotate(25deg);
+          bottom: 3%;
+          transform: rotate(7deg);
           border-color:
-            rgba(0, 194, 255, 0.28);
+            rgba(0, 215, 255, 0.22);
+        }
+
+        .starfield {
+          position: absolute;
+          inset: 0;
+          color: rgba(170, 130, 255, 0.55);
+          font-size: 11px;
         }
 
         .starfield span {
           position: absolute;
-          color:
-            rgba(164, 140, 255, 0.7);
-          font-size: 10px;
+          text-shadow:
+            0 0 8px #8d52ff;
         }
 
         .starfield span:nth-child(1) {
-          top: 25%;
-          left: 12%;
+          top: 19%;
+          left: 11%;
         }
 
         .starfield span:nth-child(2) {
-          top: 40%;
-          right: 12%;
+          top: 34%;
+          right: 15%;
         }
 
         .starfield span:nth-child(3) {
-          top: 53%;
+          top: 55%;
           left: 8%;
         }
 
         .starfield span:nth-child(4) {
-          top: 65%;
+          top: 63%;
           right: 8%;
         }
 
         .starfield span:nth-child(5) {
-          top: 73%;
-          left: 15%;
+          top: 75%;
+          left: 20%;
         }
 
         .starfield span:nth-child(6) {
-          top: 83%;
-          right: 18%;
+          top: 48%;
+          right: 30%;
         }
 
         .starfield span:nth-child(7) {
-          top: 31%;
-          left: 47%;
+          top: 27%;
+          right: 38%;
         }
 
         .starfield span:nth-child(8) {
-          top: 58%;
-          right: 31%;
+          bottom: 13%;
+          right: 18%;
         }
 
         .header {
           position: relative;
           z-index: 10;
           width: 100%;
-          max-width: 1100px;
-          margin: 0 auto;
+          max-width: 900px;
           height: 82px;
-          padding: 20px 24px 0;
+          margin: 0 auto;
+          padding: 18px 24px 0;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
           direction: ltr;
         }
 
         .wordmark {
           direction: ltr;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding-top: 7px;
           font-size: 21px;
           font-weight: 900;
           letter-spacing: 5px;
           text-shadow:
-            0 0 15px
-              rgba(255, 255, 255, 0.18);
+            0 0 12px
+              rgba(255, 255, 255, 0.22);
         }
 
         .wordmark b {
-          margin-left: 6px;
           background:
             linear-gradient(
               90deg,
@@ -1877,6 +2143,7 @@ export default function ChatPage() {
               #20dfff
             );
           -webkit-background-clip: text;
+          background-clip: text;
           color: transparent;
         }
 
@@ -1884,13 +2151,13 @@ export default function ChatPage() {
           direction: rtl;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 7px;
           height: 44px;
-          padding: 0 16px;
+          padding: 0 17px;
           border-radius: 999px;
-          border:
-            1px solid
-              rgba(155, 73, 255, 0.95);
+          border: 1px solid
+            rgba(155, 73, 255, 0.95);
           background:
             rgba(55, 16, 111, 0.25);
           color: white;
@@ -1969,9 +2236,8 @@ export default function ChatPage() {
               rgba(3, 5, 25, 0.92)
                 76%
             );
-          border:
-            1px solid
-              rgba(132, 89, 255, 0.8);
+          border: 1px solid
+            rgba(132, 89, 255, 0.8);
           box-shadow:
             0 0 25px
               rgba(134, 63, 255, 0.75),
@@ -1991,9 +2257,6 @@ export default function ChatPage() {
           transform: rotate(-18deg);
           border-color:
             rgba(170, 79, 255, 0.8);
-          box-shadow:
-            0 0 12px
-              rgba(161, 74, 255, 0.4);
         }
 
         .orbit-b {
@@ -2002,9 +2265,6 @@ export default function ChatPage() {
           transform: rotate(46deg);
           border-color:
             rgba(0, 209, 255, 0.65);
-          box-shadow:
-            0 0 12px
-              rgba(0, 209, 255, 0.35);
         }
 
         .orbit-c {
@@ -2190,10 +2450,6 @@ export default function ChatPage() {
             drop-shadow(
               0 0 7px
                 rgba(180, 85, 255, 0.8)
-            )
-            drop-shadow(
-              0 0 13px
-                rgba(0, 214, 255, 0.3)
             );
           animation:
             wave 2.3s ease-in-out
@@ -2216,6 +2472,7 @@ export default function ChatPage() {
               #8d6dff
             );
           -webkit-background-clip: text;
+          background-clip: text;
           color: transparent;
         }
 
@@ -2227,6 +2484,7 @@ export default function ChatPage() {
               #19d8ff
             );
           -webkit-background-clip: text;
+          background-clip: text;
           color: transparent;
         }
 
@@ -2295,6 +2553,8 @@ export default function ChatPage() {
           color: white;
           background:
             rgba(20, 15, 60, 0.42);
+          border: 1px solid
+            rgba(105, 70, 255, 0.35);
           backdrop-filter: blur(15px);
           cursor: pointer;
           transition:
@@ -2304,6 +2564,9 @@ export default function ChatPage() {
 
         .card:hover {
           transform: translateY(-3px);
+          box-shadow:
+            0 0 20px
+              rgba(124, 63, 255, 0.28);
         }
 
         .card-icon {
@@ -2329,81 +2592,17 @@ export default function ChatPage() {
           white-space: nowrap;
         }
 
-        .card::before,
-        .card::after,
-        .card small {
-          content: none !important;
-          display: none !important;
-          visibility: hidden !important;
-        }
-
-        .create {
-          border:
-            1px solid
-              rgba(196, 73, 255, 0.8);
-          box-shadow:
-            0 0 20px
-              rgba(188, 64, 255, 0.18),
-            inset 0 0 22px
-              rgba(179, 60, 255, 0.08);
-        }
-
-        .create .card-icon,
-        .create b {
-          color: #cf70ff;
-        }
-
-        .learn {
-          border:
-            1px solid
-              rgba(0, 206, 255, 0.82);
-          box-shadow:
-            0 0 20px
-              rgba(0, 199, 255, 0.17),
-            inset 0 0 22px
-              rgba(0, 199, 255, 0.08);
-        }
-
-        .learn .card-icon,
-        .learn b {
-          color: #27dfff;
-        }
-
-        .idea {
-          border:
-            1px solid
-              rgba(165, 74, 255, 0.8);
-          box-shadow:
-            0 0 20px
-              rgba(147, 68, 255, 0.18),
-            inset 0 0 22px
-              rgba(147, 68, 255, 0.08);
-        }
-
-        .idea .card-icon,
-        .idea b {
-          color: #c06cff;
-        }
-
-        /* =========================
-           MESSAGES
-        ========================= */
-
         .messages {
-          width: 100%;
-          max-width: 750px;
-          margin: 0 auto;
-          padding: 28px 0;
+          padding-top: 25px;
+          padding-bottom: 20px;
           display: flex;
           flex-direction: column;
-          gap: 15px;
-          min-width: 0;
+          gap: 14px;
         }
 
         .message {
           display: flex;
           width: 100%;
-          min-width: 0;
         }
 
         .user-message {
@@ -2415,105 +2614,115 @@ export default function ChatPage() {
         }
 
         .message-wrapper {
-          width: auto;
-          max-width: 86%;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .ai-message .message-wrapper {
-          align-items: flex-end;
+          position: relative;
+          max-width: 82%;
           min-width: 0;
         }
 
         .bubble {
-          width: auto;
-          max-width: 100%;
-          min-width: 0;
+          position: relative;
+          border-radius: 22px;
           padding: 14px 17px;
-          border-radius: 19px;
           font-size: 15px;
-          line-height: 2;
-          font-weight: 500;
-          overflow: hidden;
+          line-height: 1.95;
           overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .user-message .bubble {
+          direction: rtl;
           background:
-            rgba(91, 35, 155, 0.35);
-          border:
-            1px solid
-              rgba(157, 78, 255, 0.55);
-          font-weight: 500;
+            linear-gradient(
+              135deg,
+              rgba(94, 32, 165, 0.72),
+              rgba(39, 16, 80, 0.88)
+            );
+          border: 1px solid
+            rgba(159, 75, 255, 0.75);
+          box-shadow:
+            0 0 18px
+              rgba(126, 50, 255, 0.2),
+            inset 0 0 25px
+              rgba(185, 72, 255, 0.08);
         }
 
         .ai-message .bubble {
+          direction: rtl;
           background:
-            rgba(8, 39, 77, 0.5);
-          border:
-            1px solid
-              rgba(32, 196, 255, 0.4);
-
+            linear-gradient(
+              135deg,
+              rgba(7, 35, 78, 0.9),
+              rgba(8, 21, 50, 0.92)
+            );
+          border: 1px solid
+            rgba(0, 190, 255, 0.5);
           box-shadow:
-            0 4px 25px
-              rgba(0, 100, 255, 0.07);
+            0 0 20px
+              rgba(0, 165, 255, 0.13),
+            inset 0 0 25px
+              rgba(0, 130, 255, 0.06);
+        }
+
+        /*
+          عکس ارسال‌شده:
+          کوچک و دقیقاً بالای متن
+        */
+
+        .sent-image {
+          display: block;
+          width: 74px;
+          height: 74px;
+          object-fit: cover;
+          border-radius: 12px;
+          margin-bottom: 9px;
+          border: 1px solid
+            rgba(185, 110, 255, 0.8);
+          box-shadow:
+            0 0 12px
+              rgba(146, 64, 255, 0.28);
         }
 
         .user-text {
-          min-width: 0;
-          max-width: 100%;
           white-space: pre-wrap;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
-        .rich-message {
-          width: 100%;
-          min-width: 0;
-          max-width: 100%;
-          direction: rtl;
-          text-align: right;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+        .message-copy {
+          margin-top: 5px;
+          border: 0;
+          background: transparent;
+          color:
+            rgba(210, 220, 255, 0.65);
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 10px;
+          cursor: pointer;
+        }
+
+        .message-copy svg {
+          width: 18px;
+          height: 18px;
         }
 
         .message-text {
           width: 100%;
-          min-width: 0;
-          max-width: 100%;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .message-line {
-          min-height: 1.8em;
-          min-width: 0;
-          max-width: 100%;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+          min-height: 1.5em;
         }
 
         .message-space {
-          height: 8px;
+          height: 5px;
         }
 
         .message-heading {
-          max-width: 100%;
-          min-width: 0;
-          margin: 13px 0 8px;
+          margin:
+            4px 0 10px;
           line-height: 1.45;
-          font-weight: 850;
-          letter-spacing: -0.2px;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .heading-1 {
-          font-size: 21px;
+          font-size: 22px;
         }
 
         .heading-2 {
@@ -2524,314 +2733,160 @@ export default function ChatPage() {
           font-size: 17px;
         }
 
+        .message-list-item {
+          display: flex;
+          gap: 7px;
+          align-items: flex-start;
+          margin: 3px 0;
+        }
+
+        .list-dot {
+          color: #b16cff;
+          flex: 0 0 auto;
+        }
+
+        .list-number {
+          color: #72eaff;
+          min-width: 25px;
+        }
+
+        .list-content {
+          min-width: 0;
+        }
+
         .inline-bold {
-          font-weight: 850;
-          color: #ffffff;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+          font-weight: 900;
         }
 
         .inline-code {
           direction: ltr;
           unicode-bidi: plaintext;
           display: inline-block;
-          max-width: 100%;
-          padding: 1px 6px;
-          margin: 0 2px;
-          border-radius: 6px;
+          padding: 1px 5px;
+          border-radius: 5px;
           background:
-            rgba(7, 16, 38, 0.9);
-          border:
-            1px solid
-              rgba(90, 150, 255, 0.25);
-          color: #bdefff;
+            rgba(0, 0, 0, 0.32);
+          color: #8eefff;
           font-family:
-            "SFMono-Regular",
             Consolas,
             monospace;
-          font-size: 0.88em;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+          font-size: 0.92em;
         }
-
-        .message-list-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          margin: 4px 0;
-          padding-right: 4px;
-          min-width: 0;
-          max-width: 100%;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        .list-content {
-          min-width: 0;
-          max-width: 100%;
-          flex: 1 1 auto;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        .list-dot {
-          flex: 0 0 auto;
-          color: #a96cff;
-          font-size: 17px;
-          line-height: 1.7;
-        }
-
-        .list-number {
-          flex: 0 0 auto;
-          color: #9e75ff;
-          font-weight: 800;
-        }
-
-        /* =========================
-           CODE BLOCK
-        ========================= */
 
         .code-block {
           direction: ltr;
           width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          margin: 15px 0;
-          border-radius: 14px;
+          margin: 12px 0;
           overflow: hidden;
-          background:
-            rgba(3, 7, 18, 0.96);
-          border:
-            1px solid
-              rgba(90, 130, 255, 0.3);
-          box-shadow:
-            0 8px 30px
-              rgba(0, 0, 0, 0.22),
-            inset 0 0 25px
-              rgba(60, 80, 180, 0.05);
+          border-radius: 13px;
+          background: #070a14;
+          border: 1px solid
+            rgba(104, 99, 255, 0.45);
         }
 
         .code-header {
-          min-height: 39px;
-          max-width: 100%;
-          min-width: 0;
-          padding: 6px 8px 6px 12px;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          padding: 7px 9px;
           background:
-            rgba(13, 19, 39, 0.95);
-          border-bottom:
-            1px solid
-              rgba(90, 130, 255, 0.18);
+            rgba(92, 63, 170, 0.18);
+          border-bottom: 1px solid
+            rgba(115, 94, 220, 0.25);
         }
 
         .code-language {
-          direction: ltr;
-          min-width: 0;
-          color:
-            rgba(190, 201, 235, 0.72);
-          font-family:
-            "SFMono-Regular",
-            Consolas,
-            monospace;
-          font-size: 10px;
-          font-weight: 700;
+          color: #8cdbff;
+          font-size: 9px;
           text-transform: uppercase;
         }
 
         .code-copy {
-          flex: 0 0 auto;
-          direction: rtl;
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 5px;
-          min-height: 28px;
-          padding: 4px 8px;
           border: 0;
-          border-radius: 7px;
-          background:
-            rgba(90, 100, 150, 0.14);
-          color:
-            rgba(220, 228, 255, 0.82);
+          background: transparent;
+          color: #d9dcff;
+          font-size: 9px;
           cursor: pointer;
-          font-family: inherit;
-          font-size: 10px;
-          font-weight: 700;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
-        }
-
-        .code-copy:hover {
-          background:
-            rgba(137, 88, 255, 0.2);
-          color: white;
         }
 
         .code-copy svg {
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
         }
 
         .code-block pre {
-          direction: ltr;
-          display: block;
-          width: 100%;
-          max-width: 100%;
           margin: 0;
-          padding: 15px;
+          padding: 13px;
           overflow-x: auto;
-          overflow-y: hidden;
-          text-align: left;
-          white-space: pre;
-          scrollbar-width: thin;
         }
 
         .code-block code {
-          color: #e9eeff;
+          color: #e6e8ff;
           font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
             Consolas,
-            "Liberation Mono",
+            "Courier New",
             monospace;
-          font-size: 12.5px;
-          line-height: 1.75;
-          font-weight: 500;
+          font-size: 12px;
+          line-height: 1.65;
+          white-space: pre;
         }
-
-        /* =========================
-           COPY MESSAGE
-        ========================= */
-
-        .message-copy {
-          margin-top: 3px;
-          margin-left: 3px;
-          direction: rtl;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          min-height: 23px;
-          padding: 2px 5px;
-          border: 0;
-          border-radius: 7px;
-          background:
-            rgba(80, 100, 150, 0.09);
-          color:
-            rgba(174, 187, 225, 0.58);
-          cursor: pointer;
-          font-family: inherit;
-          font-size: 8px;
-          font-weight: 700;
-          transition:
-            color 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .message-copy:hover {
-          color: white;
-          background:
-            rgba(135, 83, 255, 0.18);
-        }
-
-        .message-copy svg {
-          width: 11px;
-          height: 11px;
-        }
-
-        .cursor {
-          display: inline-block;
-          margin-right: 3px;
-          color: #a76bff;
-          animation:
-            blink 0.7s infinite;
-        }
-
-        /* =========================
-           COMPOSER ZONE
-        ========================= */
 
         .composer-zone {
           position: relative;
           z-index: 20;
-          flex: 0 0 auto;
           width: 100%;
-          padding: 8px 18px 12px;
+          padding:
+            7px 18px
+            10px;
           background:
             linear-gradient(
-              180deg,
-              transparent,
-              rgba(2, 3, 11, 0.25)
+              to top,
+              rgba(3, 4, 14, 0.96),
+              rgba(3, 4, 14, 0.68),
+              transparent
             );
         }
 
-        /* =========================
-           IMAGE PREVIEW
-        ========================= */
-
         .image-preview-wrap {
-          display: none;
+          width: 100%;
+          max-width: 760px;
+          margin: 0 auto 8px;
+          display: flex;
+          justify-content: flex-end;
         }
 
         .image-preview-card {
-          position: relative;
-          width: min(330px, 100%);
-          min-height: 74px;
-          padding: 7px 8px 7px 10px;
+          width: min(
+            330px,
+            100%
+          );
+          min-height: 70px;
           display: flex;
           align-items: center;
-          gap: 10px;
-          border:
-            1px solid
-              rgba(154, 91, 255, 0.72);
-          border-radius: 17px;
+          gap: 9px;
+          padding: 7px 8px;
+          border-radius: 16px;
           background:
-            linear-gradient(
-              135deg,
-              rgba(36, 18, 83, 0.82),
-              rgba(8, 29, 64, 0.76)
-            );
+            rgba(27, 14, 65, 0.84);
+          border: 1px solid
+            rgba(155, 74, 255, 0.65);
           box-shadow:
-            0 0 20px
-              rgba(139, 64, 255, 0.2),
-            inset 0 0 20px
-              rgba(0, 206, 255, 0.06);
-          backdrop-filter: blur(18px);
-          overflow: hidden;
-          animation:
-            previewIn 0.22s
-              ease-out;
-        }
-
-        .image-preview-card::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background:
-            linear-gradient(
-              110deg,
-              transparent 20%,
-              rgba(255, 255, 255, 0.07)
-                48%,
-              transparent 70%
-            );
+            0 0 18px
+              rgba(114, 47, 255, 0.2);
+          backdrop-filter: blur(15px);
         }
 
         .image-preview {
-          position: relative;
-          width: 58px;
-          height: 58px;
-          flex: 0 0 58px;
+          width: 54px;
+          height: 54px;
+          flex: 0 0 54px;
           object-fit: cover;
-          border-radius: 12px;
-          border:
-            1px solid
-              rgba(128, 224, 255, 0.45);
-          box-shadow:
-            0 0 12px
-              rgba(0, 209, 255, 0.2);
+          border-radius: 10px;
+          border: 1px solid
+            rgba(143, 99, 255, 0.7);
         }
 
         .image-preview-info {
@@ -2839,400 +2894,192 @@ export default function ChatPage() {
           flex: 1;
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
-          gap: 4px;
-          direction: rtl;
+          gap: 3px;
         }
 
         .image-preview-info span {
-          width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          color:
-            rgba(244, 242, 255, 0.95);
-          font-size: 11px;
-          font-weight: 800;
+          font-size: 10px;
+          color: white;
         }
 
         .image-preview-info small {
           color:
-            rgba(166, 224, 255, 0.7);
-          font-size: 9px;
-          font-weight: 600;
+            rgba(195, 203, 240, 0.7);
+          font-size: 8px;
         }
 
         .remove-image {
-          position: relative;
           width: 29px;
           height: 29px;
           flex: 0 0 29px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-              rgba(255, 116, 205, 0.42);
           border-radius: 50%;
+          border: 1px solid
+            rgba(180, 91, 255, 0.55);
           background:
-            rgba(115, 31, 105, 0.25);
-          color:
-            rgba(255, 216, 248, 0.9);
+            rgba(92, 40, 145, 0.35);
+          color: white;
           cursor: pointer;
-          transition:
-            transform 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .remove-image:hover {
-          transform: scale(1.08);
-          background:
-            rgba(190, 45, 145, 0.35);
-          box-shadow:
-            0 0 12px
-              rgba(255, 87, 202, 0.3);
         }
 
         .remove-image svg {
-          width: 15px;
-          height: 15px;
+          width: 17px;
+          height: 17px;
         }
-
-        .composer-image-thumb {
-          position: relative;
-          width: 42px;
-          height: 42px;
-          flex: 0 0 42px;
-          margin-right: 1px;
-          border-radius: 11px;
-          overflow: hidden;
-          border: 1px solid rgba(128, 224, 255, 0.45);
-          box-shadow:
-            0 0 10px rgba(0, 209, 255, 0.2),
-            inset 0 0 10px rgba(140, 80, 255, 0.08);
-          background: rgba(8, 14, 40, 0.72);
-        }
-
-        .composer-image-thumb img {
-          width: 100%;
-          height: 100%;
-          display: block;
-          object-fit: cover;
-        }
-
-        .composer-image-remove {
-          position: absolute;
-          top: 2px;
-          right: 2px;
-          width: 15px;
-          height: 15px;
-          padding: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(255, 255, 255, 0.28);
-          border-radius: 50%;
-          background: rgba(8, 5, 25, 0.78);
-          color: white;
-          cursor: pointer;
-          z-index: 2;
-        }
-
-        .composer-image-remove svg {
-          width: 10px;
-          height: 10px;
-        }
-
-        /* =========================
-           COMPOSER
-        ========================= */
 
         .composer {
           width: 100%;
           max-width: 760px;
-          min-height: 64px;
+          min-height: 66px;
           margin: 0 auto;
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 7px 8px;
-          border-radius: 23px;
-          border:
-            1px solid
-              rgba(67, 119, 255, 0.75);
+          padding: 7px 7px 7px 9px;
+          border-radius: 25px;
           background:
-            rgba(9, 18, 49, 0.78);
+            linear-gradient(
+              135deg,
+              rgba(16, 20, 70, 0.93),
+              rgba(7, 10, 36, 0.94)
+            );
+          border: 1px solid
+            rgba(52, 120, 255, 0.72);
           box-shadow:
-            0 0 25px
-              rgba(76, 61, 255, 0.2),
-            inset 0 0 25px
-              rgba(0, 185, 255, 0.05);
+            0 0 16px
+              rgba(77, 60, 255, 0.25),
+            inset 0 0 24px
+              rgba(67, 41, 170, 0.11);
           backdrop-filter: blur(20px);
         }
 
-        .hidden-file-input {
-          display: none;
-        }
-
         .composer textarea {
-          flex: 1;
           min-width: 0;
-          min-height: 44px;
+          flex: 1;
+          height: 44px;
           max-height: 110px;
           resize: none;
-          outline: none;
           border: 0;
+          outline: 0;
           background: transparent;
           color: white;
-          padding: 9px;
+          padding: 9px 4px;
           text-align: right;
-          font-family: inherit;
+          direction: rtl;
+          line-height: 1.65;
           font-size: 14px;
-          line-height: 1.6;
-          font-weight: 500;
         }
 
         .composer textarea::placeholder {
           color:
-            rgba(173, 183, 230, 0.72);
+            rgba(194, 202, 239, 0.55);
         }
 
-        /* =========================
-           UPLOAD BUTTON
-        ========================= */
+        .composer textarea:disabled {
+          opacity: 0.65;
+        }
 
         .upload {
           position: relative;
+          width: 36px;
+          height: 36px;
+          flex: 0 0 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 11px;
+          border: 1px solid
+            rgba(137, 75, 255, 0.7);
+          background:
+            rgba(74, 35, 141, 0.25);
+          color: #d8ccff;
+          cursor: pointer;
+          box-shadow:
+            inset 0 0 15px
+              rgba(142, 71, 255, 0.1);
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .upload:hover {
+          transform: translateY(-1px);
+          box-shadow:
+            0 0 15px
+              rgba(151, 72, 255, 0.35);
+        }
+
+        .upload:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .upload-icon {
+          width: 19px;
+          height: 19px;
+        }
+
+        .upload-tooltip {
+          position: absolute;
+          bottom: calc(100% + 9px);
+          right: 50%;
+          transform:
+            translateX(50%)
+            translateY(4px);
+          padding: 5px 8px;
+          border-radius: 7px;
+          background: rgba(8, 9, 26, 0.95);
+          border: 1px solid
+            rgba(125, 79, 255, 0.5);
+          color: white;
+          white-space: nowrap;
+          font-size: 9px;
+          opacity: 0;
+          pointer-events: none;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .upload:hover .upload-tooltip {
+          opacity: 1;
+          transform:
+            translateX(50%)
+            translateY(0);
+        }
+
+        .send {
+          position: relative;
+          isolation: isolate;
           width: 38px;
           height: 38px;
           flex: 0 0 38px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-              rgba(128, 104, 255, 0.62);
-          border-radius: 12px;
+          border-radius: 50%;
+          border: 1px solid
+            rgba(202, 137, 255, 0.8);
           background:
-            linear-gradient(
-              145deg,
-              rgba(88, 53, 181, 0.34),
-              rgba(16, 47, 92, 0.42)
+            radial-gradient(
+              circle at 32% 25%,
+              rgba(173, 108, 255, 0.8),
+              rgba(57, 22, 119, 0.82)
+                52%,
+              rgba(7, 12, 50, 0.95)
+                100%
             );
-          color:
-            rgba(197, 184, 255, 0.9);
+          color: white;
           cursor: pointer;
           box-shadow:
-            0 0 12px
-              rgba(110, 70, 255, 0.14),
-            inset 0 0 14px
-              rgba(0, 202, 255, 0.045);
-          backdrop-filter: blur(12px);
-          transition:
-            transform 0.2s ease,
-            color 0.2s ease,
-            border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .upload::before {
-          content: "";
-          position: absolute;
-          inset: -2px;
-          border-radius: 14px;
-          border:
-            1px solid
-              rgba(0, 218, 255, 0.0);
-          transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-          pointer-events: none;
-        }
-
-        .upload:hover {
-          transform:
-            translateY(-2px)
-            scale(1.035);
-          color: white;
-          border-color:
-            rgba(178, 104, 255, 0.95);
-          background:
-            linear-gradient(
-              145deg,
-              rgba(112, 57, 205, 0.5),
-              rgba(17, 65, 111, 0.48)
-            );
-          box-shadow:
-            0 0 10px
-              rgba(163, 82, 255, 0.38),
-            0 0 22px
-              rgba(0, 202, 255, 0.12),
-            inset 0 0 15px
-              rgba(170, 87, 255, 0.1);
-        }
-
-        .upload:hover::before {
-          border-color:
-            rgba(0, 215, 255, 0.32);
-          box-shadow:
-            0 0 10px
-              rgba(0, 215, 255, 0.14);
-        }
-
-        .upload:active {
-          transform: scale(0.93);
-        }
-
-        .upload:focus-visible {
-          outline:
-            2px solid
-              rgba(40, 219, 255, 0.9);
-          outline-offset: 3px;
-        }
-
-        .upload:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .upload-icon {
-          position: relative;
-          z-index: 2;
-          width: 20px;
-          height: 20px;
-          filter:
-            drop-shadow(
-              0 0 4px
-                rgba(183, 102, 255, 0.55)
-            )
-            drop-shadow(
-              0 0 9px
-                rgba(28, 224, 255, 0.38)
-            );
-          transform: translateX(1px);
-          transition:
-            transform 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .upload:hover .upload-icon {
-          transform:
-            rotate(-4deg)
-            scale(1.08);
-          filter:
-            drop-shadow(
-              0 0 5px
-                rgba(208, 122, 255, 0.85)
-            )
-            drop-shadow(
-              0 0 10px
-                rgba(0, 216, 255, 0.32)
-            );
-        }
-
-        .upload-active {
-          color: #d9c7ff;
-          border-color:
-            rgba(185, 100, 255, 0.95);
-          background:
-            linear-gradient(
-              145deg,
-              rgba(116, 58, 215, 0.55),
-              rgba(17, 70, 118, 0.5)
-            );
-          box-shadow:
-            0 0 10px
-              rgba(174, 79, 255, 0.48),
+            0 0 9px
+              rgba(183, 83, 255, 0.7),
             0 0 24px
-              rgba(0, 214, 255, 0.16),
-            inset 0 0 18px
-              rgba(169, 76, 255, 0.12);
-        }
-
-        .upload-tooltip {
-          position: absolute;
-          right: 50%;
-          bottom: calc(100% + 10px);
-          transform:
-            translateX(50%)
-            translateY(4px);
-          padding: 6px 9px;
-          border-radius: 8px;
-          background:
-            rgba(12, 10, 30, 0.94);
-          border:
-            1px solid
-              rgba(137, 88, 255, 0.4);
-          color:
-            rgba(240, 237, 255, 0.92);
-          font-size: 9px;
-          font-weight: 700;
-          white-space: nowrap;
-          opacity: 0;
-          visibility: hidden;
-          pointer-events: none;
-          box-shadow:
-            0 0 15px
-              rgba(121, 68, 255, 0.16);
-          transition:
-            opacity 0.18s ease,
-            transform 0.18s ease;
-        }
-
-        .upload:hover .upload-tooltip {
-          opacity: 1;
-          visibility: visible;
-          transform:
-            translateX(50%)
-            translateY(0);
-        }
-
-        /* =========================
-           SEND BUTTON
-        ========================= */
-
-        .send {
-          position: relative;
-          width: 40px;
-          height: 34px;
-          flex: 0 0 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border:
-            1px solid
-              rgba(201, 127, 255, 0.95);
-          border-radius: 10px;
-          color: white;
-          background:
-            radial-gradient(
-              circle at 31% 24%,
-              rgba(255, 255, 255, 0.4),
-              transparent 22%
-            ),
-            radial-gradient(
-              circle at 34% 28%,
-              #c477ff 0%,
-              #883ff2 35%,
-              #4c35cf 67%,
-              #142d87 100%
-            );
-          box-shadow:
-            0 0 8px
-              rgba(190, 94, 255, 0.95),
-            0 0 18px
-              rgba(144, 63, 255, 0.75),
-            0 0 34px
-              rgba(0, 211, 255, 0.25),
+              rgba(96, 46, 255, 0.42),
             inset 0 1px 3px
-              rgba(255, 255, 255, 0.48),
-            inset 0 -8px 16px
-              rgba(10, 7, 55, 0.48);
-          cursor: pointer;
-          isolation: isolate;
+              rgba(255, 255, 255, 0.45);
           transition:
             transform 0.22s
               cubic-bezier(.2,.8,.2,1),
@@ -3240,36 +3087,43 @@ export default function ChatPage() {
             filter 0.22s ease;
         }
 
+        /*
+          نور چرخان دور دکمه ارسال
+        */
+
         .send::before {
           content: "";
           position: absolute;
-          inset: -4px;
-          border-radius: 13px;
+          inset: -3px;
+          z-index: -1;
+          border-radius: 50%;
           background:
             conic-gradient(
               from 0deg,
               transparent 0deg,
-              rgba(190, 91, 255, 0.95) 65deg,
-              rgba(35, 225, 255, 0.95) 145deg,
+              rgba(190, 91, 255, 0.95)
+                65deg,
+              rgba(35, 225, 255, 0.95)
+                145deg,
               transparent 215deg,
-              rgba(173, 76, 255, 0.9) 300deg,
+              rgba(173, 76, 255, 0.9)
+                300deg,
               transparent 360deg
             );
-          z-index: -1;
           filter: blur(1px);
           opacity: 0.8;
           animation:
-            sendRing 4s linear infinite;
+            sendRing 4s linear
+            infinite;
         }
 
         .send::after {
           content: "";
           position: absolute;
           inset: 2px;
-          border-radius: 8px;
-          border:
-            1px solid
-              rgba(255, 255, 255, 0.17);
+          border-radius: 50%;
+          border: 1px solid
+            rgba(255, 255, 255, 0.17);
           box-shadow:
             inset 0 0 10px
               rgba(255, 255, 255, 0.08),
@@ -3291,20 +3145,11 @@ export default function ChatPage() {
             0 0 48px
               rgba(0, 215, 255, 0.4),
             inset 0 1px 3px
-              rgba(255, 255, 255, 0.52),
-            inset 0 -8px 16px
-              rgba(13, 10, 62, 0.38);
+              rgba(255, 255, 255, 0.52);
         }
 
         .send:active {
           transform: scale(0.91);
-          box-shadow:
-            0 0 8px
-              rgba(177, 83, 255, 0.8),
-            0 0 18px
-              rgba(0, 208, 255, 0.25),
-            inset 0 4px 12px
-              rgba(11, 8, 48, 0.58);
         }
 
         .send:focus-visible {
@@ -3319,11 +3164,6 @@ export default function ChatPage() {
           cursor: not-allowed;
           transform: none;
           filter: grayscale(0.15);
-          box-shadow:
-            0 0 8px
-              rgba(126, 78, 190, 0.22),
-            inset 0 1px 2px
-              rgba(255, 255, 255, 0.15);
         }
 
         .send:disabled::before {
@@ -3334,8 +3174,8 @@ export default function ChatPage() {
         .send-icon {
           position: relative;
           z-index: 3;
-          width: 18px;
-          height: 18px;
+          width: 20px;
+          height: 20px;
           filter:
             drop-shadow(
               0 0 4px
@@ -3345,31 +3185,7 @@ export default function ChatPage() {
               0 0 9px
                 rgba(28, 224, 255, 0.38)
             );
-          transform: translateX(-1px);
-          transition:
-            transform 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .send:hover .send-icon {
-          transform:
-            translateX(-3px)
-            scale(1.07);
-          filter:
-            drop-shadow(
-              0 0 5px
-                rgba(255, 255, 255, 0.95)
-            )
-            drop-shadow(
-              0 0 13px
-                rgba(31, 225, 255, 0.58)
-            );
-        }
-
-        .send:active .send-icon {
-          transform:
-            translateX(-4px)
-            scale(0.94);
+          transform: none;
         }
 
         .stop-icon {
@@ -3378,41 +3194,23 @@ export default function ChatPage() {
           width: 15px;
           height: 15px;
           color: white;
-          filter:
-            drop-shadow(
-              0 0 4px
-                rgba(255, 255, 255, 0.75)
-            )
-            drop-shadow(
-              0 0 8px
-                rgba(28, 224, 255, 0.35)
-            );
         }
 
-        @keyframes sendRing {
-          from {
-            transform: rotate(0deg);
-          }
+        /*
+          چیدمان کادر تایپ (صفحه راست‌به‌چپ است):
+          ارسال = راست، نوشتن = وسط، عکس = چپ
+        */
 
-          to {
-            transform: rotate(360deg);
-          }
+        .send {
+          order: 1;
         }
 
-        @keyframes previewIn {
-          from {
-            opacity: 0;
-            transform:
-              translateY(6px)
-              scale(0.97);
-          }
+        .composer textarea {
+          order: 2;
+        }
 
-          to {
-            opacity: 1;
-            transform:
-              translateY(0)
-              scale(1);
-          }
+        .upload {
+          order: 3;
         }
 
         .footer {
@@ -3433,6 +3231,16 @@ export default function ChatPage() {
             rgba(166, 104, 255, 0.85);
         }
 
+        @keyframes sendRing {
+          from {
+            transform: rotate(0deg);
+          }
+
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         @keyframes wave {
           0%,
           100% {
@@ -3446,22 +3254,11 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes blink {
-          0%,
-          45% {
-            opacity: 1;
-          }
-
-          46%,
-          100% {
-            opacity: 0;
-          }
-        }
-
         @media (max-width: 500px) {
           .header {
             height: 72px;
-            padding: 16px 18px 0;
+            padding:
+              16px 18px 0;
           }
 
           .wordmark {
@@ -3546,7 +3343,8 @@ export default function ChatPage() {
           }
 
           .composer-zone {
-            padding: 7px 12px 10px;
+            padding:
+              7px 12px 10px;
           }
 
           .composer {
@@ -3556,15 +3354,15 @@ export default function ChatPage() {
           }
 
           .upload {
-            width: 36px;
-            height: 36px;
-            flex-basis: 36px;
-            border-radius: 11px;
+            width: 34px;
+            height: 34px;
+            flex-basis: 34px;
+            border-radius: 10px;
           }
 
           .upload-icon {
-            width: 19px;
-            height: 19px;
+            width: 18px;
+            height: 18px;
           }
 
           .upload-tooltip {
@@ -3572,14 +3370,14 @@ export default function ChatPage() {
           }
 
           .send {
-            width: 38px;
-            height: 32px;
-            flex-basis: 38px;
+            width: 36px;
+            height: 36px;
+            flex-basis: 36px;
           }
 
           .send-icon {
-            width: 17px;
-            height: 17px;
+            width: 19px;
+            height: 19px;
           }
 
           .stop-icon {
@@ -3597,66 +3395,26 @@ export default function ChatPage() {
 
           .message-wrapper {
             max-width: 92%;
-            min-width: 0;
           }
 
           .bubble {
-            max-width: 100%;
-            min-width: 0;
             font-size: 14px;
             line-height: 1.95;
             padding: 13px 14px;
           }
 
-          .code-block {
-            max-width: 100%;
-            margin: 12px 0;
-            border-radius: 12px;
-          }
-
-          .code-block pre {
-            max-width: 100%;
-            padding: 12px;
-          }
-
-          .code-block code {
-            font-size: 11.5px;
-          }
-
-          .code-copy {
-            font-size: 9px;
-          }
-
-          .heading-1 {
-            font-size: 19px;
-          }
-
-          .heading-2 {
-            font-size: 17px;
-          }
-
-          .heading-3 {
-            font-size: 16px;
-          }
-
-          .image-preview-wrap {
-            display: none;
-          }
-
-          .composer-image-thumb {
-            width: 38px;
-            height: 38px;
-            flex-basis: 38px;
+          .sent-image {
+            width: 64px;
+            height: 64px;
             border-radius: 10px;
-          }
-
-          .composer-image-remove {
-            width: 14px;
-            height: 14px;
+            margin-bottom: 8px;
           }
 
           .image-preview-card {
-            width: min(310px, 100%);
+            width: min(
+              310px,
+              100%
+            );
             min-height: 68px;
             padding: 6px 7px;
             border-radius: 15px;
