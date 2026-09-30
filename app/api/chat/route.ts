@@ -1,7 +1,5 @@
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
-
 type HistoryMessage = {
   role: "user" | "assistant";
   content: string;
@@ -83,11 +81,9 @@ function getBase64ByteSize(
         ? 1
         : 0;
 
-  return (
-    Math.floor(
-      (base64.length * 3) / 4
-    ) - padding
-  );
+  return Math.floor(
+    (base64.length * 3) / 4
+  ) - padding;
 }
 
 function validateImage(
@@ -163,15 +159,11 @@ function sanitizeHistory(
         item as Partial<HistoryMessage>;
 
       return (
-        (
-          candidate.role === "user" ||
-          candidate.role === "assistant"
-        ) &&
+        (candidate.role === "user" ||
+          candidate.role === "assistant") &&
         typeof candidate.content ===
           "string" &&
-        Boolean(
-          candidate.content.trim()
-        )
+        candidate.content.trim()
       );
     })
     .slice(-30)
@@ -251,8 +243,7 @@ function buildGeminiContents(
 
   if (!currentParts.length) {
     currentParts.push({
-      text:
-        "این تصویر را بررسی کن و توضیح بده.",
+      text: "این تصویر را بررسی کن و توضیح بده.",
     });
   }
 
@@ -276,22 +267,25 @@ function buildOpenRouterMessages(
     }));
 
   if (image) {
+    const content: any[] = [];
+
+    content.push({
+      type: "text",
+      text:
+        message.trim() ||
+        "این تصویر را بررسی کن و توضیح بده.",
+    });
+
+    content.push({
+      type: "image_url",
+      image_url: {
+        url: image,
+      },
+    });
+
     messages.push({
       role: "user",
-      content: [
-        {
-          type: "text",
-          text:
-            message.trim() ||
-            "این تصویر را بررسی کن و توضیح بده.",
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: image,
-          },
-        },
-      ],
+      content,
     });
   } else {
     messages.push({
@@ -412,22 +406,17 @@ async function streamGemini(
       async start(controller) {
         try {
           while (true) {
-            const {
-              value,
-              done,
-            } = await reader.read();
+            const { value, done } =
+              await reader.read();
 
-            if (done) {
-              break;
-            }
+            if (done) break;
 
-            buffer +=
-              decoder.decode(
-                value,
-                {
-                  stream: true,
-                }
-              );
+            const chunk =
+              decoder.decode(value, {
+                stream: true,
+              });
+
+            buffer += chunk;
 
             const lines =
               buffer.split("\n");
@@ -452,10 +441,7 @@ async function streamGemini(
                   .slice(5)
                   .trim();
 
-              if (
-                !data ||
-                data === "[DONE]"
-              ) {
+              if (!data) {
                 continue;
               }
 
@@ -470,9 +456,7 @@ async function streamGemini(
 
                 if (text) {
                   controller.enqueue(
-                    encoder.encode(
-                      text
-                    )
+                    encoder.encode(text)
                   );
                 }
               } catch {
@@ -485,11 +469,7 @@ async function streamGemini(
             const line =
               buffer.trim();
 
-            if (
-              line.startsWith(
-                "data:"
-              )
-            ) {
+            if (line.startsWith("data:")) {
               const data =
                 line
                   .slice(5)
@@ -506,13 +486,11 @@ async function streamGemini(
 
                 if (text) {
                   controller.enqueue(
-                    encoder.encode(
-                      text
-                    )
+                    encoder.encode(text)
                   );
                 }
               } catch {
-                // Ignore malformed final JSON.
+                // Ignore incomplete final JSON.
               }
             }
           }
@@ -607,22 +585,17 @@ async function streamOpenRouter(
       async start(controller) {
         try {
           while (true) {
-            const {
+            const { value, done } =
+              await reader.read();
+
+            if (done) break;
+
+            buffer += decoder.decode(
               value,
-              done,
-            } = await reader.read();
-
-            if (done) {
-              break;
-            }
-
-            buffer +=
-              decoder.decode(
-                value,
-                {
-                  stream: true,
-                }
-              );
+              {
+                stream: true,
+              }
+            );
 
             const lines =
               buffer.split("\n");
@@ -668,9 +641,7 @@ async function streamOpenRouter(
                   text
                 ) {
                   controller.enqueue(
-                    encoder.encode(
-                      text
-                    )
+                    encoder.encode(text)
                   );
                 }
               } catch {
@@ -717,8 +688,7 @@ async function streamGroq(
             `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model:
-            GROQ_MODEL,
+          model: GROQ_MODEL,
           messages:
             buildGroqMessages(
               history,
@@ -765,22 +735,17 @@ async function streamGroq(
       async start(controller) {
         try {
           while (true) {
-            const {
+            const { value, done } =
+              await reader.read();
+
+            if (done) break;
+
+            buffer += decoder.decode(
               value,
-              done,
-            } = await reader.read();
-
-            if (done) {
-              break;
-            }
-
-            buffer +=
-              decoder.decode(
-                value,
-                {
-                  stream: true,
-                }
-              );
+              {
+                stream: true,
+              }
+            );
 
             const lines =
               buffer.split("\n");
@@ -826,9 +791,7 @@ async function streamGroq(
                   text
                 ) {
                   controller.enqueue(
-                    encoder.encode(
-                      text
-                    )
+                    encoder.encode(text)
                   );
                 }
               } catch {
@@ -912,7 +875,8 @@ export async function POST(
       process.env.GEMINI_API_KEY;
 
     const openRouterKey =
-      process.env.OPENROUTER_API_KEY;
+      process.env
+        .OPENROUTER_API_KEY;
 
     const groqKey =
       process.env.GROQ_API_KEY;
