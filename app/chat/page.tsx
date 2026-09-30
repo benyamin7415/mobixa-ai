@@ -46,23 +46,13 @@ function SendIcon() {
       aria-hidden="true"
       className="send-icon"
     >
-      <rect
-        x="3.5"
-        y="5"
-        width="17"
-        height="14"
-        rx="3"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-
       <path
-        d="M7 9h.01M10 9h.01M13 9h.01M16 9h.01M7 12h.01M10 12h.01M13 12h.01M16 12h.01M7 15h4M14 15h3"
+        d="M19 6v5a3 3 0 0 1-3 3H5M9.5 9.5 5 14l4.5 4.5"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -1616,33 +1606,13 @@ export default function ChatPage() {
               }
             />
 
-            <button
-              type="button"
-              className={`upload ${
-                imagePreview
-                  ? "upload-active"
-                  : ""
-              }`}
-              onClick={
-                openImagePicker
-              }
-              disabled={loading}
-              aria-label="آپلود تصویر"
-              title="آپلود تصویر"
-            >
-              <ImageUploadIcon />
-
-              <span className="upload-tooltip">
-                آپلود تصویر
-              </span>
-            </button>
-
             <textarea
               ref={textareaRef}
               value={input}
               disabled={loading}
               onChange={handleTextareaChange}
               onKeyDown={keyDown}
+              enterKeyHint="enter"
               rows={1}
               placeholder="پیامت رو برای موبیکسا بنویس..."
             />
@@ -1664,6 +1634,27 @@ export default function ChatPage() {
                 </button>
               </div>
             )}
+
+            <button
+              type="button"
+              className={`upload ${
+                imagePreview
+                  ? "upload-active"
+                  : ""
+              }`}
+              onClick={
+                openImagePicker
+              }
+              disabled={loading}
+              aria-label="آپلود تصویر"
+              title="آپلود تصویر"
+            >
+              <ImageUploadIcon />
+
+              <span className="upload-tooltip">
+                آپلود تصویر
+              </span>
+            </button>
 
             <button
               type="button"
@@ -3013,16 +3004,16 @@ export default function ChatPage() {
 
         .upload {
           position: relative;
-          width: 46px;
-          height: 46px;
-          flex: 0 0 46px;
+          width: 38px;
+          height: 38px;
+          flex: 0 0 38px;
           display: flex;
           align-items: center;
           justify-content: center;
           border:
             1px solid
               rgba(128, 104, 255, 0.62);
-          border-radius: 15px;
+          border-radius: 12px;
           background:
             linear-gradient(
               145deg,
@@ -3050,7 +3041,7 @@ export default function ChatPage() {
           content: "";
           position: absolute;
           inset: -2px;
-          border-radius: 17px;
+          border-radius: 14px;
           border:
             1px solid
               rgba(0, 218, 255, 0.0);
@@ -3110,8 +3101,8 @@ export default function ChatPage() {
         .upload-icon {
           position: relative;
           z-index: 2;
-          width: 24px;
-          height: 24px;
+          width: 20px;
+          height: 20px;
           filter:
             drop-shadow(
               0 0 4px
@@ -3205,16 +3196,16 @@ export default function ChatPage() {
 
         .send {
           position: relative;
-          width: 44px;
-          height: 44px;
-          flex: 0 0 44px;
+          width: 40px;
+          height: 34px;
+          flex: 0 0 40px;
           display: flex;
           align-items: center;
           justify-content: center;
           border:
             1px solid
               rgba(201, 127, 255, 0.95);
-          border-radius: 13px;
+          border-radius: 10px;
           color: white;
           background:
             radial-gradient(
@@ -3253,7 +3244,7 @@ export default function ChatPage() {
           content: "";
           position: absolute;
           inset: -4px;
-          border-radius: 15px;
+          border-radius: 13px;
           background:
             conic-gradient(
               from 0deg,
@@ -3275,7 +3266,7 @@ export default function ChatPage() {
           content: "";
           position: absolute;
           inset: 2px;
-          border-radius: 11px;
+          border-radius: 8px;
           border:
             1px solid
               rgba(255, 255, 255, 0.17);
@@ -3343,8 +3334,8 @@ export default function ChatPage() {
         .send-icon {
           position: relative;
           z-index: 3;
-          width: 21px;
-          height: 21px;
+          width: 18px;
+          height: 18px;
           filter:
             drop-shadow(
               0 0 4px
@@ -3354,7 +3345,7 @@ export default function ChatPage() {
               0 0 9px
                 rgba(28, 224, 255, 0.38)
             );
-          transform: translateX(1px);
+          transform: translateX(-1px);
           transition:
             transform 0.22s ease,
             filter 0.22s ease;
@@ -3362,7 +3353,7 @@ export default function ChatPage() {
 
         .send:hover .send-icon {
           transform:
-            translateX(3px)
+            translateX(-3px)
             scale(1.07);
           filter:
             drop-shadow(
@@ -3377,7 +3368,7 @@ export default function ChatPage() {
 
         .send:active .send-icon {
           transform:
-            translateX(4px)
+            translateX(-4px)
             scale(0.94);
         }
 
@@ -3565,15 +3556,15 @@ export default function ChatPage() {
           }
 
           .upload {
-            width: 43px;
-            height: 43px;
-            flex-basis: 43px;
-            border-radius: 13px;
+            width: 36px;
+            height: 36px;
+            flex-basis: 36px;
+            border-radius: 11px;
           }
 
           .upload-icon {
-            width: 22px;
-            height: 22px;
+            width: 19px;
+            height: 19px;
           }
 
           .upload-tooltip {
@@ -3581,14 +3572,14 @@ export default function ChatPage() {
           }
 
           .send {
-            width: 42px;
-            height: 42px;
-            flex-basis: 42px;
+            width: 38px;
+            height: 32px;
+            flex-basis: 38px;
           }
 
           .send-icon {
-            width: 20px;
-            height: 20px;
+            width: 17px;
+            height: 17px;
           }
 
           .stop-icon {
@@ -3728,151 +3719,6 @@ export default function ChatPage() {
           }
         }
       `}</style>
-    </main>
-  );
-}
-                            {message.content && (
-                              <div className="user-text">
-                                <InlineText
-                                  text={
-                                    message.content
-                                  }
-                                />
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      {message.role ===
-                        "assistant" &&
-                        message.content.trim() && (
-                          <div className="message-actions">
-                            <button
-                              type="button"
-                              className="message-action"
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(
-                                    message.content
-                                  );
-                                } catch {
-                                  // ignore
-                                }
-                              }}
-                              aria-label="کپی پاسخ"
-                            >
-                              <CopyIcon />
-                            </button>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="composer-shell">
-          <div className="composer">
-
-            {imagePreview && (
-              <div className="selected-image">
-                <img
-                  src={imagePreview}
-                  alt="تصویر انتخاب‌شده"
-                />
-
-                <button
-                  type="button"
-                  className="remove-image"
-                  onClick={
-                    removeSelectedImage
-                  }
-                  aria-label="حذف تصویر"
-                >
-                  <CloseIcon />
-                </button>
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="image-button"
-              onClick={openImagePicker}
-              disabled={loading}
-              aria-label="انتخاب تصویر"
-            >
-              <ImageUploadIcon />
-            </button>
-
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              placeholder="پیامت رو بنویس..."
-              rows={1}
-              className="chat-input"
-              dir="rtl"
-              disabled={loading}
-            />
-
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleImageSelect}
-              hidden
-            />
-
-            <button
-              type="button"
-              className={
-                loading
-                  ? "send-button loading"
-                  : "send-button"
-              }
-              onClick={() => {
-                if (loading) {
-                  stopGeneration();
-                  return;
-                }
-
-                sendMessage();
-              }}
-              disabled={
-                !loading &&
-                !input.trim() &&
-                !selectedImage &&
-                !lastImageDataUrlRef.current
-              }
-              aria-label={
-                loading
-                  ? "توقف"
-                  : "ارسال پیام"
-              }
-            >
-              {loading ? (
-                <StopIcon />
-              ) : (
-                <SendIcon />
-              )}
-            </button>
-          </div>
-
-          <div className="composer-hint">
-            <span>
-              Enter برای رفتن به خط بعد
-            </span>
-
-            <span>
-              پاسخ‌ها ممکن است توسط هوش مصنوعی تولید شوند.
-            </span>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
