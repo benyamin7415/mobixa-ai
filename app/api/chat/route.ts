@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 
+export const runtime = "nodejs";
+
 type HistoryMessage = {
   role: "user" | "assistant";
   content: string;
+  image?: string | null;
 };
 
 type ChatRequest = {
@@ -20,17 +23,30 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 
 const GEMINI_MODEL = "gemini-3.6-flash";
+const OPENROUTER_MODEL = "google/gemini-3-flash-preview";
+const GROQ_MODEL = "qwen/qwen3.6-27b";
 
-const OPENROUTER_MODEL =
-  "google/gemini-3-flash-preview";
+const VISION_INSTRUCTION = `
+اگر تصویر وجود دارد، خودِ تصویر را واقعاً بررسی کن و آن را منبع اصلی پاسخ قرار بده.
 
-const GROQ_MODEL =
-  "qwen/qwen3.6-27b";
+تمام بخش‌های قابل مشاهده تصویر را با دقت بررسی کن؛
+متن، اعداد، اشیا، نمودارها، فرمول‌ها، نوشته‌های ریز و جزئیات مرتبط را بررسی کن.
 
-function jsonError(
-  message: string,
-  status: number
-) {
+اگر کاربر همراه تصویر متن یا سؤال فرستاده است:
+دقیقاً همان دستور کاربر را روی همان تصویر اجرا کن و موضوع را عوض نکن.
+
+اگر کاربر فقط تصویر فرستاده و هیچ متن یا سؤالی نداده است:
+خود تصویر را بررسی کن و بدون ساختن دستور اضافی از طرف کاربر، محتوای واقعی تصویر را تحلیل کن.
+
+اگر کاربر بعداً درباره تصویری که قبلاً در همین مکالمه فرستاده سؤال کرد:
+تصویر قبلی را از تاریخچه مکالمه در نظر بگیر و پاسخ را بر اساس همان تصویر بده.
+
+اگر بخشی از تصویر واقعاً قابل تشخیص نیست، صادقانه بگو قابل تشخیص نیست و حدس نزن.
+
+هرگز چیزی را که واقعاً در تصویر قابل مشاهده نیست به تصویر نسبت نده.
+`;
+
+function jsonError(message: string, status: number) {
   return new Response(
     JSON.stringify({
       error: message,
@@ -38,8 +54,7 @@ function jsonError(
     {
       status,
       headers: {
-        "Content-Type":
-          "application/json; charset=utf-8",
+        "Content-Type": "application/json; charset=utf-8",
       },
     }
   );
@@ -48,10 +63,9 @@ function jsonError(
 function getMimeTypeFromDataUrl(
   dataUrl: string
 ): string | null {
-  const match =
-    dataUrl.match(
-      /^data:(image\/(?:jpeg|png|webp));base64,/i
-    );
+  const match = dataUrl.match(
+    /^data:(image\/(?:jpeg|png|webp));base64,/i
+  );
 
   return match?.[1]?.toLowerCase() || null;
 }
@@ -59,16 +73,13 @@ function getMimeTypeFromDataUrl(
 function getBase64FromDataUrl(
   dataUrl: string
 ): string | null {
-  const commaIndex =
-    dataUrl.indexOf(",");
+  const commaIndex = dataUrl.indexOf(",");
 
   if (commaIndex === -1) {
     return null;
   }
 
-  return dataUrl.slice(
-    commaIndex + 1
-  );
+  return dataUrl.slice(commaIndex + 1);
 }
 
 function getBase64ByteSize(
@@ -81,9 +92,11 @@ function getBase64ByteSize(
         ? 1
         : 0;
 
-  return Math.floor(
-    (base64.length * 3) / 4
-  ) - padding;
+  return (
+    Math.floor(
+      (base64.length * 3) / 4
+    ) - padding
+  );
 }
 
 function validateImage(
@@ -127,7 +140,10 @@ function validateImage(
   const byteSize =
     getBase64ByteSize(base64);
 
-  if (byteSize > MAX_IMAGE_BYTES) {
+  if (
+    byteSize >
+    MAX_IMAGE_BYTES
+  ) {
     throw new Error(
       "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."
     );
@@ -158,12 +174,26 @@ function sanitizeHistory(
       const candidate =
         item as Partial<HistoryMessage>;
 
-      return (
-        (candidate.role === "user" ||
-          candidate.role === "assistant") &&
+      const hasText =
         typeof candidate.content ===
           "string" &&
-        candidate.content.trim()
+        Boolean(
+          candidate.content.trim()
+        );
+
+      const hasImage =
+        typeof candidate.image ===
+          "string" &&
+        candidate.image.startsWith(
+          "data:image/"
+        );
+
+      return (
+        (
+          candidate.role === "user" ||
+          candidate.role === "assistant"
+        ) &&
+        (hasText || hasImage)
       );
     })
     .slice(-30)
@@ -171,13 +201,42 @@ function sanitizeHistory(
       const candidate =
         item as HistoryMessage;
 
+      let image:
+        | string
+        | null = null;
+
+      if (
+        typeof candidate.image ===
+          "string" &&
+        candidate.image
+      ) {
+        try {
+          const checked =
+            validateImage(
+              candidate.image
+            );
+
+          if (checked) {
+            image =
+              candidate.image;
+          }
+        } catch {
+          image = null;
+        }
+      }
+
       return {
-        role: candidate.role,
+        role:
+          candidate.role,
         content:
-          candidate.content.slice(
-            0,
-            20000
-          ),
+          typeof candidate.content ===
+            "string"
+            ? candidate.content.slice(
+                0,
+                20000
+              )
+            : "",
+        image,
       };
     });
 }
@@ -186,8 +245,8 @@ function extractGeminiText(
   value: any
 ): string {
   const parts =
-    value?.candidates?.[0]?.content
-      ?.parts;
+    value?.candidates?.[0]
+      ?.content?.parts;
 
   if (!Array.isArray(parts)) {
     return "";
@@ -195,7 +254,8 @@ function extractGeminiText(
 
   return parts
     .map((part: any) =>
-      typeof part?.text === "string"
+      typeof part?.text ===
+        "string"
         ? part.text
         : ""
     )
@@ -205,27 +265,72 @@ function extractGeminiText(
 function buildGeminiContents(
   history: HistoryMessage[],
   message: string,
-  image: {
-    mimeType: string;
-    base64: string;
-  } | null
+  image:
+    | {
+        mimeType: string;
+        base64: string;
+      }
+    | null
 ) {
-  const contents: any[] =
-    history.map((item) => ({
-      role:
-        item.role === "assistant"
-          ? "model"
-          : "user",
-      parts: [
-        {
-          text: item.content,
-        },
-      ],
-    }));
+  const contents: any[] = [];
+
+  for (const item of history) {
+    const parts: any[] = [];
+
+    if (
+      item.content &&
+      item.content.trim()
+    ) {
+      parts.push({
+        text: item.content,
+      });
+    }
+
+    if (item.image) {
+      try {
+        const historyImage =
+          validateImage(
+            item.image
+          );
+
+        if (historyImage) {
+          parts.push({
+            inlineData: {
+              mimeType:
+                historyImage.mimeType,
+              data:
+                historyImage.base64,
+            },
+          });
+        }
+      } catch {
+        // Ignore invalid historical images.
+      }
+    }
+
+    if (parts.length) {
+      contents.push({
+        role:
+          item.role === "assistant"
+            ? "model"
+            : "user",
+        parts,
+      });
+    }
+  }
 
   const currentParts: any[] = [];
 
-  if (message.trim()) {
+  /*
+    مهم:
+    اگر کاربر فقط عکس فرستاده،
+    هیچ متن ساختگی به مدل اضافه نمی‌کنیم.
+  */
+
+  if (
+    message &&
+    message.trim()
+  ) {
     currentParts.push({
       text: message,
     });
@@ -236,22 +341,18 @@ function buildGeminiContents(
       inlineData: {
         mimeType:
           image.mimeType,
-        data: image.base64,
+        data:
+          image.base64,
       },
     });
   }
 
-  if (!currentParts.length) {
-    currentParts.push({
-      text:
-        "این تصویر را بررسی کن و دقیقاً بر اساس محتوای واقعی تصویر توضیح بده.",
+  if (currentParts.length) {
+    contents.push({
+      role: "user",
+      parts: currentParts,
     });
   }
-
-  contents.push({
-    role: "user",
-    parts: currentParts,
-  });
 
   return contents;
 }
@@ -261,36 +362,81 @@ function buildOpenRouterMessages(
   message: string,
   image: string | null
 ) {
-  const messages: any[] =
-    history.map((item) => ({
-      role: item.role,
-      content: item.content,
-    }));
+  const messages: any[] = [
+    {
+      role: "system",
+      content:
+        VISION_INSTRUCTION,
+    },
+  ];
+
+  for (const item of history) {
+    if (item.image) {
+      const content: any[] = [];
+
+      if (
+        item.content &&
+        item.content.trim()
+      ) {
+        content.push({
+          type: "text",
+          text: item.content,
+        });
+      }
+
+      content.push({
+        type: "image_url",
+        image_url: {
+          url: item.image,
+        },
+      });
+
+      messages.push({
+        role: item.role,
+        content,
+      });
+    } else if (
+      item.content &&
+      item.content.trim()
+    ) {
+      messages.push({
+        role: item.role,
+        content: item.content,
+      });
+    }
+  }
 
   if (image) {
-    messages.push({
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text:
-            message.trim() ||
-            "این تصویر را دقیقاً بررسی کن و فقط بر اساس محتوای واقعی تصویر پاسخ بده.",
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: image,
-          },
-        },
-      ],
+    const content: any[] = [];
+
+    if (
+      message &&
+      message.trim()
+    ) {
+      content.push({
+        type: "text",
+        text: message,
+      });
+    }
+
+    content.push({
+      type: "image_url",
+      image_url: {
+        url: image,
+      },
     });
-  } else {
+
     messages.push({
       role: "user",
-      content:
-        message ||
-        "لطفاً به این درخواست پاسخ بده.",
+      content,
+    });
+  } else if (
+    message &&
+    message.trim()
+  ) {
+    messages.push({
+      role: "user",
+      content: message,
     });
   }
 
@@ -302,36 +448,81 @@ function buildGroqMessages(
   message: string,
   image: string | null
 ) {
-  const messages: any[] =
-    history.map((item) => ({
-      role: item.role,
-      content: item.content,
-    }));
+  const messages: any[] = [
+    {
+      role: "system",
+      content:
+        VISION_INSTRUCTION,
+    },
+  ];
+
+  for (const item of history) {
+    if (item.image) {
+      const content: any[] = [];
+
+      if (
+        item.content &&
+        item.content.trim()
+      ) {
+        content.push({
+          type: "text",
+          text: item.content,
+        });
+      }
+
+      content.push({
+        type: "image_url",
+        image_url: {
+          url: item.image,
+        },
+      });
+
+      messages.push({
+        role: item.role,
+        content,
+      });
+    } else if (
+      item.content &&
+      item.content.trim()
+    ) {
+      messages.push({
+        role: item.role,
+        content: item.content,
+      });
+    }
+  }
 
   if (image) {
-    messages.push({
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text:
-            message.trim() ||
-            "این تصویر را دقیقاً بررسی کن و فقط بر اساس محتوای واقعی تصویر پاسخ بده.",
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: image,
-          },
-        },
-      ],
+    const content: any[] = [];
+
+    if (
+      message &&
+      message.trim()
+    ) {
+      content.push({
+        type: "text",
+        text: message,
+      });
+    }
+
+    content.push({
+      type: "image_url",
+      image_url: {
+        url: image,
+      },
     });
-  } else {
+
     messages.push({
       role: "user",
-      content:
-        message ||
-        "لطفاً به این درخواست پاسخ بده.",
+      content,
+    });
+  } else if (
+    message &&
+    message.trim()
+  ) {
+    messages.push({
+      role: "user",
+      content: message,
     });
   }
 
@@ -342,33 +533,48 @@ async function streamGemini(
   apiKey: string,
   history: HistoryMessage[],
   message: string,
-  image: {
-    mimeType: string;
-    base64: string;
-  } | null
+  image:
+    | {
+        mimeType: string;
+        base64: string;
+      }
+    | null
 ): Promise<Response> {
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`;
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${encodeURIComponent(
+      apiKey
+    )}`;
 
   const response =
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-      body: JSON.stringify({
-        contents:
-          buildGeminiContents(
-            history,
-            message,
-            image
-          ),
-        generationConfig: {
-          temperature: 0.7,
+    await fetch(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
         },
-      }),
-    });
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text:
+                  VISION_INSTRUCTION,
+              },
+            ],
+          },
+          contents:
+            buildGeminiContents(
+              history,
+              message,
+              image
+            ),
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
 
   if (!response.ok) {
     const errorBody =
@@ -400,7 +606,9 @@ async function streamGemini(
   let buffer = "";
 
   const stream =
-    new ReadableStream<Uint8Array>({
+    new ReadableStream<
+      Uint8Array
+    >({
       async start(controller) {
         try {
           while (true) {
@@ -427,7 +635,9 @@ async function streamGemini(
             buffer =
               lines.pop() || "";
 
-            for (const rawLine of lines) {
+            for (
+              const rawLine of lines
+            ) {
               const line =
                 rawLine.trim();
 
@@ -444,17 +654,17 @@ async function streamGemini(
                   .slice(5)
                   .trim();
 
-              if (!data) {
+              if (
+                !data ||
+                data === "[DONE]"
+              ) {
                 continue;
               }
 
               try {
-                const parsed =
-                  JSON.parse(data);
-
                 const text =
                   extractGeminiText(
-                    parsed
+                    JSON.parse(data)
                   );
 
                 if (text) {
@@ -465,65 +675,63 @@ async function streamGemini(
                   );
                 }
               } catch {
-                // Ignore incomplete SSE JSON.
+                // Ignore malformed/incomplete SSE chunks.
               }
             }
           }
 
-          if (buffer.trim()) {
-            const line =
-              buffer.trim();
+          const finalLine =
+            buffer.trim();
 
-            if (
-              line.startsWith(
-                "data:"
-              )
-            ) {
+          if (
+            finalLine.startsWith(
+              "data:"
+            )
+          ) {
+            try {
               const data =
-                line
+                finalLine
                   .slice(5)
                   .trim();
 
-              try {
-                const parsed =
-                  JSON.parse(data);
+              const text =
+                extractGeminiText(
+                  JSON.parse(data)
+                );
 
-                const text =
-                  extractGeminiText(
-                    parsed
-                  );
-
-                if (text) {
-                  controller.enqueue(
-                    encoder.encode(
-                      text
-                    )
-                  );
-                }
-              } catch {
-                // Ignore incomplete final JSON.
+              if (text) {
+                controller.enqueue(
+                  encoder.encode(text)
+                );
               }
+            } catch {
+              // Ignore malformed final chunk.
             }
           }
 
           controller.close();
         } catch (error) {
-          controller.error(error);
+          controller.error(
+            error
+          );
         }
       },
     });
 
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      "Content-Type":
-        "text/plain; charset=utf-8",
-      "Cache-Control":
-        "no-cache, no-transform",
-      "X-Accel-Buffering":
-        "no",
-    },
-  });
+  return new Response(
+    stream,
+    {
+      status: 200,
+      headers: {
+        "Content-Type":
+          "text/plain; charset=utf-8",
+        "Cache-Control":
+          "no-cache, no-transform",
+        "X-Accel-Buffering":
+          "no",
+      },
+    }
+  );
 }
 
 async function streamOpenRouter(
@@ -592,7 +800,9 @@ async function streamOpenRouter(
   let buffer = "";
 
   const stream =
-    new ReadableStream<Uint8Array>({
+    new ReadableStream<
+      Uint8Array
+    >({
       async start(controller) {
         try {
           while (true) {
@@ -619,7 +829,9 @@ async function streamOpenRouter(
             buffer =
               lines.pop() || "";
 
-            for (const rawLine of lines) {
+            for (
+              const rawLine of lines
+            ) {
               const line =
                 rawLine.trim();
 
@@ -670,22 +882,27 @@ async function streamOpenRouter(
 
           controller.close();
         } catch (error) {
-          controller.error(error);
+          controller.error(
+            error
+          );
         }
       },
     });
 
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      "Content-Type":
-        "text/plain; charset=utf-8",
-      "Cache-Control":
-        "no-cache, no-transform",
-      "X-Accel-Buffering":
-        "no",
-    },
-  });
+  return new Response(
+    stream,
+    {
+      status: 200,
+      headers: {
+        "Content-Type":
+          "text/plain; charset=utf-8",
+        "Cache-Control":
+          "no-cache, no-transform",
+        "X-Accel-Buffering":
+          "no",
+      },
+    }
+  );
 }
 
 async function streamGroq(
@@ -750,7 +967,9 @@ async function streamGroq(
   let buffer = "";
 
   const stream =
-    new ReadableStream<Uint8Array>({
+    new ReadableStream<
+      Uint8Array
+    >({
       async start(controller) {
         try {
           while (true) {
@@ -777,7 +996,9 @@ async function streamGroq(
             buffer =
               lines.pop() || "";
 
-            for (const rawLine of lines) {
+            for (
+              const rawLine of lines
+            ) {
               const line =
                 rawLine.trim();
 
@@ -828,22 +1049,27 @@ async function streamGroq(
 
           controller.close();
         } catch (error) {
-          controller.error(error);
+          controller.error(
+            error
+          );
         }
       },
     });
 
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      "Content-Type":
-        "text/plain; charset=utf-8",
-      "Cache-Control":
-        "no-cache, no-transform",
-      "X-Accel-Buffering":
-        "no",
-    },
-  });
+  return new Response(
+    stream,
+    {
+      status: 200,
+      headers: {
+        "Content-Type":
+          "text/plain; charset=utf-8",
+        "Cache-Control":
+          "no-cache, no-transform",
+        "X-Accel-Buffering":
+          "no",
+      },
+    }
+  );
 }
 
 export async function POST(
@@ -855,7 +1081,7 @@ export async function POST(
 
     const message =
       typeof body.message ===
-      "string"
+        "string"
         ? body.message.trim()
         : "";
 
@@ -872,13 +1098,10 @@ export async function POST(
           body.image
         );
     } catch (error) {
-      const errorMessage =
+      return jsonError(
         error instanceof Error
           ? error.message
-          : "تصویر نامعتبر است.";
-
-      return jsonError(
-        errorMessage,
+          : "تصویر نامعتبر است.",
         400
       );
     }
@@ -902,19 +1125,12 @@ export async function POST(
       process.env.GEMINI_API_KEY;
 
     const openRouterKey =
-      process.env
-        .OPENROUTER_API_KEY;
+      process.env.OPENROUTER_API_KEY;
 
     const groqKey =
       process.env.GROQ_API_KEY;
 
     const errors: string[] = [];
-
-    /*
-      =========================
-      1. GEMINI
-      =========================
-    */
 
     if (geminiKey) {
       try {
@@ -933,12 +1149,6 @@ export async function POST(
       }
     }
 
-    /*
-      =========================
-      2. OPENROUTER
-      =========================
-    */
-
     if (openRouterKey) {
       try {
         return await streamOpenRouter(
@@ -956,12 +1166,6 @@ export async function POST(
       }
     }
 
-    /*
-      =========================
-      3. GROQ
-      =========================
-    */
-
     if (groqKey) {
       try {
         return await streamGroq(
@@ -978,12 +1182,6 @@ export async function POST(
         );
       }
     }
-
-    /*
-      =========================
-      NO PROVIDER
-      =========================
-    */
 
     if (
       !geminiKey &&
