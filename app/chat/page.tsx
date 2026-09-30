@@ -4,10 +4,10 @@ import {
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-
 import { useRouter } from "next/navigation";
 
 type Message = {
@@ -17,18 +17,18 @@ type Message = {
   image?: string | null;
 };
 
-type ChatHistoryMessage = {
+type HistoryMessage = {
   role: "user" | "assistant";
   content: string;
 };
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
-const ALLOWED_IMAGE_TYPES = new Set([
+const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
-]);
+];
 
 /* =========================================================
    ICONS
@@ -36,10 +36,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 
 function BackIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M19 12H5M11 6l-6 6 6 6"
         fill="none"
@@ -108,10 +105,7 @@ function StopIcon() {
 
 function CopyIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect
         x="8"
         y="8"
@@ -136,10 +130,7 @@ function CopyIcon() {
 
 function CheckIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="m5 12 4 4L19 6"
         fill="none"
@@ -154,10 +145,7 @@ function CheckIcon() {
 
 function CreateIcon() {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <path
         d="m5 27 5.5-1.5L25 11l-4-4L6.5 21.5 5 27Z"
         fill="none"
@@ -179,10 +167,7 @@ function CreateIcon() {
 
 function LearnIcon() {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <path
         d="M4 7 16 3l12 4v18l-12 4-12-4V7Z"
         fill="none"
@@ -203,10 +188,7 @@ function LearnIcon() {
 
 function IdeaIcon() {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 32 32" aria-hidden="true">
       <path
         d="M10 23c-2-1.7-3-4.1-3-6.8C7 10.6 11 7 16 7s9 3.6 9 9.2c0 2.7-1 5.1-3 6.8-1.2 1-1.8 2.2-2 3.5H12c-.2-1.3-.8-2.5-2-3.5Z"
         fill="none"
@@ -280,10 +262,7 @@ function ImageUploadIcon() {
 
 function CloseIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="m7 7 10 10M17 7 7 17"
         fill="none"
@@ -311,7 +290,6 @@ function CodeBlock({
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(code);
-
       setCopied(true);
 
       window.setTimeout(() => {
@@ -325,9 +303,9 @@ function CodeBlock({
   return (
     <div className="code-block">
       <div className="code-header">
-        <div className="code-language">
+        <span className="code-language">
           {language || "CODE"}
-        </div>
+        </span>
 
         <button
           type="button"
@@ -410,193 +388,172 @@ function MessageContent({
 }: {
   content: string;
 }) {
-  const blocks: ReactNode[] = [];
+  if (!content) {
+    return null;
+  }
 
   const lines = content
     .replace(/\r/g, "")
     .split("\n");
+
+  const output: ReactNode[] = [];
 
   let textBuffer: string[] = [];
   let codeBuffer: string[] = [];
   let codeLanguage = "";
   let insideCode = false;
 
-  function flushText() {
-    if (!textBuffer.length) return;
+  const flushText = () => {
+    if (!textBuffer.length) {
+      return;
+    }
 
     const text = textBuffer.join("\n");
 
-    if (text.trim()) {
-      blocks.push(
-        <div
-          key={`text-${blocks.length}`}
-          className="message-text"
-        >
-          {text
-            .split("\n")
-            .map((line, index) => {
-              const trimmed =
-                line.trim();
-
-              if (
-                trimmed.startsWith(
-                  "### "
-                )
-              ) {
-                return (
-                  <h3
-                    key={index}
-                    className="message-heading heading-3"
-                  >
-                    <InlineText
-                      text={trimmed.slice(4)}
-                    />
-                  </h3>
-                );
-              }
-
-              if (
-                trimmed.startsWith(
-                  "## "
-                )
-              ) {
-                return (
-                  <h2
-                    key={index}
-                    className="message-heading heading-2"
-                  >
-                    <InlineText
-                      text={trimmed.slice(3)}
-                    />
-                  </h2>
-                );
-              }
-
-              if (
-                trimmed.startsWith(
-                  "# "
-                )
-              ) {
-                return (
-                  <h1
-                    key={index}
-                    className="message-heading heading-1"
-                  >
-                    <InlineText
-                      text={trimmed.slice(2)}
-                    />
-                  </h1>
-                );
-              }
-
-              if (
-                trimmed.startsWith("- ") ||
-                trimmed.startsWith("• ")
-              ) {
-                return (
-                  <div
-                    key={index}
-                    className="message-list-item"
-                  >
-                    <span className="list-dot">
-                      •
-                    </span>
-
-                    <span className="list-content">
-                      <InlineText
-                        text={trimmed.slice(2)}
-                      />
-                    </span>
-                  </div>
-                );
-              }
-
-              if (
-                /^\d+\.\s/.test(
-                  trimmed
-                )
-              ) {
-                const match =
-                  trimmed.match(
-                    /^(\d+)\.\s(.+)$/
-                  );
-
-                if (match) {
-                  return (
-                    <div
-                      key={index}
-                      className="message-list-item numbered"
-                    >
-                      <span className="list-number">
-                        {match[1]}.
-                      </span>
-
-                      <span className="list-content">
-                        <InlineText
-                          text={match[2]}
-                        />
-                      </span>
-                    </div>
-                  );
-                }
-              }
-
-              if (!trimmed) {
-                return (
-                  <div
-                    key={index}
-                    className="message-space"
-                  />
-                );
-              }
-
-              return (
-                <div
-                  key={index}
-                  className="message-line"
-                >
-                  <InlineText
-                    text={line}
-                  />
-                </div>
-              );
-            })}
-        </div>
-      );
+    if (!text.trim()) {
+      textBuffer = [];
+      return;
     }
 
-    textBuffer = [];
-  }
+    output.push(
+      <div
+        key={`text-${output.length}`}
+        className="message-text"
+      >
+        {text.split("\n").map((line, index) => {
+          const trimmed = line.trim();
 
-  function flushCode() {
-    if (!codeBuffer.length) return;
+          if (trimmed.startsWith("### ")) {
+            return (
+              <h3
+                key={index}
+                className="message-heading heading-3"
+              >
+                <InlineText
+                  text={trimmed.slice(4)}
+                />
+              </h3>
+            );
+          }
 
-    blocks.push(
-      <CodeBlock
-        key={`code-${blocks.length}`}
-        code={codeBuffer.join("\n")}
-        language={codeLanguage}
-      />
+          if (trimmed.startsWith("## ")) {
+            return (
+              <h2
+                key={index}
+                className="message-heading heading-2"
+              >
+                <InlineText
+                  text={trimmed.slice(3)}
+                />
+              </h2>
+            );
+          }
+
+          if (trimmed.startsWith("# ")) {
+            return (
+              <h1
+                key={index}
+                className="message-heading heading-1"
+              >
+                <InlineText
+                  text={trimmed.slice(2)}
+                />
+              </h1>
+            );
+          }
+
+          if (
+            trimmed.startsWith("- ") ||
+            trimmed.startsWith("• ")
+          ) {
+            return (
+              <div
+                key={index}
+                className="message-list-item"
+              >
+                <span className="list-dot">
+                  •
+                </span>
+
+                <span className="list-content">
+                  <InlineText
+                    text={trimmed.slice(2)}
+                  />
+                </span>
+              </div>
+            );
+          }
+
+          const numbered =
+            trimmed.match(
+              /^(\d+)\.\s(.+)$/
+            );
+
+          if (numbered) {
+            return (
+              <div
+                key={index}
+                className="message-list-item numbered"
+              >
+                <span className="list-number">
+                  {numbered[1]}.
+                </span>
+
+                <span className="list-content">
+                  <InlineText
+                    text={numbered[2]}
+                  />
+                </span>
+              </div>
+            );
+          }
+
+          if (!trimmed) {
+            return (
+              <div
+                key={index}
+                className="message-space"
+              />
+            );
+          }
+
+          return (
+            <div
+              key={index}
+              className="message-line"
+            >
+              <InlineText text={line} />
+            </div>
+          );
+        })}
+      </div>
     );
 
-    codeBuffer = [];
-    codeLanguage = "";
-  }
+    textBuffer = [];
+  };
 
   for (const line of lines) {
-    const fence = line.match(
-      /^```([\w#+.-]*)\s*$/
+    const match = line.match(
+      /^```(.*)$/
     );
 
-    if (fence) {
+    if (match) {
       if (!insideCode) {
         flushText();
-
         insideCode = true;
-        codeLanguage =
-          fence[1] || "";
+        codeLanguage = match[1].trim();
+        codeBuffer = [];
       } else {
-        flushCode();
+        output.push(
+          <CodeBlock
+            key={`code-${output.length}`}
+            code={codeBuffer.join("\n")}
+            language={codeLanguage}
+          />
+        );
+
+        codeBuffer = [];
+        codeLanguage = "";
         insideCode = false;
       }
 
@@ -611,66 +568,18 @@ function MessageContent({
   }
 
   if (insideCode) {
-    flushCode();
-  } else {
-    flushText();
+    output.push(
+      <CodeBlock
+        key={`code-${output.length}`}
+        code={codeBuffer.join("\n")}
+        language={codeLanguage}
+      />
+    );
   }
 
-  return (
-    <div className="rich-message">
-      {blocks}
-    </div>
-  );
-}
+  flushText();
 
-/* =========================================================
-   COPY MESSAGE
-========================================================= */
-
-function CopyMessageButton({
-  content,
-}: {
-  content: string;
-}) {
-  const [copied, setCopied] =
-    useState(false);
-
-  async function copyMessage() {
-    try {
-      await navigator.clipboard.writeText(
-        content
-      );
-
-      setCopied(true);
-
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      className="message-copy"
-      onClick={copyMessage}
-      aria-label="کپی پاسخ"
-    >
-      {copied ? (
-        <>
-          <CheckIcon />
-          <span>کپی شد</span>
-        </>
-      ) : (
-        <>
-          <CopyIcon />
-          <span>کپی</span>
-        </>
-      )}
-    </button>
-  );
+  return <>{output}</>;
 }
 
 /* =========================================================
@@ -690,15 +599,15 @@ function MobixaLogo() {
           <span className="m2" />
           <span className="m3" />
         </div>
-
-        <span className="hero-star hero-star-one">
-          ✦
-        </span>
-
-        <span className="hero-star hero-star-two">
-          ✦
-        </span>
       </div>
+
+      <span className="hero-star hero-star-one">
+        ✦
+      </span>
+
+      <span className="hero-star hero-star-two">
+        ✧
+      </span>
 
       <span className="logo-spark spark-a">
         ✦
@@ -709,7 +618,7 @@ function MobixaLogo() {
       </span>
 
       <span className="logo-spark spark-c">
-        ✦
+        ·
       </span>
     </div>
   );
@@ -725,10 +634,9 @@ function MobixaRobot() {
       <div className="robot-aura" />
 
       <svg
-        className="robot-svg"
         viewBox="0 0 240 240"
-        role="img"
-        aria-label="Mobixa AI robot"
+        className="robot-svg"
+        aria-hidden="true"
       >
         <defs>
           <linearGradient
@@ -740,12 +648,14 @@ function MobixaRobot() {
           >
             <stop
               offset="0%"
-              stopColor="#a975ff"
+              stopColor="#9d7cff"
             />
+
             <stop
               offset="45%"
               stopColor="#372a86"
             />
+
             <stop
               offset="100%"
               stopColor="#080a22"
@@ -763,10 +673,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#6950db"
             />
+
             <stop
               offset="50%"
               stopColor="#17164d"
             />
+
             <stop
               offset="100%"
               stopColor="#070918"
@@ -784,10 +696,12 @@ function MobixaRobot() {
               offset="0%"
               stopColor="#e3d4ff"
             />
+
             <stop
               offset="50%"
               stopColor="#8b5cf6"
             />
+
             <stop
               offset="100%"
               stopColor="#19d9ff"
@@ -980,6 +894,10 @@ function MobixaRobot() {
   );
 }
 
+/* =========================================================
+   HAND
+========================================================= */
+
 function Hand() {
   return (
     <span
@@ -988,46 +906,6 @@ function Hand() {
     >
       👋
     </span>
-  );
-}
-
-/* =========================================================
-   IMAGE HELPERS
-========================================================= */
-
-function fileToDataUrl(
-  file: File
-): Promise<string> {
-  return new Promise(
-    (resolve, reject) => {
-      const reader =
-        new FileReader();
-
-      reader.onload = () => {
-        if (
-          typeof reader.result ===
-          "string"
-        ) {
-          resolve(reader.result);
-        } else {
-          reject(
-            new Error(
-              "خواندن تصویر ناموفق بود."
-            )
-          );
-        }
-      };
-
-      reader.onerror = () => {
-        reject(
-          new Error(
-            "خواندن تصویر ناموفق بود."
-          )
-        );
-      };
-
-      reader.readAsDataURL(file);
-    }
   );
 }
 
@@ -1053,6 +931,15 @@ export default function ChatPage() {
   const [imagePreview, setImagePreview] =
     useState<string | null>(null);
 
+  /*
+    آخرین عکس واقعی که کاربر فرستاده.
+    این باعث می‌شود اگر کاربر اول عکس را بفرستد
+    و بعد در پیام بعدی سؤال کند، همان عکس دوباره
+    برای API ارسال شود.
+  */
+  const lastImageDataUrlRef =
+    useRef<string | null>(null);
+
   const textareaRef =
     useRef<HTMLTextAreaElement | null>(
       null
@@ -1064,14 +951,10 @@ export default function ChatPage() {
     );
 
   const scrollRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
+    useRef<HTMLDivElement | null>(null);
 
   const abortControllerRef =
-    useRef<AbortController | null>(
-      null
-    );
+    useRef<AbortController | null>(null);
 
   const previewUrlRef =
     useRef<string | null>(null);
@@ -1084,9 +967,7 @@ export default function ChatPage() {
     }
   }
 
-  function putSuggestion(
-    text: string
-  ) {
+  function putSuggestion(text: string) {
     setInput(text);
 
     requestAnimationFrame(() => {
@@ -1095,37 +976,38 @@ export default function ChatPage() {
   }
 
   function openImagePicker() {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     imageInputRef.current?.click();
   }
 
   function handleImageSelect(
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) {
     const file =
       event.target.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     if (
-      !ALLOWED_IMAGE_TYPES.has(
+      !ALLOWED_IMAGE_TYPES.includes(
         file.type
       )
     ) {
       event.target.value = "";
 
       window.alert(
-        "فقط تصاویر JPG، PNG و WEBP مجاز هستند."
+        "فقط تصاویر JPG، PNG و WEBP پشتیبانی می‌شوند."
       );
 
       return;
     }
 
-    if (
-      file.size >
-      MAX_IMAGE_BYTES
-    ) {
+    if (file.size > MAX_IMAGE_BYTES) {
       event.target.value = "";
 
       window.alert(
@@ -1176,81 +1058,247 @@ export default function ChatPage() {
     abortControllerRef.current?.abort();
   }
 
-  async function sendMessage(
-    custom?: string
-  ) {
-    const message = (
-      custom ?? input
-    ).trim();
+  async function fileToDataUrl(
+    file: File
+  ): Promise<string> {
+    const rawDataUrl =
+      await new Promise<string>(
+        (resolve, reject) => {
+          const reader =
+            new FileReader();
 
+          reader.onload = () => {
+            if (
+              typeof reader.result ===
+              "string"
+            ) {
+              resolve(reader.result);
+            } else {
+              reject(
+                new Error(
+                  "نتوانستم تصویر را آماده کنم."
+                )
+              );
+            }
+          };
+
+          reader.onerror = () => {
+            reject(
+              new Error(
+                "خواندن تصویر ناموفق بود."
+              )
+            );
+          };
+
+          reader.readAsDataURL(file);
+        }
+      );
+
+    /*
+      تصویر را قبل از ارسال کوچک می‌کنیم.
+      این کار برای موبایل و Cloudflare بهتر است
+      و احتمال خطای request بزرگ را کم می‌کند.
+    */
+
+    return await new Promise<string>(
+      (resolve) => {
+        const img = new Image();
+
+        img.onload = () => {
+          try {
+            const maxDimension = 2048;
+
+            const originalWidth =
+              img.naturalWidth ||
+              img.width;
+
+            const originalHeight =
+              img.naturalHeight ||
+              img.height;
+
+            const largest =
+              Math.max(
+                originalWidth,
+                originalHeight
+              );
+
+            const scale =
+              largest > maxDimension
+                ? maxDimension / largest
+                : 1;
+
+            const width =
+              Math.max(
+                1,
+                Math.round(
+                  originalWidth * scale
+                )
+              );
+
+            const height =
+              Math.max(
+                1,
+                Math.round(
+                  originalHeight * scale
+                )
+              );
+
+            const canvas =
+              document.createElement(
+                "canvas"
+              );
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const context =
+              canvas.getContext("2d");
+
+            if (!context) {
+              resolve(rawDataUrl);
+              return;
+            }
+
+            context.drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+            const compressed =
+              canvas.toDataURL(
+                "image/jpeg",
+                0.84
+              );
+
+            resolve(
+              compressed ||
+                rawDataUrl
+            );
+          } catch {
+            resolve(rawDataUrl);
+          }
+        };
+
+        img.onerror = () => {
+          resolve(rawDataUrl);
+        };
+
+        img.src = rawDataUrl;
+      }
+    );
+  }
+
+  async function sendMessage(
+    customMessage?: string
+  ) {
+    const message =
+      (
+        customMessage ??
+        input
+      ).trim();
+
+    /*
+      اگر نه متن داریم و نه عکس،
+      هیچ درخواستی ارسال نمی‌شود.
+    */
     if (
       !message &&
-      !selectedImage
+      !selectedImage &&
+      !lastImageDataUrlRef.current
     ) {
       return;
     }
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
-    const history: ChatHistoryMessage[] =
+    const imageFile =
+      selectedImage;
+
+    const imagePreviewForMessage =
+      imagePreview;
+
+    let imageDataUrl: string | null =
+      null;
+
+    try {
+      /*
+        اگر کاربر همین الان عکس انتخاب کرده،
+        همان عکس را ارسال کن.
+      */
+      if (imageFile) {
+        if (
+          imageFile.size >
+          MAX_IMAGE_BYTES
+        ) {
+          throw new Error(
+            "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."
+          );
+        }
+
+        if (
+          !ALLOWED_IMAGE_TYPES.includes(
+            imageFile.type
+          )
+        ) {
+          throw new Error(
+            "فقط تصاویر JPG، PNG و WEBP پشتیبانی می‌شوند."
+          );
+        }
+
+        imageDataUrl =
+          await fileToDataUrl(
+            imageFile
+          );
+
+        /*
+          این عکس برای سؤال بعدی هم نگه داشته می‌شود.
+        */
+        lastImageDataUrlRef.current =
+          imageDataUrl;
+      }
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "تصویر آماده ارسال نشد."
+      );
+
+      return;
+    }
+
+    /*
+      اگر این پیام فقط سؤال متنی درباره عکس قبلی است،
+      عکس قبلی را دوباره برای API بفرست.
+    */
+    const imageForRequest =
+      imageDataUrl ||
+      lastImageDataUrlRef.current ||
+      null;
+
+    /*
+      History فقط متن را نگه می‌دارد.
+      خود عکس جداگانه در image ارسال می‌شود.
+    */
+    const history: HistoryMessage[] =
       messages
         .filter(
           (item) =>
             item.content.trim()
         )
-        .slice(-30)
-        .map(
-          ({
-            role,
-            content,
-          }) => ({
-            role,
-            content,
-          })
-        );
-
-    let imageDataUrl:
-      | string
-      | null = null;
-
-    /*
-      تصویر را قبل از پاک کردن state
-      به Data URL تبدیل می‌کنیم.
-    */
-
-    if (selectedImage) {
-      try {
-        imageDataUrl =
-          await fileToDataUrl(
-            selectedImage
-          );
-      } catch {
-        window.alert(
-          "خواندن تصویر ناموفق بود. دوباره تلاش کن."
-        );
-
-        return;
-      }
-    }
-
-    let finalMessage =
-      message;
-
-    if (
-      !finalMessage &&
-      imageDataUrl
-    ) {
-      finalMessage =
-        "این تصویر را دقیق بررسی کن و فقط بر اساس محتوای واقعی تصویر پاسخ بده.";
-    }
-
-    /*
-      اگر تصویر وجود دارد،
-      اسم فایل را به متن اضافه نمی‌کنیم.
-    */
-
-    const userImage =
-      imageDataUrl;
+        .slice(-12)
+        .map((item) => ({
+          role: item.role,
+          content:
+            item.content.slice(
+              0,
+              20000
+            ),
+        }));
 
     setInput("");
 
@@ -1262,16 +1310,24 @@ export default function ChatPage() {
     const assistantId =
       crypto.randomUUID();
 
+    /*
+      نکته مهم:
+      اگر فقط عکس ارسال شده،
+      content خالی می‌ماند.
+      هیچ متن مصنوعی مثل
+      «این عکس را بررسی کن...»
+      در حباب کاربر نوشته نمی‌شود.
+    */
     setMessages((old) => [
       ...old,
-
       {
         id: userId,
         role: "user",
-        content: finalMessage,
-        image: userImage,
+        content: message,
+        image:
+          imageDataUrl ||
+          imagePreviewForMessage,
       },
-
       {
         id: assistantId,
         role: "assistant",
@@ -1293,23 +1349,21 @@ export default function ChatPage() {
           "/api/chat",
           {
             method: "POST",
-
             headers: {
               "Content-Type":
                 "application/json",
             },
-
             signal:
               controller.signal,
-
             body: JSON.stringify({
-              message:
-                finalMessage,
-
-              image:
-                imageDataUrl,
-
+              /*
+                اگر فقط عکس است، message خالی می‌رود.
+                Route خودش تصویر را تحلیل می‌کند.
+              */
+              message,
               history,
+              image:
+                imageForRequest,
             }),
           }
         );
@@ -1322,10 +1376,17 @@ export default function ChatPage() {
           const data =
             await response.json();
 
-          errorMessage =
-            data?.error ||
-            errorMessage;
-        } catch {}
+          if (
+            data &&
+            typeof data.error ===
+              "string"
+          ) {
+            errorMessage =
+              data.error;
+          }
+        } catch {
+          // پاسخ JSON نبود.
+        }
 
         throw new Error(
           errorMessage
@@ -1354,7 +1415,13 @@ export default function ChatPage() {
           done,
         } = await reader.read();
 
-        if (done) break;
+        if (done) {
+          break;
+        }
+
+        if (!value) {
+          continue;
+        }
 
         const chunk =
           decoder.decode(
@@ -1364,7 +1431,9 @@ export default function ChatPage() {
             }
           );
 
-        if (!chunk) continue;
+        if (!chunk) {
+          continue;
+        }
 
         assistantText += chunk;
 
@@ -1403,52 +1472,58 @@ export default function ChatPage() {
         );
       }
 
-      if (
-        !assistantText.trim()
-      ) {
-        throw new Error(
-          "پاسخی دریافت نشد."
+      /*
+        اگر سرویس بدون متن پاسخ داد،
+        حباب خالی باقی نماند.
+      */
+      if (!assistantText.trim()) {
+        setMessages((old) =>
+          old.map((item) =>
+            item.id ===
+            assistantId
+              ? {
+                  ...item,
+                  content:
+                    "پاسخی از هوش مصنوعی دریافت نشد.",
+                }
+              : item
+          )
         );
       }
     } catch (error) {
       if (
-        error instanceof Error &&
+        error instanceof DOMException &&
         error.name ===
           "AbortError"
       ) {
         return;
       }
 
-      const errorText =
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "خطایی رخ داد.";
+          : "در دریافت پاسخ مشکلی پیش آمد.";
 
       setMessages((old) =>
         old.map((item) =>
-          item.id === assistantId
+          item.id ===
+          assistantId
             ? {
                 ...item,
                 content:
-                  `⚠️ ${errorText}`,
+                  `⚠️ ${errorMessage}`,
               }
             : item
         )
       );
     } finally {
-      if (
-        abortControllerRef.current ===
-        controller
-      ) {
-        abortControllerRef.current =
-          null;
-      }
-
       setLoading(false);
+      abortControllerRef.current =
+        null;
     }
   }
 
-  function keyDown(
+  function handleKeyDown(
     event: KeyboardEvent<HTMLTextAreaElement>
   ) {
     if (
@@ -1458,14 +1533,15 @@ export default function ChatPage() {
       event.preventDefault();
 
       if (!loading) {
-        sendMessage();
+        void sendMessage();
       }
     }
   }
 
   useEffect(() => {
-    if (!scrollRef.current)
+    if (!scrollRef.current) {
       return;
+    }
 
     scrollRef.current.scrollTo({
       top:
@@ -1477,13 +1553,13 @@ export default function ChatPage() {
 
   useEffect(() => {
     return () => {
-      if (
-        previewUrlRef.current
-      ) {
+      if (previewUrlRef.current) {
         URL.revokeObjectURL(
           previewUrlRef.current
         );
       }
+
+      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -1541,10 +1617,7 @@ export default function ChatPage() {
 
               <div className="greeting">
                 <div className="hello">
-                  <span>
-                    سلام
-                  </span>
-
+                  <span>سلام</span>
                   <Hand />
                 </div>
 
@@ -1633,9 +1706,7 @@ export default function ChatPage() {
                     <IdeaIcon />
                   </div>
 
-                  <b>
-                    IDEA LAB
-                  </b>
+                  <b>IDEA LAB</b>
 
                   <span>
                     یه ایده خفن بساز
@@ -1646,74 +1717,80 @@ export default function ChatPage() {
           ) : (
             <div className="messages">
               {messages.map(
-                (message, index) => {
-                  const isLast =
-                    index ===
-                    messages.length - 1;
+                (message) => (
+                  <div
+                    key={message.id}
+                    className={
+                      message.role ===
+                      "user"
+                        ? "message user-message"
+                        : "message ai-message"
+                    }
+                  >
+                    <div className="message-wrapper">
+                      <div className="bubble">
+                        {message.role ===
+                        "assistant" ? (
+                          <MessageContent
+                            content={
+                              message.content
+                            }
+                          />
+                        ) : (
+                          <>
+                            /*
+                              عکس دقیقاً بالای متن
+                              و به صورت کوچک نمایش داده می‌شود.
+                            */
+                            {message.image && (
+                              <img
+                                src={
+                                  message.image
+                                }
+                                alt="تصویر ارسال‌شده"
+                                className="sent-image"
+                              />
+                            )}
 
-                  return (
-                    <div
-                      key={message.id}
-                      className={
-                        message.role ===
-                        "user"
-                          ? "message user-message"
-                          : "message ai-message"
-                      }
-                    >
-                      <div className="message-wrapper">
-                        <div className="bubble">
-                          {message.role ===
-                            "user" &&
-                            message.image && (
-                              <div className="sent-image-wrap">
-                                <img
-                                  src={
-                                    message.image
+                            {message.content && (
+                              <div className="user-text">
+                                <InlineText
+                                  text={
+                                    message.content
                                   }
-                                  alt="تصویر ارسال‌شده"
-                                  className="sent-image"
                                 />
                               </div>
                             )}
-
-                          {message.role ===
-                          "assistant" ? (
-                            <MessageContent
-                              content={
-                                message.content
-                              }
-                            />
-                          ) : (
-                            <div className="user-text">
-                              {message.content}
-                            </div>
-                          )}
-
-                          {message.role ===
-                            "assistant" &&
-                            loading &&
-                            isLast && (
-                              <span className="cursor">
-                                ▋
-                              </span>
-                            )}
-                        </div>
-
-                        {message.role ===
-                          "assistant" &&
-                          message.content.trim() &&
-                          !loading && (
-                            <CopyMessageButton
-                              content={
-                                message.content
-                              }
-                            />
-                          )}
+                          </>
+                        )}
                       </div>
+
+                      {message.role ===
+                        "assistant" &&
+                        message.content &&
+                        !message.content.startsWith(
+                          "⚠️"
+                        ) && (
+                          <button
+                            type="button"
+                            className="message-copy"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(
+                                  message.content
+                                );
+                              } catch {}
+                            }}
+                          >
+                            <CopyIcon />
+                            <span>
+                              کپی
+                            </span>
+                          </button>
+                        )}
                     </div>
-                  );
-                }
+                  </div>
+                )
               )}
             </div>
           )}
@@ -1731,11 +1808,12 @@ export default function ChatPage() {
 
                 <div className="image-preview-info">
                   <span>
-                    تصویر انتخاب شد
+                    تصویر آماده ارسال است
                   </span>
 
                   <small>
-                    آماده ارسال به موبیکسا
+                    می‌تونی بدون متن هم
+                    ارسالش کنی
                   </small>
                 </div>
 
@@ -1753,80 +1831,73 @@ export default function ChatPage() {
             </div>
           )}
 
-          <form
-            className="composer"
-            onSubmit={(event) => {
-              event.preventDefault();
-
-              if (!loading) {
-                sendMessage();
-              }
-            }}
-          >
+          <div className="composer">
             <input
               ref={imageInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              className="hidden-file-input"
               onChange={
                 handleImageSelect
               }
+              hidden
             />
 
             <button
               type="button"
-              className={`upload ${
-                imagePreview
-                  ? "upload-active"
-                  : ""
-              }`}
+              className="upload"
               onClick={
                 openImagePicker
               }
               disabled={loading}
-              aria-label="آپلود تصویر"
-              title="آپلود تصویر"
+              aria-label="انتخاب تصویر"
             >
               <ImageUploadIcon />
 
               <span className="upload-tooltip">
-                آپلود تصویر
+                ارسال تصویر
               </span>
             </button>
 
             <textarea
               ref={textareaRef}
               value={input}
-              disabled={loading}
               onChange={(event) =>
                 setInput(
                   event.target.value
                 )
               }
-              onKeyDown={keyDown}
+              onKeyDown={
+                handleKeyDown
+              }
+              disabled={loading}
               rows={1}
-              placeholder="پیامت رو برای موبیکسا بنویس..."
+              placeholder={
+                imagePreview
+                  ? "اگر می‌خوای درباره عکس چیزی بپرسی، بنویس..."
+                  : "پیامت رو برای موبیکسا بنویس..."
+              }
             />
 
             <button
               type="button"
               className="send"
-              disabled={
-                !input.trim() &&
-                !loading &&
-                !imagePreview
-              }
               onClick={() => {
                 if (loading) {
                   stopGeneration();
                 } else {
-                  sendMessage();
+                  void sendMessage();
                 }
               }}
+              disabled={
+                !loading &&
+                !input.trim() &&
+                !selectedImage &&
+                !lastImageDataUrlRef.current
+              }
               aria-label={
                 loading
-                  ? "توقف تولید پاسخ"
-                  : "ارسال پیام"
+                  ? "توقف"
+                  : "ارسال"
               }
             >
               {loading ? (
@@ -1835,48 +1906,67 @@ export default function ChatPage() {
                 <SendIcon />
               )}
             </button>
-          </form>
+          </div>
 
           <div className="footer">
             <span>
-              ✦ Mobixa AI
+              Mobixa AI ✦
             </span>
 
             <span>
-              ممکن است گاهی پاسخ نادرست
-              باشد.
+              ممکن است گاهی پاسخ نادرست باشد.
             </span>
           </div>
         </div>
       </section>
 
-      <style jsx>{`
+      <style jsx global>{`
         * {
           box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          min-height: 100%;
+          background: #03040d;
+        }
+
+        body {
+          overflow: hidden;
+          font-family:
+            Tahoma,
+            Arial,
+            sans-serif;
+        }
+
+        button,
+        textarea,
+        input {
+          font: inherit;
         }
 
         .mobixa {
           position: relative;
           width: 100%;
           height: 100svh;
+          min-height: 100svh;
           overflow: hidden;
+          color: white;
           background:
             radial-gradient(
-              circle at 15% 45%,
-              rgba(89, 21, 180, 0.35),
-              transparent 30%
+              circle at 75% 65%,
+              rgba(0, 84, 180, 0.22),
+              transparent 32%
             ),
             radial-gradient(
-              circle at 90% 75%,
-              rgba(0, 84, 190, 0.3),
-              transparent 34%
+              circle at 15% 65%,
+              rgba(102, 24, 255, 0.3),
+              transparent 35%
             ),
             #02030b;
-          color: white;
-          font-family:
-            Arial,
-            Tahoma,
-            sans-serif;
         }
 
         .background {
@@ -1886,140 +1976,148 @@ export default function ChatPage() {
           pointer-events: none;
         }
 
-        .purple-cloud {
+        .purple-cloud,
+        .blue-cloud {
           position: absolute;
           border-radius: 50%;
-          filter: blur(75px);
-          opacity: 0.4;
+          filter: blur(65px);
+          opacity: 0.45;
         }
 
         .cloud-one {
-          width: 330px;
-          height: 330px;
-          left: -190px;
-          top: 270px;
-          background: #681cff;
+          width: 320px;
+          height: 320px;
+          left: -140px;
+          top: 28%;
+          background: #5417d8;
         }
 
         .cloud-two {
-          width: 270px;
-          height: 270px;
-          left: 30%;
-          bottom: -160px;
-          background: #4f18d6;
+          width: 300px;
+          height: 300px;
+          right: -130px;
+          bottom: 5%;
+          background: #2511b5;
         }
 
         .cloud-three {
-          position: absolute;
-          width: 300px;
-          height: 300px;
-          right: -190px;
-          top: 500px;
-          border-radius: 50%;
-          background: #006cff;
-          filter: blur(90px);
-          opacity: 0.28;
+          width: 280px;
+          height: 280px;
+          right: -100px;
+          top: 42%;
+          background: #0058cf;
+          opacity: 0.22;
         }
 
         .neon-wave {
           position: absolute;
-          width: 850px;
-          height: 260px;
-          border: 1px solid
-            rgba(122, 77, 255, 0.35);
+          width: 130%;
+          height: 180px;
+          left: -15%;
           border-radius: 50%;
+          border-top: 1px solid
+            rgba(118, 92, 255, 0.45);
+          transform: rotate(-10deg);
+          filter:
+            drop-shadow(
+              0 0 8px
+                rgba(107, 61, 255, 0.3)
+            );
         }
 
         .wave-one {
-          left: -480px;
-          top: 550px;
-          transform: rotate(-22deg);
-          box-shadow:
-            0 0 14px
-              rgba(91, 58, 255, 0.3);
+          bottom: 17%;
         }
 
         .wave-two {
-          right: -500px;
-          top: 690px;
-          transform: rotate(25deg);
+          bottom: 3%;
+          transform: rotate(7deg);
           border-color:
-            rgba(0, 194, 255, 0.28);
+            rgba(0, 215, 255, 0.22);
+        }
+
+        .starfield {
+          position: absolute;
+          inset: 0;
+          color: rgba(170, 130, 255, 0.55);
+          font-size: 11px;
         }
 
         .starfield span {
           position: absolute;
-          color:
-            rgba(164, 140, 255, 0.7);
-          font-size: 10px;
+          text-shadow:
+            0 0 8px #8d52ff;
         }
 
         .starfield span:nth-child(1) {
-          top: 25%;
-          left: 12%;
+          top: 19%;
+          left: 11%;
         }
 
         .starfield span:nth-child(2) {
-          top: 40%;
-          right: 12%;
+          top: 34%;
+          right: 15%;
         }
 
         .starfield span:nth-child(3) {
-          top: 53%;
+          top: 55%;
           left: 8%;
         }
 
         .starfield span:nth-child(4) {
-          top: 65%;
+          top: 63%;
           right: 8%;
         }
 
         .starfield span:nth-child(5) {
-          top: 73%;
-          left: 15%;
+          top: 75%;
+          left: 20%;
         }
 
         .starfield span:nth-child(6) {
-          top: 83%;
-          right: 18%;
+          top: 48%;
+          right: 30%;
         }
 
         .starfield span:nth-child(7) {
-          top: 31%;
-          left: 47%;
+          top: 27%;
+          right: 38%;
         }
 
         .starfield span:nth-child(8) {
-          top: 58%;
-          right: 31%;
+          bottom: 13%;
+          right: 18%;
         }
 
         .header {
           position: relative;
           z-index: 10;
           width: 100%;
-          max-width: 1100px;
-          margin: 0 auto;
+          max-width: 900px;
           height: 82px;
-          padding: 20px 24px 0;
+          margin: 0 auto;
+          padding: 18px 24px 0;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
           direction: ltr;
         }
 
         .wordmark {
           direction: ltr;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding-top: 7px;
           font-size: 21px;
           font-weight: 900;
           letter-spacing: 5px;
           text-shadow:
-            0 0 15px
-              rgba(255, 255, 255, 0.18);
+            0 0 12px
+              rgba(255, 255, 255, 0.22);
         }
 
         .wordmark b {
-          margin-left: 6px;
           background:
             linear-gradient(
               90deg,
@@ -2027,6 +2125,7 @@ export default function ChatPage() {
               #20dfff
             );
           -webkit-background-clip: text;
+          background-clip: text;
           color: transparent;
         }
 
@@ -2034,13 +2133,13 @@ export default function ChatPage() {
           direction: rtl;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 7px;
           height: 44px;
-          padding: 0 16px;
+          padding: 0 17px;
           border-radius: 999px;
-          border:
-            1px solid
-              rgba(155, 73, 255, 0.95);
+          border: 1px solid
+            rgba(155, 73, 255, 0.95);
           background:
             rgba(55, 16, 111, 0.25);
           color: white;
@@ -2119,9 +2218,8 @@ export default function ChatPage() {
               rgba(3, 5, 25, 0.92)
                 76%
             );
-          border:
-            1px solid
-              rgba(132, 89, 255, 0.8);
+          border: 1px solid
+            rgba(132, 89, 255, 0.8);
           box-shadow:
             0 0 25px
               rgba(134, 63, 255, 0.75),
@@ -2141,9 +2239,6 @@ export default function ChatPage() {
           transform: rotate(-18deg);
           border-color:
             rgba(170, 79, 255, 0.8);
-          box-shadow:
-            0 0 12px
-              rgba(161, 74, 255, 0.4);
         }
 
         .orbit-b {
@@ -2152,9 +2247,6 @@ export default function ChatPage() {
           transform: rotate(46deg);
           border-color:
             rgba(0, 209, 255, 0.65);
-          box-shadow:
-            0 0 12px
-              rgba(0, 209, 255, 0.35);
         }
 
         .orbit-c {
@@ -2340,10 +2432,6 @@ export default function ChatPage() {
             drop-shadow(
               0 0 7px
                 rgba(180, 85, 255, 0.8)
-            )
-            drop-shadow(
-              0 0 13px
-                rgba(0, 214, 255, 0.3)
             );
           animation:
             wave 2.3s ease-in-out
@@ -2366,6 +2454,7 @@ export default function ChatPage() {
               #8d6dff
             );
           -webkit-background-clip: text;
+          background-clip: text;
           color: transparent;
         }
 
@@ -2377,6 +2466,7 @@ export default function ChatPage() {
               #19d8ff
             );
           -webkit-background-clip: text;
+          background-clip: text;
           color: transparent;
         }
 
@@ -2445,6 +2535,8 @@ export default function ChatPage() {
           color: white;
           background:
             rgba(20, 15, 60, 0.42);
+          border: 1px solid
+            rgba(105, 70, 255, 0.35);
           backdrop-filter: blur(15px);
           cursor: pointer;
           transition:
@@ -2454,6 +2546,9 @@ export default function ChatPage() {
 
         .card:hover {
           transform: translateY(-3px);
+          box-shadow:
+            0 0 20px
+              rgba(124, 63, 255, 0.28);
         }
 
         .card-icon {
@@ -2479,73 +2574,17 @@ export default function ChatPage() {
           white-space: nowrap;
         }
 
-        .create {
-          border:
-            1px solid
-              rgba(196, 73, 255, 0.8);
-          box-shadow:
-            0 0 20px
-              rgba(188, 64, 255, 0.18),
-            inset 0 0 22px
-              rgba(179, 60, 255, 0.08);
-        }
-
-        .create .card-icon,
-        .create b {
-          color: #cf70ff;
-        }
-
-        .learn {
-          border:
-            1px solid
-              rgba(0, 206, 255, 0.82);
-          box-shadow:
-            0 0 20px
-              rgba(0, 199, 255, 0.17),
-            inset 0 0 22px
-              rgba(0, 199, 255, 0.08);
-        }
-
-        .learn .card-icon,
-        .learn b {
-          color: #27dfff;
-        }
-
-        .idea {
-          border:
-            1px solid
-              rgba(165, 74, 255, 0.8);
-          box-shadow:
-            0 0 20px
-              rgba(147, 68, 255, 0.18),
-            inset 0 0 22px
-              rgba(147, 68, 255, 0.08);
-        }
-
-        .idea .card-icon,
-        .idea b {
-          color: #c06cff;
-        }
-
-        /* =================================================
-           MESSAGES
-        ================================================= */
-
         .messages {
-          width: 100%;
-          max-width: 750px;
-          margin: 0 auto;
-          padding: 28px 0;
+          padding-top: 25px;
+          padding-bottom: 20px;
           display: flex;
           flex-direction: column;
-          gap: 15px;
-          min-width: 0;
+          gap: 14px;
         }
 
         .message {
           display: flex;
           width: 100%;
-          min-width: 0;
         }
 
         .user-message {
@@ -2557,131 +2596,110 @@ export default function ChatPage() {
         }
 
         .message-wrapper {
-          width: auto;
-          max-width: 86%;
+          position: relative;
+          max-width: 82%;
           min-width: 0;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .ai-message .message-wrapper {
-          align-items: flex-end;
         }
 
         .bubble {
-          width: auto;
-          max-width: 100%;
-          min-width: 0;
+          position: relative;
+          border-radius: 22px;
           padding: 14px 17px;
-          border-radius: 19px;
           font-size: 15px;
-          line-height: 2;
-          font-weight: 500;
-          overflow: hidden;
+          line-height: 1.95;
           overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .user-message .bubble {
+          direction: rtl;
           background:
-            rgba(91, 35, 155, 0.35);
-          border:
-            1px solid
-              rgba(157, 78, 255, 0.55);
+            linear-gradient(
+              135deg,
+              rgba(94, 32, 165, 0.72),
+              rgba(39, 16, 80, 0.88)
+            );
+          border: 1px solid
+            rgba(159, 75, 255, 0.75);
+          box-shadow:
+            0 0 18px
+              rgba(126, 50, 255, 0.2),
+            inset 0 0 25px
+              rgba(185, 72, 255, 0.08);
         }
 
         .ai-message .bubble {
+          direction: rtl;
           background:
-            rgba(8, 39, 77, 0.5);
-          border:
-            1px solid
-              rgba(32, 196, 255, 0.4);
+            linear-gradient(
+              135deg,
+              rgba(7, 35, 78, 0.9),
+              rgba(8, 21, 50, 0.92)
+            );
+          border: 1px solid
+            rgba(0, 190, 255, 0.5);
           box-shadow:
-            0 4px 25px
-              rgba(0, 100, 255, 0.07);
-        }
-
-        .user-text {
-          min-width: 0;
-          max-width: 100%;
-          white-space: pre-wrap;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        /*
-          عکس ارسال‌شده توسط کاربر
-          کوچک و داخل همان bubble
-        */
-
-        .sent-image-wrap {
-          width: 100%;
-          display: flex;
-          justify-content: flex-start;
-          margin-bottom: 9px;
+            0 0 20px
+              rgba(0, 165, 255, 0.13),
+            inset 0 0 25px
+              rgba(0, 130, 255, 0.06);
         }
 
         .sent-image {
           display: block;
-          width: 92px;
-          height: 92px;
-          max-width: 92px;
-          max-height: 92px;
+          width: 74px;
+          height: 74px;
           object-fit: cover;
-          border-radius: 13px;
-          border:
-            1px solid
-              rgba(191, 119, 255, 0.72);
+          border-radius: 12px;
+          margin-bottom: 9px;
+          border: 1px solid
+            rgba(185, 110, 255, 0.8);
           box-shadow:
-            0 0 16px
-              rgba(140, 69, 255, 0.25),
-            inset 0 0 12px
-              rgba(0, 210, 255, 0.08);
+            0 0 12px
+              rgba(146, 64, 255, 0.28);
         }
 
-        .rich-message {
-          width: 100%;
-          min-width: 0;
-          max-width: 100%;
-          direction: rtl;
-          text-align: right;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+        .user-text {
+          white-space: pre-wrap;
+        }
+
+        .message-copy {
+          margin-top: 5px;
+          border: 0;
+          background: transparent;
+          color:
+            rgba(210, 220, 255, 0.65);
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 10px;
+          cursor: pointer;
+        }
+
+        .message-copy svg {
+          width: 18px;
+          height: 18px;
         }
 
         .message-text {
           width: 100%;
-          min-width: 0;
-          max-width: 100%;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .message-line {
-          min-height: 1.8em;
-          min-width: 0;
-          max-width: 100%;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+          min-height: 1.5em;
         }
 
         .message-space {
-          height: 8px;
+          height: 5px;
         }
 
         .message-heading {
-          max-width: 100%;
-          min-width: 0;
-          margin: 13px 0 8px;
+          margin:
+            4px 0 10px;
           line-height: 1.45;
-          font-weight: 850;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .heading-1 {
-          font-size: 21px;
+          font-size: 22px;
         }
 
         .heading-2 {
@@ -2692,208 +2710,120 @@ export default function ChatPage() {
           font-size: 17px;
         }
 
+        .message-list-item {
+          display: flex;
+          gap: 7px;
+          align-items: flex-start;
+          margin: 3px 0;
+        }
+
+        .list-dot {
+          color: #b16cff;
+          flex: 0 0 auto;
+        }
+
+        .list-number {
+          color: #72eaff;
+          min-width: 25px;
+        }
+
+        .list-content {
+          min-width: 0;
+        }
+
         .inline-bold {
-          font-weight: 850;
-          color: #ffffff;
+          font-weight: 900;
         }
 
         .inline-code {
           direction: ltr;
           unicode-bidi: plaintext;
           display: inline-block;
-          max-width: 100%;
-          padding: 1px 6px;
-          margin: 0 2px;
-          border-radius: 6px;
+          padding: 1px 5px;
+          border-radius: 5px;
           background:
-            rgba(7, 16, 38, 0.9);
-          border:
-            1px solid
-              rgba(90, 150, 255, 0.25);
-          color: #bdefff;
+            rgba(0, 0, 0, 0.32);
+          color: #8eefff;
           font-family:
-            "SFMono-Regular",
             Consolas,
             monospace;
-          font-size: 0.88em;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+          font-size: 0.92em;
         }
-
-        .message-list-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          margin: 4px 0;
-          padding-right: 4px;
-          min-width: 0;
-          max-width: 100%;
-        }
-
-        .list-content {
-          min-width: 0;
-          max-width: 100%;
-          flex: 1 1 auto;
-        }
-
-        .list-dot {
-          flex: 0 0 auto;
-          color: #a96cff;
-          font-size: 17px;
-          line-height: 1.7;
-        }
-
-        .list-number {
-          flex: 0 0 auto;
-          color: #9e75ff;
-          font-weight: 800;
-        }
-
-        /* =================================================
-           CODE
-        ================================================= */
 
         .code-block {
           direction: ltr;
           width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          margin: 15px 0;
-          border-radius: 14px;
+          margin: 12px 0;
           overflow: hidden;
-          background:
-            rgba(3, 7, 18, 0.96);
-          border:
-            1px solid
-              rgba(90, 130, 255, 0.3);
-          box-shadow:
-            0 8px 30px
-              rgba(0, 0, 0, 0.22);
+          border-radius: 13px;
+          background: #070a14;
+          border: 1px solid
+            rgba(104, 99, 255, 0.45);
         }
 
         .code-header {
-          min-height: 39px;
-          padding: 6px 8px 6px 12px;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          padding: 7px 9px;
           background:
-            rgba(13, 19, 39, 0.95);
-          border-bottom:
-            1px solid
-              rgba(90, 130, 255, 0.18);
+            rgba(92, 63, 170, 0.18);
+          border-bottom: 1px solid
+            rgba(115, 94, 220, 0.25);
         }
 
         .code-language {
-          direction: ltr;
-          color:
-            rgba(190, 201, 235, 0.72);
-          font-family:
-            "SFMono-Regular",
-            Consolas,
-            monospace;
-          font-size: 10px;
-          font-weight: 700;
+          color: #8cdbff;
+          font-size: 9px;
           text-transform: uppercase;
         }
 
         .code-copy {
-          display: flex;
+          display: inline-flex;
           align-items: center;
           gap: 5px;
-          min-height: 28px;
-          padding: 4px 8px;
           border: 0;
-          border-radius: 7px;
-          background:
-            rgba(90, 100, 150, 0.14);
-          color:
-            rgba(220, 228, 255, 0.82);
+          background: transparent;
+          color: #d9dcff;
+          font-size: 9px;
           cursor: pointer;
-          font-family: inherit;
-          font-size: 10px;
-          font-weight: 700;
         }
 
         .code-copy svg {
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
         }
 
         .code-block pre {
-          direction: ltr;
-          display: block;
-          width: 100%;
           margin: 0;
-          padding: 15px;
+          padding: 13px;
           overflow-x: auto;
-          text-align: left;
-          white-space: pre;
         }
 
         .code-block code {
-          color: #e9eeff;
+          color: #e6e8ff;
           font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
             Consolas,
+            "Courier New",
             monospace;
-          font-size: 12.5px;
-          line-height: 1.75;
+          font-size: 12px;
+          line-height: 1.65;
+          white-space: pre;
         }
-
-        /* =================================================
-           COPY
-        ================================================= */
-
-        .message-copy {
-          margin-top: 3px;
-          margin-left: 3px;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          min-height: 23px;
-          padding: 2px 5px;
-          border: 0;
-          border-radius: 7px;
-          background:
-            rgba(80, 100, 150, 0.09);
-          color:
-            rgba(174, 187, 225, 0.58);
-          cursor: pointer;
-          font-family: inherit;
-          font-size: 8px;
-          font-weight: 700;
-        }
-
-        .message-copy svg {
-          width: 11px;
-          height: 11px;
-        }
-
-        .cursor {
-          display: inline-block;
-          margin-right: 3px;
-          color: #a76bff;
-          animation:
-            blink 0.7s infinite;
-        }
-
-        /* =================================================
-           COMPOSER
-        ================================================= */
 
         .composer-zone {
           position: relative;
           z-index: 20;
-          flex: 0 0 auto;
           width: 100%;
-          padding: 8px 18px 12px;
+          padding:
+            7px 18px
+            10px;
           background:
             linear-gradient(
-              180deg,
-              transparent,
-              rgba(2, 3, 11, 0.25)
+              to top,
+              rgba(3, 4, 14, 0.96),
+              rgba(3, 4, 14, 0.68),
+              transparent
             );
         }
 
@@ -2902,45 +2832,38 @@ export default function ChatPage() {
           max-width: 760px;
           margin: 0 auto 8px;
           display: flex;
-          justify-content: flex-start;
+          justify-content: flex-end;
         }
 
         .image-preview-card {
-          position: relative;
-          width: 250px;
+          width: min(
+            330px,
+            100%
+          );
           min-height: 70px;
-          padding: 6px 8px;
           display: flex;
           align-items: center;
           gap: 9px;
-          border:
-            1px solid
-              rgba(154, 91, 255, 0.72);
+          padding: 7px 8px;
           border-radius: 16px;
           background:
-            linear-gradient(
-              135deg,
-              rgba(36, 18, 83, 0.82),
-              rgba(8, 29, 64, 0.76)
-            );
+            rgba(27, 14, 65, 0.84);
+          border: 1px solid
+            rgba(155, 74, 255, 0.65);
           box-shadow:
-            0 0 20px
-              rgba(139, 64, 255, 0.2);
-          backdrop-filter: blur(18px);
-          overflow: hidden;
-          animation:
-            previewIn 0.22s ease-out;
+            0 0 18px
+              rgba(114, 47, 255, 0.2);
+          backdrop-filter: blur(15px);
         }
 
         .image-preview {
-          width: 56px;
-          height: 56px;
-          flex: 0 0 56px;
+          width: 54px;
+          height: 54px;
+          flex: 0 0 54px;
           object-fit: cover;
-          border-radius: 11px;
-          border:
-            1px solid
-              rgba(128, 224, 255, 0.45);
+          border-radius: 10px;
+          border: 1px solid
+            rgba(143, 99, 255, 0.7);
         }
 
         .image-preview-info {
@@ -2952,170 +2875,153 @@ export default function ChatPage() {
         }
 
         .image-preview-info span {
-          color:
-            rgba(244, 242, 255, 0.95);
           font-size: 10px;
-          font-weight: 800;
+          color: white;
         }
 
         .image-preview-info small {
           color:
-            rgba(166, 224, 255, 0.7);
+            rgba(195, 203, 240, 0.7);
           font-size: 8px;
-          font-weight: 600;
         }
 
         .remove-image {
-          width: 28px;
-          height: 28px;
-          flex: 0 0 28px;
+          width: 29px;
+          height: 29px;
+          flex: 0 0 29px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-              rgba(255, 116, 205, 0.42);
           border-radius: 50%;
+          border: 1px solid
+            rgba(180, 91, 255, 0.55);
           background:
-            rgba(115, 31, 105, 0.25);
-          color:
-            rgba(255, 216, 248, 0.9);
+            rgba(92, 40, 145, 0.35);
+          color: white;
           cursor: pointer;
         }
 
         .remove-image svg {
-          width: 15px;
-          height: 15px;
+          width: 17px;
+          height: 17px;
         }
 
         .composer {
           width: 100%;
           max-width: 760px;
-          min-height: 64px;
+          min-height: 66px;
           margin: 0 auto;
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 7px 8px;
-          border-radius: 23px;
-          border:
-            1px solid
-              rgba(67, 119, 255, 0.75);
+          padding: 7px 7px 7px 9px;
+          border-radius: 25px;
           background:
-            rgba(9, 18, 49, 0.78);
+            linear-gradient(
+              135deg,
+              rgba(16, 20, 70, 0.93),
+              rgba(7, 10, 36, 0.94)
+            );
+          border: 1px solid
+            rgba(52, 120, 255, 0.72);
           box-shadow:
-            0 0 25px
-              rgba(76, 61, 255, 0.2),
-            inset 0 0 25px
-              rgba(0, 185, 255, 0.05);
+            0 0 16px
+              rgba(77, 60, 255, 0.25),
+            inset 0 0 24px
+              rgba(67, 41, 170, 0.11);
           backdrop-filter: blur(20px);
         }
 
-        .hidden-file-input {
-          display: none;
-        }
-
         .composer textarea {
-          flex: 1;
           min-width: 0;
-          min-height: 44px;
+          flex: 1;
+          height: 44px;
           max-height: 110px;
           resize: none;
-          outline: none;
           border: 0;
+          outline: 0;
           background: transparent;
           color: white;
-          padding: 9px;
+          padding: 9px 4px;
           text-align: right;
-          font-family: inherit;
+          direction: rtl;
+          line-height: 1.65;
           font-size: 14px;
-          line-height: 1.6;
-          font-weight: 500;
         }
 
         .composer textarea::placeholder {
           color:
-            rgba(173, 183, 230, 0.72);
+            rgba(194, 202, 239, 0.55);
+        }
+
+        .composer textarea:disabled {
+          opacity: 0.65;
         }
 
         .upload {
           position: relative;
-          width: 46px;
-          height: 46px;
-          flex: 0 0 46px;
+          width: 47px;
+          height: 47px;
+          flex: 0 0 47px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-              rgba(128, 104, 255, 0.62);
-          border-radius: 15px;
+          border-radius: 14px;
+          border: 1px solid
+            rgba(137, 75, 255, 0.7);
           background:
-            linear-gradient(
-              145deg,
-              rgba(88, 53, 181, 0.34),
-              rgba(16, 47, 92, 0.42)
-            );
-          color:
-            rgba(197, 184, 255, 0.9);
+            rgba(74, 35, 141, 0.25);
+          color: #d8ccff;
           cursor: pointer;
+          box-shadow:
+            inset 0 0 15px
+              rgba(142, 71, 255, 0.1);
           transition:
             transform 0.2s ease,
-            color 0.2s ease;
+            box-shadow 0.2s ease;
         }
 
         .upload:hover {
-          transform:
-            translateY(-2px)
-            scale(1.035);
-          color: white;
+          transform: translateY(-1px);
+          box-shadow:
+            0 0 15px
+              rgba(151, 72, 255, 0.35);
         }
 
         .upload:disabled {
-          opacity: 0.45;
+          opacity: 0.4;
           cursor: not-allowed;
-          transform: none;
         }
 
         .upload-icon {
-          width: 24px;
-          height: 24px;
-        }
-
-        .upload-active {
-          color: #d9c7ff;
-          border-color:
-            rgba(185, 100, 255, 0.95);
+          width: 25px;
+          height: 25px;
         }
 
         .upload-tooltip {
           position: absolute;
+          bottom: calc(100% + 9px);
           right: 50%;
-          bottom: calc(100% + 10px);
           transform:
             translateX(50%)
             translateY(4px);
-          padding: 6px 9px;
-          border-radius: 8px;
-          background:
-            rgba(12, 10, 30, 0.94);
-          color:
-            rgba(240, 237, 255, 0.92);
-          font-size: 9px;
-          font-weight: 700;
+          padding: 5px 8px;
+          border-radius: 7px;
+          background: rgba(8, 9, 26, 0.95);
+          border: 1px solid
+            rgba(125, 79, 255, 0.5);
+          color: white;
           white-space: nowrap;
+          font-size: 9px;
           opacity: 0;
-          visibility: hidden;
           pointer-events: none;
           transition:
-            opacity 0.18s ease,
-            transform 0.18s ease;
+            opacity 0.2s ease,
+            transform 0.2s ease;
         }
 
-        .upload:hover
-          .upload-tooltip {
+        .upload:hover .upload-tooltip {
           opacity: 1;
-          visibility: visible;
           transform:
             translateX(50%)
             translateY(0);
@@ -3123,41 +3029,83 @@ export default function ChatPage() {
 
         .send {
           position: relative;
+          isolation: isolate;
           width: 54px;
           height: 54px;
           flex: 0 0 54px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border:
-            1px solid
-              rgba(201, 127, 255, 0.95);
           border-radius: 50%;
-          color: white;
+          border: 1px solid
+            rgba(202, 137, 255, 0.8);
           background:
             radial-gradient(
-              circle at 31% 24%,
-              rgba(255, 255, 255, 0.4),
-              transparent 22%
-            ),
-            radial-gradient(
-              circle at 34% 28%,
-              #c477ff 0%,
-              #883ff2 35%,
-              #4c35cf 67%,
-              #142d87 100%
+              circle at 32% 25%,
+              rgba(173, 108, 255, 0.8),
+              rgba(57, 22, 119, 0.82)
+                52%,
+              rgba(7, 12, 50, 0.95)
+                100%
             );
-          box-shadow:
-            0 0 8px
-              rgba(190, 94, 255, 0.95),
-            0 0 18px
-              rgba(144, 63, 255, 0.75),
-            0 0 34px
-              rgba(0, 211, 255, 0.25);
+          color: white;
           cursor: pointer;
+          box-shadow:
+            0 0 9px
+              rgba(183, 83, 255, 0.7),
+            0 0 24px
+              rgba(96, 46, 255, 0.42),
+            inset 0 1px 3px
+              rgba(255, 255, 255, 0.45);
           transition:
-            transform 0.22s ease,
+            transform 0.22s
+              cubic-bezier(.2,.8,.2,1),
+            box-shadow 0.22s ease,
             filter 0.22s ease;
+        }
+
+        /*
+          نور چرخان دور دکمه ارسال
+        */
+        .send::before {
+          content: "";
+          position: absolute;
+          inset: -5px;
+          z-index: -1;
+          border-radius: 50%;
+          background:
+            conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              rgba(190, 91, 255, 0.95)
+                65deg,
+              rgba(35, 225, 255, 0.95)
+                145deg,
+              transparent 215deg,
+              rgba(173, 76, 255, 0.9)
+                300deg,
+              transparent 360deg
+            );
+          filter: blur(1px);
+          opacity: 0.8;
+          animation:
+            sendRing 4s linear
+            infinite;
+        }
+
+        .send::after {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          border-radius: 50%;
+          border: 1px solid
+            rgba(255, 255, 255, 0.17);
+          box-shadow:
+            inset 0 0 10px
+              rgba(255, 255, 255, 0.08),
+            inset 0 0 18px
+              rgba(0, 220, 255, 0.09);
+          pointer-events: none;
         }
 
         .send:hover {
@@ -3165,10 +3113,26 @@ export default function ChatPage() {
             translateY(-2px)
             scale(1.045);
           filter: brightness(1.12);
+          box-shadow:
+            0 0 10px
+              rgba(195, 103, 255, 1),
+            0 0 26px
+              rgba(157, 66, 255, 0.9),
+            0 0 48px
+              rgba(0, 215, 255, 0.4),
+            inset 0 1px 3px
+              rgba(255, 255, 255, 0.52);
         }
 
         .send:active {
           transform: scale(0.91);
+        }
+
+        .send:focus-visible {
+          outline:
+            2px solid
+              rgba(42, 222, 255, 0.9);
+          outline-offset: 4px;
         }
 
         .send:disabled {
@@ -3178,17 +3142,31 @@ export default function ChatPage() {
           filter: grayscale(0.15);
         }
 
+        .send:disabled::before {
+          animation: none;
+          opacity: 0.25;
+        }
+
         .send-icon {
+          position: relative;
+          z-index: 3;
           width: 25px;
           height: 25px;
           filter:
             drop-shadow(
               0 0 4px
                 rgba(255, 255, 255, 0.7)
+            )
+            drop-shadow(
+              0 0 9px
+                rgba(28, 224, 255, 0.38)
             );
+          transform: translateX(1px);
         }
 
         .stop-icon {
+          position: relative;
+          z-index: 3;
           width: 15px;
           height: 15px;
           color: white;
@@ -3212,6 +3190,16 @@ export default function ChatPage() {
             rgba(166, 104, 255, 0.85);
         }
 
+        @keyframes sendRing {
+          from {
+            transform: rotate(0deg);
+          }
+
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
         @keyframes wave {
           0%,
           100% {
@@ -3225,38 +3213,11 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes blink {
-          0%,
-          45% {
-            opacity: 1;
-          }
-
-          46%,
-          100% {
-            opacity: 0;
-          }
-        }
-
-        @keyframes previewIn {
-          from {
-            opacity: 0;
-            transform:
-              translateY(6px)
-              scale(0.97);
-          }
-
-          to {
-            opacity: 1;
-            transform:
-              translateY(0)
-              scale(1);
-          }
-        }
-
         @media (max-width: 500px) {
           .header {
             height: 72px;
-            padding: 16px 18px 0;
+            padding:
+              16px 18px 0;
           }
 
           .wordmark {
@@ -3341,7 +3302,8 @@ export default function ChatPage() {
           }
 
           .composer-zone {
-            padding: 7px 12px 10px;
+            padding:
+              7px 12px 10px;
           }
 
           .composer {
@@ -3401,65 +3363,41 @@ export default function ChatPage() {
           }
 
           .sent-image {
-            width: 82px;
-            height: 82px;
-            max-width: 82px;
-            max-height: 82px;
-            border-radius: 12px;
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            margin-bottom: 8px;
           }
 
           .image-preview-card {
-            width: 230px;
-            min-height: 66px;
+            width: min(
+              310px,
+              100%
+            );
+            min-height: 68px;
+            padding: 6px 7px;
+            border-radius: 15px;
           }
 
           .image-preview {
             width: 52px;
             height: 52px;
             flex-basis: 52px;
+            border-radius: 10px;
           }
 
           .image-preview-info span {
-            font-size: 9px;
+            font-size: 10px;
           }
 
           .image-preview-info small {
-            font-size: 7px;
+            font-size: 8px;
           }
 
           .remove-image {
             width: 27px;
             height: 27px;
             flex-basis: 27px;
-          }
-
-          .code-block {
-            margin: 12px 0;
-            border-radius: 12px;
-          }
-
-          .code-block pre {
-            padding: 12px;
-          }
-
-          .code-block code {
-            font-size: 11.5px;
-          }
-
-          .code-copy {
-            font-size: 9px;
-          }
-
-          .heading-1 {
-            font-size: 19px;
-          }
-
-          .heading-2 {
-            font-size: 17px;
-          }
-
-          .heading-3 {
-            font-size: 16px;
           }
         }
 
