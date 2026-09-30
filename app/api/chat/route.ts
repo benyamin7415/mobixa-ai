@@ -25,7 +25,7 @@ const OPENROUTER_MODEL =
   "google/gemini-3-flash-preview";
 
 const GROQ_MODEL =
-  "qwen/qwen3.6-27b";
+  "qwen/qwen3.8-27b";
 
 function jsonError(
   message: string,
@@ -40,18 +40,23 @@ function jsonError(
       headers: {
         "Content-Type":
           "application/json; charset=utf-8",
+        "Cache-Control":
+          "no-store",
       },
     }
   );
 }
 
+/* =========================================================
+   IMAGE HELPERS
+========================================================= */
+
 function getMimeTypeFromDataUrl(
   dataUrl: string
 ): string | null {
-  const match =
-    dataUrl.match(
-      /^data:(image\/(?:jpeg|png|webp));base64,/i
-    );
+  const match = dataUrl.match(
+    /^data:(image\/(?:jpeg|png|webp));base64,/i
+  );
 
   return match?.[1]?.toLowerCase() || null;
 }
@@ -139,6 +144,10 @@ function validateImage(
   };
 }
 
+/* =========================================================
+   HISTORY
+========================================================= */
+
 function sanitizeHistory(
   history: unknown
 ): HistoryMessage[] {
@@ -181,6 +190,10 @@ function sanitizeHistory(
       };
     });
 }
+
+/* =========================================================
+   GEMINI
+========================================================= */
 
 function extractGeminiText(
   value: any
@@ -225,13 +238,13 @@ function buildGeminiContents(
 
   const currentParts: any[] = [];
 
-  if (message.trim()) {
-    currentParts.push({
-      text: message,
-    });
-  }
-
   if (image) {
+    currentParts.push({
+      text:
+        message.trim() ||
+        "این تصویر را با دقت بررسی کن و فقط بر اساس محتوای واقعی همین تصویر پاسخ بده. اگر متن، مسئله، نمودار، جدول یا اطلاعاتی داخل تصویر وجود دارد، ابتدا همان موارد را از تصویر استخراج و سپس تحلیل کن. درباره چیزهایی که در تصویر وجود ندارند حدس نزن.",
+    });
+
     currentParts.push({
       inlineData: {
         mimeType:
@@ -239,11 +252,11 @@ function buildGeminiContents(
         data: image.base64,
       },
     });
-  }
-
-  if (!currentParts.length) {
+  } else {
     currentParts.push({
-      text: "این تصویر را بررسی کن و توضیح بده.",
+      text:
+        message ||
+        "لطفاً به این درخواست پاسخ بده.",
     });
   }
 
@@ -253,91 +266,6 @@ function buildGeminiContents(
   });
 
   return contents;
-}
-
-function buildOpenRouterMessages(
-  history: HistoryMessage[],
-  message: string,
-  image: string | null
-) {
-  const messages: any[] =
-    history.map((item) => ({
-      role: item.role,
-      content: item.content,
-    }));
-
-  if (image) {
-    const content: any[] = [];
-
-    content.push({
-      type: "text",
-      text:
-        message.trim() ||
-        "این تصویر را بررسی کن و توضیح بده.",
-    });
-
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: image,
-      },
-    });
-
-    messages.push({
-      role: "user",
-      content,
-    });
-  } else {
-    messages.push({
-      role: "user",
-      content:
-        message ||
-        "لطفاً به این درخواست پاسخ بده.",
-    });
-  }
-
-  return messages;
-}
-
-function buildGroqMessages(
-  history: HistoryMessage[],
-  message: string,
-  image: string | null
-) {
-  const messages: any[] =
-    history.map((item) => ({
-      role: item.role,
-      content: item.content,
-    }));
-
-  if (image) {
-    messages.push({
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text:
-            message.trim() ||
-            "این تصویر را بررسی کن و توضیح بده.",
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: image,
-          },
-        },
-      ],
-    });
-  } else {
-    messages.push({
-      role: "user",
-      content:
-        message ||
-        "لطفاً به این درخواست پاسخ بده.",
-    });
-  }
-
-  return messages;
 }
 
 async function streamGemini(
@@ -366,9 +294,6 @@ async function streamGemini(
             message,
             image
           ),
-        generationConfig: {
-          temperature: 0.7,
-        },
       }),
     });
 
@@ -379,7 +304,7 @@ async function streamGemini(
     throw new Error(
       `Gemini ${response.status}: ${errorBody.slice(
         0,
-        500
+        800
       )}`
     );
   }
@@ -406,17 +331,21 @@ async function streamGemini(
       async start(controller) {
         try {
           while (true) {
-            const { value, done } =
-              await reader.read();
+            const {
+              value,
+              done,
+            } = await reader.read();
 
-            if (done) break;
+            if (done) {
+              break;
+            }
 
-            const chunk =
-              decoder.decode(value, {
+            buffer += decoder.decode(
+              value,
+              {
                 stream: true,
-              });
-
-            buffer += chunk;
+              }
+            );
 
             const lines =
               buffer.split("\n");
@@ -424,7 +353,9 @@ async function streamGemini(
             buffer =
               lines.pop() || "";
 
-            for (const rawLine of lines) {
+            for (
+              const rawLine of lines
+            ) {
               const line =
                 rawLine.trim();
 
@@ -456,41 +387,13 @@ async function streamGemini(
 
                 if (text) {
                   controller.enqueue(
-                    encoder.encode(text)
+                    encoder.encode(
+                      text
+                    )
                   );
                 }
               } catch {
-                // Ignore malformed SSE chunks.
-              }
-            }
-          }
-
-          if (buffer.trim()) {
-            const line =
-              buffer.trim();
-
-            if (line.startsWith("data:")) {
-              const data =
-                line
-                  .slice(5)
-                  .trim();
-
-              try {
-                const parsed =
-                  JSON.parse(data);
-
-                const text =
-                  extractGeminiText(
-                    parsed
-                  );
-
-                if (text) {
-                  controller.enqueue(
-                    encoder.encode(text)
-                  );
-                }
-              } catch {
-                // Ignore incomplete final JSON.
+                // Ignore malformed/incomplete SSE data.
               }
             }
           }
@@ -515,6 +418,51 @@ async function streamGemini(
   });
 }
 
+/* =========================================================
+   OPENROUTER
+========================================================= */
+
+function buildOpenRouterMessages(
+  history: HistoryMessage[],
+  message: string,
+  image: string | null
+) {
+  const messages: any[] =
+    history.map((item) => ({
+      role: item.role,
+      content: item.content,
+    }));
+
+  if (image) {
+    messages.push({
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text:
+            message.trim() ||
+            "این تصویر را با دقت بررسی کن. فقط بر اساس محتوای واقعی همین تصویر پاسخ بده و چیزی را که در تصویر نیست حدس نزن.",
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: image,
+          },
+        },
+      ],
+    });
+  } else {
+    messages.push({
+      role: "user",
+      content:
+        message ||
+        "لطفاً به این درخواست پاسخ بده.",
+    });
+  }
+
+  return messages;
+}
+
 async function streamOpenRouter(
   apiKey: string,
   history: HistoryMessage[],
@@ -529,23 +477,30 @@ async function streamOpenRouter(
         headers: {
           "Content-Type":
             "application/json",
+
           Authorization:
             `Bearer ${apiKey}`,
+
           "HTTP-Referer":
             "https://mobixa-ai.benyaminkazemi3308.workers.dev",
+
           "X-Title":
             "MOBIXA AI",
         },
+
         body: JSON.stringify({
           model:
             OPENROUTER_MODEL,
+
           messages:
             buildOpenRouterMessages(
               history,
               message,
               image
             ),
+
           stream: true,
+
           temperature: 0.7,
         }),
       }
@@ -558,7 +513,7 @@ async function streamOpenRouter(
     throw new Error(
       `OpenRouter ${response.status}: ${errorBody.slice(
         0,
-        500
+        800
       )}`
     );
   }
@@ -585,10 +540,14 @@ async function streamOpenRouter(
       async start(controller) {
         try {
           while (true) {
-            const { value, done } =
-              await reader.read();
+            const {
+              value,
+              done,
+            } = await reader.read();
 
-            if (done) break;
+            if (done) {
+              break;
+            }
 
             buffer += decoder.decode(
               value,
@@ -603,7 +562,9 @@ async function streamOpenRouter(
             buffer =
               lines.pop() || "";
 
-            for (const rawLine of lines) {
+            for (
+              const rawLine of lines
+            ) {
               const line =
                 rawLine.trim();
 
@@ -641,11 +602,13 @@ async function streamOpenRouter(
                   text
                 ) {
                   controller.enqueue(
-                    encoder.encode(text)
+                    encoder.encode(
+                      text
+                    )
                   );
                 }
               } catch {
-                // Ignore malformed chunks.
+                // Ignore malformed SSE chunks.
               }
             }
           }
@@ -670,6 +633,51 @@ async function streamOpenRouter(
   });
 }
 
+/* =========================================================
+   GROQ
+========================================================= */
+
+function buildGroqMessages(
+  history: HistoryMessage[],
+  message: string,
+  image: string | null
+) {
+  const messages: any[] =
+    history.map((item) => ({
+      role: item.role,
+      content: item.content,
+    }));
+
+  if (image) {
+    messages.push({
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text:
+            message.trim() ||
+            "این تصویر را با دقت بررسی کن و فقط بر اساس محتوای واقعی تصویر پاسخ بده. اگر متن یا مسئله‌ای داخل تصویر است، ابتدا آن را بخوان و سپس تحلیل کن.",
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: image,
+          },
+        },
+      ],
+    });
+  } else {
+    messages.push({
+      role: "user",
+      content:
+        message ||
+        "لطفاً به این درخواست پاسخ بده.",
+    });
+  }
+
+  return messages;
+}
+
 async function streamGroq(
   apiKey: string,
   history: HistoryMessage[],
@@ -684,18 +692,24 @@ async function streamGroq(
         headers: {
           "Content-Type":
             "application/json",
+
           Authorization:
             `Bearer ${apiKey}`,
         },
+
         body: JSON.stringify({
-          model: GROQ_MODEL,
+          model:
+            GROQ_MODEL,
+
           messages:
             buildGroqMessages(
               history,
               message,
               image
             ),
+
           stream: true,
+
           temperature: 0.7,
         }),
       }
@@ -708,7 +722,7 @@ async function streamGroq(
     throw new Error(
       `Groq ${response.status}: ${errorBody.slice(
         0,
-        500
+        800
       )}`
     );
   }
@@ -735,10 +749,14 @@ async function streamGroq(
       async start(controller) {
         try {
           while (true) {
-            const { value, done } =
-              await reader.read();
+            const {
+              value,
+              done,
+            } = await reader.read();
 
-            if (done) break;
+            if (done) {
+              break;
+            }
 
             buffer += decoder.decode(
               value,
@@ -753,7 +771,9 @@ async function streamGroq(
             buffer =
               lines.pop() || "";
 
-            for (const rawLine of lines) {
+            for (
+              const rawLine of lines
+            ) {
               const line =
                 rawLine.trim();
 
@@ -791,11 +811,13 @@ async function streamGroq(
                   text
                 ) {
                   controller.enqueue(
-                    encoder.encode(text)
+                    encoder.encode(
+                      text
+                    )
                   );
                 }
               } catch {
-                // Ignore malformed chunks.
+                // Ignore malformed SSE chunks.
               }
             }
           }
@@ -819,6 +841,10 @@ async function streamGroq(
     },
   });
 }
+
+/* =========================================================
+   POST
+========================================================= */
 
 export async function POST(
   request: NextRequest
@@ -845,13 +871,10 @@ export async function POST(
         body.image
       );
     } catch (error) {
-      const errorMessage =
+      return jsonError(
         error instanceof Error
           ? error.message
-          : "تصویر نامعتبر است.";
-
-      return jsonError(
-        errorMessage,
+          : "تصویر نامعتبر است.",
         400
       );
     }
@@ -883,11 +906,9 @@ export async function POST(
 
     const errors: string[] = [];
 
-    /*
-      =========================
-      1. GEMINI
-      =========================
-    */
+    /* =====================================================
+       1. GEMINI
+    ===================================================== */
 
     if (geminiKey) {
       try {
@@ -903,14 +924,17 @@ export async function POST(
             ? error.message
             : "Gemini failed."
         );
+
+        console.error(
+          "Gemini failed:",
+          error
+        );
       }
     }
 
-    /*
-      =========================
-      2. OPENROUTER
-      =========================
-    */
+    /* =====================================================
+       2. OPENROUTER
+    ===================================================== */
 
     if (openRouterKey) {
       try {
@@ -926,14 +950,17 @@ export async function POST(
             ? error.message
             : "OpenRouter failed."
         );
+
+        console.error(
+          "OpenRouter failed:",
+          error
+        );
       }
     }
 
-    /*
-      =========================
-      3. GROQ
-      =========================
-    */
+    /* =====================================================
+       3. GROQ
+    ===================================================== */
 
     if (groqKey) {
       try {
@@ -949,14 +976,17 @@ export async function POST(
             ? error.message
             : "Groq failed."
         );
+
+        console.error(
+          "Groq failed:",
+          error
+        );
       }
     }
 
-    /*
-      =========================
-      NO PROVIDER
-      =========================
-    */
+    /* =====================================================
+       NO KEYS
+    ===================================================== */
 
     if (
       !geminiKey &&
