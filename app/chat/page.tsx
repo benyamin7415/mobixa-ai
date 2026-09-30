@@ -7,12 +7,14 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+
 import { useRouter } from "next/navigation";
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: string | null;
 };
 
 type ChatHistoryMessage = {
@@ -20,13 +22,24 @@ type ChatHistoryMessage = {
   content: string;
 };
 
-/* =========================
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+/* =========================================================
    ICONS
-========================= */
+========================================================= */
 
 function BackIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         d="M19 12H5M11 6l-6 6 6 6"
         fill="none"
@@ -95,7 +108,10 @@ function StopIcon() {
 
 function CopyIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <rect
         x="8"
         y="8"
@@ -120,7 +136,10 @@ function CopyIcon() {
 
 function CheckIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         d="m5 12 4 4L19 6"
         fill="none"
@@ -135,7 +154,10 @@ function CheckIcon() {
 
 function CreateIcon() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+    >
       <path
         d="m5 27 5.5-1.5L25 11l-4-4L6.5 21.5 5 27Z"
         fill="none"
@@ -157,7 +179,10 @@ function CreateIcon() {
 
 function LearnIcon() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+    >
       <path
         d="M4 7 16 3l12 4v18l-12 4-12-4V7Z"
         fill="none"
@@ -178,7 +203,10 @@ function LearnIcon() {
 
 function IdeaIcon() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+    >
       <path
         d="M10 23c-2-1.7-3-4.1-3-6.8C7 10.6 11 7 16 7s9 3.6 9 9.2c0 2.7-1 5.1-3 6.8-1.2 1-1.8 2.2-2 3.5H12c-.2-1.3-.8-2.5-2-3.5Z"
         fill="none"
@@ -204,10 +232,6 @@ function IdeaIcon() {
     </svg>
   );
 }
-
-/* =========================
-   IMAGE UPLOAD ICON
-========================= */
 
 function ImageUploadIcon() {
   return (
@@ -256,7 +280,10 @@ function ImageUploadIcon() {
 
 function CloseIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path
         d="m7 7 10 10M17 7 7 17"
         fill="none"
@@ -268,9 +295,9 @@ function CloseIcon() {
   );
 }
 
-/* =========================
-   MARKDOWN / MESSAGE RENDERER
-========================= */
+/* =========================================================
+   MARKDOWN
+========================================================= */
 
 function CodeBlock({
   code,
@@ -405,122 +432,135 @@ function MessageContent({
           key={`text-${blocks.length}`}
           className="message-text"
         >
-          {text.split("\n").map((line, index) => {
-            const trimmed = line.trim();
+          {text
+            .split("\n")
+            .map((line, index) => {
+              const trimmed =
+                line.trim();
 
-            if (
-              trimmed.startsWith("### ")
-            ) {
-              return (
-                <h3
-                  key={index}
-                  className="message-heading heading-3"
-                >
-                  <InlineText
-                    text={trimmed.slice(4)}
-                  />
-                </h3>
-              );
-            }
+              if (
+                trimmed.startsWith(
+                  "### "
+                )
+              ) {
+                return (
+                  <h3
+                    key={index}
+                    className="message-heading heading-3"
+                  >
+                    <InlineText
+                      text={trimmed.slice(4)}
+                    />
+                  </h3>
+                );
+              }
 
-            if (
-              trimmed.startsWith("## ")
-            ) {
-              return (
-                <h2
-                  key={index}
-                  className="message-heading heading-2"
-                >
-                  <InlineText
-                    text={trimmed.slice(3)}
-                  />
-                </h2>
-              );
-            }
+              if (
+                trimmed.startsWith(
+                  "## "
+                )
+              ) {
+                return (
+                  <h2
+                    key={index}
+                    className="message-heading heading-2"
+                  >
+                    <InlineText
+                      text={trimmed.slice(3)}
+                    />
+                  </h2>
+                );
+              }
 
-            if (
-              trimmed.startsWith("# ")
-            ) {
-              return (
-                <h1
-                  key={index}
-                  className="message-heading heading-1"
-                >
-                  <InlineText
-                    text={trimmed.slice(2)}
-                  />
-                </h1>
-              );
-            }
-
-            if (
-              trimmed.startsWith("- ") ||
-              trimmed.startsWith("• ")
-            ) {
-              return (
-                <div
-                  key={index}
-                  className="message-list-item"
-                >
-                  <span className="list-dot">
-                    •
-                  </span>
-
-                  <span className="list-content">
+              if (
+                trimmed.startsWith(
+                  "# "
+                )
+              ) {
+                return (
+                  <h1
+                    key={index}
+                    className="message-heading heading-1"
+                  >
                     <InlineText
                       text={trimmed.slice(2)}
                     />
-                  </span>
-                </div>
-              );
-            }
-
-            if (
-              /^\d+\.\s/.test(trimmed)
-            ) {
-              const match =
-                trimmed.match(
-                  /^(\d+)\.\s(.+)$/
+                  </h1>
                 );
+              }
 
-              if (match) {
+              if (
+                trimmed.startsWith("- ") ||
+                trimmed.startsWith("• ")
+              ) {
                 return (
                   <div
                     key={index}
-                    className="message-list-item numbered"
+                    className="message-list-item"
                   >
-                    <span className="list-number">
-                      {match[1]}.
+                    <span className="list-dot">
+                      •
                     </span>
 
                     <span className="list-content">
                       <InlineText
-                        text={match[2]}
+                        text={trimmed.slice(2)}
                       />
                     </span>
                   </div>
                 );
               }
-            }
 
-            if (!trimmed) {
+              if (
+                /^\d+\.\s/.test(
+                  trimmed
+                )
+              ) {
+                const match =
+                  trimmed.match(
+                    /^(\d+)\.\s(.+)$/
+                  );
+
+                if (match) {
+                  return (
+                    <div
+                      key={index}
+                      className="message-list-item numbered"
+                    >
+                      <span className="list-number">
+                        {match[1]}.
+                      </span>
+
+                      <span className="list-content">
+                        <InlineText
+                          text={match[2]}
+                        />
+                      </span>
+                    </div>
+                  );
+                }
+              }
+
+              if (!trimmed) {
+                return (
+                  <div
+                    key={index}
+                    className="message-space"
+                  />
+                );
+              }
+
               return (
                 <div
                   key={index}
-                  className="message-space"
-                />
+                  className="message-line"
+                >
+                  <InlineText
+                    text={line}
+                  />
+                </div>
               );
-            }
-
-            return (
-              <div
-                key={index}
-                className="message-line"
-              >
-                <InlineText text={line} />
-              </div>
-            );
-          })}
+            })}
         </div>
       );
     }
@@ -583,9 +623,9 @@ function MessageContent({
   );
 }
 
-/* =========================
-   COPY FULL MESSAGE
-========================= */
+/* =========================================================
+   COPY MESSAGE
+========================================================= */
 
 function CopyMessageButton({
   content,
@@ -633,9 +673,9 @@ function CopyMessageButton({
   );
 }
 
-/* =========================
-   MOBIXA LOGO
-========================= */
+/* =========================================================
+   LOGO
+========================================================= */
 
 function MobixaLogo() {
   return (
@@ -675,9 +715,9 @@ function MobixaLogo() {
   );
 }
 
-/* =========================
+/* =========================================================
    ROBOT
-========================= */
+========================================================= */
 
 function MobixaRobot() {
   return (
@@ -940,10 +980,6 @@ function MobixaRobot() {
   );
 }
 
-/* =========================
-   HAND
-========================= */
-
 function Hand() {
   return (
     <span
@@ -955,9 +991,49 @@ function Hand() {
   );
 }
 
-/* =========================
+/* =========================================================
+   IMAGE HELPERS
+========================================================= */
+
+function fileToDataUrl(
+  file: File
+): Promise<string> {
+  return new Promise(
+    (resolve, reject) => {
+      const reader =
+        new FileReader();
+
+      reader.onload = () => {
+        if (
+          typeof reader.result ===
+          "string"
+        ) {
+          resolve(reader.result);
+        } else {
+          reject(
+            new Error(
+              "خواندن تصویر ناموفق بود."
+            )
+          );
+        }
+      };
+
+      reader.onerror = () => {
+        reject(
+          new Error(
+            "خواندن تصویر ناموفق بود."
+          )
+        );
+      };
+
+      reader.readAsDataURL(file);
+    }
+  );
+}
+
+/* =========================================================
    PAGE
-========================= */
+========================================================= */
 
 export default function ChatPage() {
   const router = useRouter();
@@ -988,10 +1064,14 @@ export default function ChatPage() {
     );
 
   const scrollRef =
-    useRef<HTMLDivElement | null>(null);
+    useRef<HTMLDivElement | null>(
+      null
+    );
 
   const abortControllerRef =
-    useRef<AbortController | null>(null);
+    useRef<AbortController | null>(
+      null
+    );
 
   const previewUrlRef =
     useRef<string | null>(null);
@@ -1004,7 +1084,9 @@ export default function ChatPage() {
     }
   }
 
-  function putSuggestion(text: string) {
+  function putSuggestion(
+    text: string
+  ) {
     setInput(text);
 
     requestAnimationFrame(() => {
@@ -1026,13 +1108,30 @@ export default function ChatPage() {
 
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (
+      !ALLOWED_IMAGE_TYPES.has(
+        file.type
+      )
+    ) {
       event.target.value = "";
+
+      window.alert(
+        "فقط تصاویر JPG، PNG و WEBP مجاز هستند."
+      );
+
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (
+      file.size >
+      MAX_IMAGE_BYTES
+    ) {
       event.target.value = "";
+
+      window.alert(
+        "حجم تصویر نباید بیشتر از ۵ مگابایت باشد."
+      );
+
       return;
     }
 
@@ -1077,16 +1176,12 @@ export default function ChatPage() {
     abortControllerRef.current?.abort();
   }
 
-  async function sendMessage(custom?: string) {
+  async function sendMessage(
+    custom?: string
+  ) {
     const message = (
       custom ?? input
     ).trim();
-
-    /*
-      در این نسخه تصویر در UI انتخاب می‌شود.
-      اتصال واقعی تصویر به API را در مرحله
-      بعدی به /api/chat اضافه می‌کنیم.
-    */
 
     if (
       !message &&
@@ -1114,20 +1209,48 @@ export default function ChatPage() {
           })
         );
 
-    let finalMessage = message;
+    let imageDataUrl:
+      | string
+      | null = null;
+
+    /*
+      تصویر را قبل از پاک کردن state
+      به Data URL تبدیل می‌کنیم.
+    */
+
+    if (selectedImage) {
+      try {
+        imageDataUrl =
+          await fileToDataUrl(
+            selectedImage
+          );
+      } catch {
+        window.alert(
+          "خواندن تصویر ناموفق بود. دوباره تلاش کن."
+        );
+
+        return;
+      }
+    }
+
+    let finalMessage =
+      message;
 
     if (
       !finalMessage &&
-      selectedImage
+      imageDataUrl
     ) {
       finalMessage =
-        "این تصویر را بررسی کن.";
+        "این تصویر را دقیق بررسی کن و فقط بر اساس محتوای واقعی تصویر پاسخ بده.";
     }
 
-    if (selectedImage) {
-      finalMessage =
-        `${finalMessage}\n\n[تصویر انتخاب شد: ${selectedImage.name}]`;
-    }
+    /*
+      اگر تصویر وجود دارد،
+      اسم فایل را به متن اضافه نمی‌کنیم.
+    */
+
+    const userImage =
+      imageDataUrl;
 
     setInput("");
 
@@ -1146,6 +1269,7 @@ export default function ChatPage() {
         id: userId,
         role: "user",
         content: finalMessage,
+        image: userImage,
       },
 
       {
@@ -1164,25 +1288,31 @@ export default function ChatPage() {
       controller;
 
     try {
-      const response = await fetch(
-        "/api/chat",
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          "/api/chat",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          signal:
-            controller.signal,
+            signal:
+              controller.signal,
 
-          body: JSON.stringify({
-            message: finalMessage,
-            history,
-          }),
-        }
-      );
+            body: JSON.stringify({
+              message:
+                finalMessage,
+
+              image:
+                imageDataUrl,
+
+              history,
+            }),
+          }
+        );
 
       if (!response.ok) {
         let errorMessage =
@@ -1212,20 +1342,27 @@ export default function ChatPage() {
         response.body.getReader();
 
       const decoder =
-        new TextDecoder("utf-8");
+        new TextDecoder(
+          "utf-8"
+        );
 
       let assistantText = "";
 
       while (true) {
-        const { value, done } =
-          await reader.read();
+        const {
+          value,
+          done,
+        } = await reader.read();
 
         if (done) break;
 
         const chunk =
-          decoder.decode(value, {
-            stream: true,
-          });
+          decoder.decode(
+            value,
+            {
+              stream: true,
+            }
+          );
 
         if (!chunk) continue;
 
@@ -1233,7 +1370,8 @@ export default function ChatPage() {
 
         setMessages((old) =>
           old.map((item) =>
-            item.id === assistantId
+            item.id ===
+            assistantId
               ? {
                   ...item,
                   content:
@@ -1253,7 +1391,8 @@ export default function ChatPage() {
 
         setMessages((old) =>
           old.map((item) =>
-            item.id === assistantId
+            item.id ===
+            assistantId
               ? {
                   ...item,
                   content:
@@ -1264,7 +1403,9 @@ export default function ChatPage() {
         );
       }
 
-      if (!assistantText.trim()) {
+      if (
+        !assistantText.trim()
+      ) {
         throw new Error(
           "پاسخی دریافت نشد."
         );
@@ -1272,7 +1413,8 @@ export default function ChatPage() {
     } catch (error) {
       if (
         error instanceof Error &&
-        error.name === "AbortError"
+        error.name ===
+          "AbortError"
       ) {
         return;
       }
@@ -1322,18 +1464,22 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current)
+      return;
 
     scrollRef.current.scrollTo({
       top:
-        scrollRef.current.scrollHeight,
+        scrollRef.current
+          .scrollHeight,
       behavior: "smooth",
     });
   }, [messages]);
 
   useEffect(() => {
     return () => {
-      if (previewUrlRef.current) {
+      if (
+        previewUrlRef.current
+      ) {
         URL.revokeObjectURL(
           previewUrlRef.current
         );
@@ -1395,12 +1541,17 @@ export default function ChatPage() {
 
               <div className="greeting">
                 <div className="hello">
-                  <span>سلام</span>
+                  <span>
+                    سلام
+                  </span>
+
                   <Hand />
                 </div>
 
                 <h1>
-                  <span>بزن بریم</span>{" "}
+                  <span>
+                    بزن بریم
+                  </span>{" "}
                   <strong>
                     مهندس
                   </strong>
@@ -1482,7 +1633,9 @@ export default function ChatPage() {
                     <IdeaIcon />
                   </div>
 
-                  <b>IDEA LAB</b>
+                  <b>
+                    IDEA LAB
+                  </b>
 
                   <span>
                     یه ایده خفن بساز
@@ -1510,6 +1663,20 @@ export default function ChatPage() {
                     >
                       <div className="message-wrapper">
                         <div className="bubble">
+                          {message.role ===
+                            "user" &&
+                            message.image && (
+                              <div className="sent-image-wrap">
+                                <img
+                                  src={
+                                    message.image
+                                  }
+                                  alt="تصویر ارسال‌شده"
+                                  className="sent-image"
+                                />
+                              </div>
+                            )}
+
                           {message.role ===
                           "assistant" ? (
                             <MessageContent
@@ -1564,12 +1731,11 @@ export default function ChatPage() {
 
                 <div className="image-preview-info">
                   <span>
-                    {selectedImage?.name ||
-                      "تصویر انتخاب شده"}
+                    تصویر انتخاب شد
                   </span>
 
                   <small>
-                    تصویر آماده ارسال
+                    آماده ارسال به موبیکسا
                   </small>
                 </div>
 
@@ -1600,7 +1766,7 @@ export default function ChatPage() {
             <input
               ref={imageInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden-file-input"
               onChange={
                 handleImageSelect
@@ -1707,7 +1873,6 @@ export default function ChatPage() {
             ),
             #02030b;
           color: white;
-
           font-family:
             Arial,
             Tahoma,
@@ -1763,7 +1928,6 @@ export default function ChatPage() {
           border: 1px solid
             rgba(122, 77, 255, 0.35);
           border-radius: 50%;
-          filter: blur(0.2px);
         }
 
         .wave-one {
@@ -2315,14 +2479,6 @@ export default function ChatPage() {
           white-space: nowrap;
         }
 
-        .card::before,
-        .card::after,
-        .card small {
-          content: none !important;
-          display: none !important;
-          visibility: hidden !important;
-        }
-
         .create {
           border:
             1px solid
@@ -2371,9 +2527,9 @@ export default function ChatPage() {
           color: #c06cff;
         }
 
-        /* =========================
+        /* =================================================
            MESSAGES
-        ========================= */
+        ================================================= */
 
         .messages {
           width: 100%;
@@ -2411,7 +2567,6 @@ export default function ChatPage() {
 
         .ai-message .message-wrapper {
           align-items: flex-end;
-          min-width: 0;
         }
 
         .bubble {
@@ -2434,7 +2589,6 @@ export default function ChatPage() {
           border:
             1px solid
               rgba(157, 78, 255, 0.55);
-          font-weight: 500;
         }
 
         .ai-message .bubble {
@@ -2443,7 +2597,6 @@ export default function ChatPage() {
           border:
             1px solid
               rgba(32, 196, 255, 0.4);
-
           box-shadow:
             0 4px 25px
               rgba(0, 100, 255, 0.07);
@@ -2455,6 +2608,36 @@ export default function ChatPage() {
           white-space: pre-wrap;
           overflow-wrap: anywhere;
           word-break: break-word;
+        }
+
+        /*
+          عکس ارسال‌شده توسط کاربر
+          کوچک و داخل همان bubble
+        */
+
+        .sent-image-wrap {
+          width: 100%;
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 9px;
+        }
+
+        .sent-image {
+          display: block;
+          width: 92px;
+          height: 92px;
+          max-width: 92px;
+          max-height: 92px;
+          object-fit: cover;
+          border-radius: 13px;
+          border:
+            1px solid
+              rgba(191, 119, 255, 0.72);
+          box-shadow:
+            0 0 16px
+              rgba(140, 69, 255, 0.25),
+            inset 0 0 12px
+              rgba(0, 210, 255, 0.08);
         }
 
         .rich-message {
@@ -2493,7 +2676,6 @@ export default function ChatPage() {
           margin: 13px 0 8px;
           line-height: 1.45;
           font-weight: 850;
-          letter-spacing: -0.2px;
           overflow-wrap: anywhere;
           word-break: break-word;
         }
@@ -2513,8 +2695,6 @@ export default function ChatPage() {
         .inline-bold {
           font-weight: 850;
           color: #ffffff;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .inline-code {
@@ -2548,16 +2728,12 @@ export default function ChatPage() {
           padding-right: 4px;
           min-width: 0;
           max-width: 100%;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .list-content {
           min-width: 0;
           max-width: 100%;
           flex: 1 1 auto;
-          overflow-wrap: anywhere;
-          word-break: break-word;
         }
 
         .list-dot {
@@ -2573,9 +2749,9 @@ export default function ChatPage() {
           font-weight: 800;
         }
 
-        /* =========================
-           CODE BLOCK
-        ========================= */
+        /* =================================================
+           CODE
+        ================================================= */
 
         .code-block {
           direction: ltr;
@@ -2592,15 +2768,11 @@ export default function ChatPage() {
               rgba(90, 130, 255, 0.3);
           box-shadow:
             0 8px 30px
-              rgba(0, 0, 0, 0.22),
-            inset 0 0 25px
-              rgba(60, 80, 180, 0.05);
+              rgba(0, 0, 0, 0.22);
         }
 
         .code-header {
           min-height: 39px;
-          max-width: 100%;
-          min-width: 0;
           padding: 6px 8px 6px 12px;
           display: flex;
           align-items: center;
@@ -2614,7 +2786,6 @@ export default function ChatPage() {
 
         .code-language {
           direction: ltr;
-          min-width: 0;
           color:
             rgba(190, 201, 235, 0.72);
           font-family:
@@ -2627,8 +2798,6 @@ export default function ChatPage() {
         }
 
         .code-copy {
-          flex: 0 0 auto;
-          direction: rtl;
           display: flex;
           align-items: center;
           gap: 5px;
@@ -2644,15 +2813,6 @@ export default function ChatPage() {
           font-family: inherit;
           font-size: 10px;
           font-weight: 700;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
-        }
-
-        .code-copy:hover {
-          background:
-            rgba(137, 88, 255, 0.2);
-          color: white;
         }
 
         .code-copy svg {
@@ -2664,14 +2824,11 @@ export default function ChatPage() {
           direction: ltr;
           display: block;
           width: 100%;
-          max-width: 100%;
           margin: 0;
           padding: 15px;
           overflow-x: auto;
-          overflow-y: hidden;
           text-align: left;
           white-space: pre;
-          scrollbar-width: thin;
         }
 
         .code-block code {
@@ -2680,21 +2837,18 @@ export default function ChatPage() {
             "SFMono-Regular",
             "Cascadia Code",
             Consolas,
-            "Liberation Mono",
             monospace;
           font-size: 12.5px;
           line-height: 1.75;
-          font-weight: 500;
         }
 
-        /* =========================
-           COPY MESSAGE
-        ========================= */
+        /* =================================================
+           COPY
+        ================================================= */
 
         .message-copy {
           margin-top: 3px;
           margin-left: 3px;
-          direction: rtl;
           display: flex;
           align-items: center;
           gap: 4px;
@@ -2710,15 +2864,6 @@ export default function ChatPage() {
           font-family: inherit;
           font-size: 8px;
           font-weight: 700;
-          transition:
-            color 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .message-copy:hover {
-          color: white;
-          background:
-            rgba(135, 83, 255, 0.18);
         }
 
         .message-copy svg {
@@ -2734,9 +2879,9 @@ export default function ChatPage() {
             blink 0.7s infinite;
         }
 
-        /* =========================
-           COMPOSER ZONE
-        ========================= */
+        /* =================================================
+           COMPOSER
+        ================================================= */
 
         .composer-zone {
           position: relative;
@@ -2752,31 +2897,26 @@ export default function ChatPage() {
             );
         }
 
-        /* =========================
-           IMAGE PREVIEW
-        ========================= */
-
         .image-preview-wrap {
           width: 100%;
           max-width: 760px;
           margin: 0 auto 8px;
           display: flex;
           justify-content: flex-start;
-          direction: rtl;
         }
 
         .image-preview-card {
           position: relative;
-          width: min(330px, 100%);
-          min-height: 74px;
-          padding: 7px 8px 7px 10px;
+          width: 250px;
+          min-height: 70px;
+          padding: 6px 8px;
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 9px;
           border:
             1px solid
               rgba(154, 91, 255, 0.72);
-          border-radius: 17px;
+          border-radius: 16px;
           background:
             linear-gradient(
               135deg,
@@ -2785,44 +2925,22 @@ export default function ChatPage() {
             );
           box-shadow:
             0 0 20px
-              rgba(139, 64, 255, 0.2),
-            inset 0 0 20px
-              rgba(0, 206, 255, 0.06);
+              rgba(139, 64, 255, 0.2);
           backdrop-filter: blur(18px);
           overflow: hidden;
           animation:
-            previewIn 0.22s
-              ease-out;
-        }
-
-        .image-preview-card::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background:
-            linear-gradient(
-              110deg,
-              transparent 20%,
-              rgba(255, 255, 255, 0.07)
-                48%,
-              transparent 70%
-            );
+            previewIn 0.22s ease-out;
         }
 
         .image-preview {
-          position: relative;
-          width: 58px;
-          height: 58px;
-          flex: 0 0 58px;
+          width: 56px;
+          height: 56px;
+          flex: 0 0 56px;
           object-fit: cover;
-          border-radius: 12px;
+          border-radius: 11px;
           border:
             1px solid
               rgba(128, 224, 255, 0.45);
-          box-shadow:
-            0 0 12px
-              rgba(0, 209, 255, 0.2);
         }
 
         .image-preview-info {
@@ -2830,34 +2948,27 @@ export default function ChatPage() {
           flex: 1;
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
-          gap: 4px;
-          direction: rtl;
+          gap: 3px;
         }
 
         .image-preview-info span {
-          width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
           color:
             rgba(244, 242, 255, 0.95);
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 800;
         }
 
         .image-preview-info small {
           color:
             rgba(166, 224, 255, 0.7);
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 600;
         }
 
         .remove-image {
-          position: relative;
-          width: 29px;
-          height: 29px;
-          flex: 0 0 29px;
+          width: 28px;
+          height: 28px;
+          flex: 0 0 28px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2870,29 +2981,12 @@ export default function ChatPage() {
           color:
             rgba(255, 216, 248, 0.9);
           cursor: pointer;
-          transition:
-            transform 0.2s ease,
-            background 0.2s ease,
-            box-shadow 0.2s ease;
-        }
-
-        .remove-image:hover {
-          transform: scale(1.08);
-          background:
-            rgba(190, 45, 145, 0.35);
-          box-shadow:
-            0 0 12px
-              rgba(255, 87, 202, 0.3);
         }
 
         .remove-image svg {
           width: 15px;
           height: 15px;
         }
-
-        /* =========================
-           COMPOSER
-        ========================= */
 
         .composer {
           width: 100%;
@@ -2944,10 +3038,6 @@ export default function ChatPage() {
             rgba(173, 183, 230, 0.72);
         }
 
-        /* =========================
-           UPLOAD BUTTON
-        ========================= */
-
         .upload {
           position: relative;
           width: 46px;
@@ -2969,32 +3059,9 @@ export default function ChatPage() {
           color:
             rgba(197, 184, 255, 0.9);
           cursor: pointer;
-          box-shadow:
-            0 0 12px
-              rgba(110, 70, 255, 0.14),
-            inset 0 0 14px
-              rgba(0, 202, 255, 0.045);
-          backdrop-filter: blur(12px);
           transition:
             transform 0.2s ease,
-            color 0.2s ease,
-            border-color 0.2s ease,
-            box-shadow 0.2s ease,
-            background 0.2s ease;
-        }
-
-        .upload::before {
-          content: "";
-          position: absolute;
-          inset: -2px;
-          border-radius: 17px;
-          border:
-            1px solid
-              rgba(0, 218, 255, 0.0);
-          transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-          pointer-events: none;
+            color 0.2s ease;
         }
 
         .upload:hover {
@@ -3002,40 +3069,6 @@ export default function ChatPage() {
             translateY(-2px)
             scale(1.035);
           color: white;
-          border-color:
-            rgba(178, 104, 255, 0.95);
-          background:
-            linear-gradient(
-              145deg,
-              rgba(112, 57, 205, 0.5),
-              rgba(17, 65, 111, 0.48)
-            );
-          box-shadow:
-            0 0 10px
-              rgba(163, 82, 255, 0.38),
-            0 0 22px
-              rgba(0, 202, 255, 0.12),
-            inset 0 0 15px
-              rgba(170, 87, 255, 0.1);
-        }
-
-        .upload:hover::before {
-          border-color:
-            rgba(0, 215, 255, 0.32);
-          box-shadow:
-            0 0 10px
-              rgba(0, 215, 255, 0.14);
-        }
-
-        .upload:active {
-          transform: scale(0.93);
-        }
-
-        .upload:focus-visible {
-          outline:
-            2px solid
-              rgba(40, 219, 255, 0.9);
-          outline-offset: 3px;
         }
 
         .upload:disabled {
@@ -3045,52 +3078,14 @@ export default function ChatPage() {
         }
 
         .upload-icon {
-          position: relative;
-          z-index: 2;
           width: 24px;
           height: 24px;
-          filter:
-            drop-shadow(
-              0 0 4px
-                rgba(183, 102, 255, 0.55)
-            );
-          transition:
-            transform 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .upload:hover .upload-icon {
-          transform:
-            rotate(-4deg)
-            scale(1.08);
-          filter:
-            drop-shadow(
-              0 0 5px
-                rgba(208, 122, 255, 0.85)
-            )
-            drop-shadow(
-              0 0 10px
-                rgba(0, 216, 255, 0.32)
-            );
         }
 
         .upload-active {
           color: #d9c7ff;
           border-color:
             rgba(185, 100, 255, 0.95);
-          background:
-            linear-gradient(
-              145deg,
-              rgba(116, 58, 215, 0.55),
-              rgba(17, 70, 118, 0.5)
-            );
-          box-shadow:
-            0 0 10px
-              rgba(174, 79, 255, 0.48),
-            0 0 24px
-              rgba(0, 214, 255, 0.16),
-            inset 0 0 18px
-              rgba(169, 76, 255, 0.12);
         }
 
         .upload-tooltip {
@@ -3104,9 +3099,6 @@ export default function ChatPage() {
           border-radius: 8px;
           background:
             rgba(12, 10, 30, 0.94);
-          border:
-            1px solid
-              rgba(137, 88, 255, 0.4);
           color:
             rgba(240, 237, 255, 0.92);
           font-size: 9px;
@@ -3115,25 +3107,19 @@ export default function ChatPage() {
           opacity: 0;
           visibility: hidden;
           pointer-events: none;
-          box-shadow:
-            0 0 15px
-              rgba(121, 68, 255, 0.16);
           transition:
             opacity 0.18s ease,
             transform 0.18s ease;
         }
 
-        .upload:hover .upload-tooltip {
+        .upload:hover
+          .upload-tooltip {
           opacity: 1;
           visibility: visible;
           transform:
             translateX(50%)
             translateY(0);
         }
-
-        /* =========================
-           SEND BUTTON
-        ========================= */
 
         .send {
           position: relative;
@@ -3167,56 +3153,11 @@ export default function ChatPage() {
             0 0 18px
               rgba(144, 63, 255, 0.75),
             0 0 34px
-              rgba(0, 211, 255, 0.25),
-            inset 0 1px 3px
-              rgba(255, 255, 255, 0.48),
-            inset 0 -8px 16px
-              rgba(10, 7, 55, 0.48);
+              rgba(0, 211, 255, 0.25);
           cursor: pointer;
-          isolation: isolate;
           transition:
-            transform 0.22s
-              cubic-bezier(.2,.8,.2,1),
-            box-shadow 0.22s ease,
+            transform 0.22s ease,
             filter 0.22s ease;
-        }
-
-        .send::before {
-          content: "";
-          position: absolute;
-          inset: -5px;
-          border-radius: 50%;
-          background:
-            conic-gradient(
-              from 0deg,
-              transparent 0deg,
-              rgba(190, 91, 255, 0.95) 65deg,
-              rgba(35, 225, 255, 0.95) 145deg,
-              transparent 215deg,
-              rgba(173, 76, 255, 0.9) 300deg,
-              transparent 360deg
-            );
-          z-index: -1;
-          filter: blur(1px);
-          opacity: 0.8;
-          animation:
-            sendRing 4s linear infinite;
-        }
-
-        .send::after {
-          content: "";
-          position: absolute;
-          inset: 2px;
-          border-radius: 50%;
-          border:
-            1px solid
-              rgba(255, 255, 255, 0.17);
-          box-shadow:
-            inset 0 0 10px
-              rgba(255, 255, 255, 0.08),
-            inset 0 0 18px
-              rgba(0, 220, 255, 0.09);
-          pointer-events: none;
         }
 
         .send:hover {
@@ -3224,35 +3165,10 @@ export default function ChatPage() {
             translateY(-2px)
             scale(1.045);
           filter: brightness(1.12);
-          box-shadow:
-            0 0 10px
-              rgba(195, 103, 255, 1),
-            0 0 26px
-              rgba(157, 66, 255, 0.9),
-            0 0 48px
-              rgba(0, 215, 255, 0.4),
-            inset 0 1px 3px
-              rgba(255, 255, 255, 0.52),
-            inset 0 -8px 16px
-              rgba(13, 10, 62, 0.38);
         }
 
         .send:active {
           transform: scale(0.91);
-          box-shadow:
-            0 0 8px
-              rgba(177, 83, 255, 0.8),
-            0 0 18px
-              rgba(0, 208, 255, 0.25),
-            inset 0 4px 12px
-              rgba(11, 8, 48, 0.58);
-        }
-
-        .send:focus-visible {
-          outline:
-            2px solid
-              rgba(42, 222, 255, 0.9);
-          outline-offset: 4px;
         }
 
         .send:disabled {
@@ -3260,100 +3176,22 @@ export default function ChatPage() {
           cursor: not-allowed;
           transform: none;
           filter: grayscale(0.15);
-          box-shadow:
-            0 0 8px
-              rgba(126, 78, 190, 0.22),
-            inset 0 1px 2px
-              rgba(255, 255, 255, 0.15);
-        }
-
-        .send:disabled::before {
-          animation: none;
-          opacity: 0.25;
         }
 
         .send-icon {
-          position: relative;
-          z-index: 3;
           width: 25px;
           height: 25px;
           filter:
             drop-shadow(
               0 0 4px
                 rgba(255, 255, 255, 0.7)
-            )
-            drop-shadow(
-              0 0 9px
-                rgba(28, 224, 255, 0.38)
             );
-          transform: translateX(1px);
-          transition:
-            transform 0.22s ease,
-            filter 0.22s ease;
-        }
-
-        .send:hover .send-icon {
-          transform:
-            translateX(3px)
-            scale(1.07);
-          filter:
-            drop-shadow(
-              0 0 5px
-                rgba(255, 255, 255, 0.95)
-            )
-            drop-shadow(
-              0 0 13px
-                rgba(31, 225, 255, 0.58)
-            );
-        }
-
-        .send:active .send-icon {
-          transform:
-            translateX(4px)
-            scale(0.94);
         }
 
         .stop-icon {
-          position: relative;
-          z-index: 3;
           width: 15px;
           height: 15px;
           color: white;
-          filter:
-            drop-shadow(
-              0 0 4px
-                rgba(255, 255, 255, 0.75)
-            )
-            drop-shadow(
-              0 0 8px
-                rgba(28, 224, 255, 0.35)
-            );
-        }
-
-        @keyframes sendRing {
-          from {
-            transform: rotate(0deg);
-          }
-
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes previewIn {
-          from {
-            opacity: 0;
-            transform:
-              translateY(6px)
-              scale(0.97);
-          }
-
-          to {
-            opacity: 1;
-            transform:
-              translateY(0)
-              scale(1);
-          }
         }
 
         .footer {
@@ -3396,6 +3234,22 @@ export default function ChatPage() {
           46%,
           100% {
             opacity: 0;
+          }
+        }
+
+        @keyframes previewIn {
+          from {
+            opacity: 0;
+            transform:
+              translateY(6px)
+              scale(0.97);
+          }
+
+          to {
+            opacity: 1;
+            transform:
+              translateY(0)
+              scale(1);
           }
         }
 
@@ -3538,25 +3392,53 @@ export default function ChatPage() {
 
           .message-wrapper {
             max-width: 92%;
-            min-width: 0;
           }
 
           .bubble {
-            max-width: 100%;
-            min-width: 0;
             font-size: 14px;
             line-height: 1.95;
             padding: 13px 14px;
           }
 
+          .sent-image {
+            width: 82px;
+            height: 82px;
+            max-width: 82px;
+            max-height: 82px;
+            border-radius: 12px;
+          }
+
+          .image-preview-card {
+            width: 230px;
+            min-height: 66px;
+          }
+
+          .image-preview {
+            width: 52px;
+            height: 52px;
+            flex-basis: 52px;
+          }
+
+          .image-preview-info span {
+            font-size: 9px;
+          }
+
+          .image-preview-info small {
+            font-size: 7px;
+          }
+
+          .remove-image {
+            width: 27px;
+            height: 27px;
+            flex-basis: 27px;
+          }
+
           .code-block {
-            max-width: 100%;
             margin: 12px 0;
             border-radius: 12px;
           }
 
           .code-block pre {
-            max-width: 100%;
             padding: 12px;
           }
 
@@ -3578,38 +3460,6 @@ export default function ChatPage() {
 
           .heading-3 {
             font-size: 16px;
-          }
-
-          .image-preview-wrap {
-            margin-bottom: 7px;
-          }
-
-          .image-preview-card {
-            width: min(310px, 100%);
-            min-height: 68px;
-            padding: 6px 7px;
-            border-radius: 15px;
-          }
-
-          .image-preview {
-            width: 52px;
-            height: 52px;
-            flex-basis: 52px;
-            border-radius: 10px;
-          }
-
-          .image-preview-info span {
-            font-size: 10px;
-          }
-
-          .image-preview-info small {
-            font-size: 8px;
-          }
-
-          .remove-image {
-            width: 27px;
-            height: 27px;
-            flex-basis: 27px;
           }
         }
 
