@@ -83,9 +83,11 @@ function getBase64ByteSize(
         ? 1
         : 0;
 
-  return Math.floor(
-    (base64.length * 3) / 4
-  ) - padding;
+  return (
+    Math.floor(
+      (base64.length * 3) / 4
+    ) - padding
+  );
 }
 
 function validateImage(
@@ -150,7 +152,10 @@ function sanitizeHistory(
 
   return history
     .filter((item) => {
-      if (!item || typeof item !== "object") {
+      if (
+        !item ||
+        typeof item !== "object"
+      ) {
         return false;
       }
 
@@ -158,11 +163,15 @@ function sanitizeHistory(
         item as Partial<HistoryMessage>;
 
       return (
-        (candidate.role === "user" ||
-          candidate.role === "assistant") &&
+        (
+          candidate.role === "user" ||
+          candidate.role === "assistant"
+        ) &&
         typeof candidate.content ===
           "string" &&
-        candidate.content.trim()
+        Boolean(
+          candidate.content.trim()
+        )
       );
     })
     .slice(-30)
@@ -179,102 +188,6 @@ function sanitizeHistory(
           ),
       };
     });
-}
-
-function createTextStream(
-  text: string
-): ReadableStream<Uint8Array> {
-  const encoder =
-    new TextEncoder();
-
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(text)
-      );
-
-      controller.close();
-    },
-  });
-}
-
-function createSSETextParser(
-  onText: (text: string) => void
-) {
-  let buffer = "";
-
-  return {
-    push(chunk: string) {
-      buffer += chunk;
-
-      const lines =
-        buffer.split("\n");
-
-      buffer =
-        lines.pop() || "";
-
-      for (const rawLine of lines) {
-        const line =
-          rawLine.trim();
-
-        if (!line.startsWith("data:")) {
-          continue;
-        }
-
-        const data =
-          line.slice(5).trim();
-
-        if (!data || data === "[DONE]") {
-          continue;
-        }
-
-        try {
-          const parsed =
-            JSON.parse(data);
-
-          const text =
-            parsed?.choices?.[0]?.delta
-              ?.content;
-
-          if (typeof text === "string" && text) {
-            onText(text);
-          }
-        } catch {
-          // Ignore malformed SSE chunks.
-        }
-      }
-    },
-
-    flush() {
-      const line = buffer.trim();
-
-      if (!line.startsWith("data:")) {
-        return;
-      }
-
-      const data =
-        line.slice(5).trim();
-
-      if (!data || data === "[DONE]") {
-        return;
-      }
-
-      try {
-        const parsed =
-          JSON.parse(data);
-
-        const text =
-          parsed?.choices?.[0]?.delta
-            ?.content;
-
-        if (typeof text === "string" && text) {
-          onText(text);
-        }
-      } catch {
-        // Ignore malformed final chunk.
-      }
-    },
-  };
 }
 
 function extractGeminiText(
@@ -338,7 +251,8 @@ function buildGeminiContents(
 
   if (!currentParts.length) {
     currentParts.push({
-      text: "این تصویر را بررسی کن و توضیح بده.",
+      text:
+        "این تصویر را بررسی کن و توضیح بده.",
     });
   }
 
@@ -362,25 +276,22 @@ function buildOpenRouterMessages(
     }));
 
   if (image) {
-    const content: any[] = [];
-
-    content.push({
-      type: "text",
-      text:
-        message.trim() ||
-        "این تصویر را بررسی کن و توضیح بده.",
-    });
-
-    content.push({
-      type: "image_url",
-      image_url: {
-        url: image,
-      },
-    });
-
     messages.push({
       role: "user",
-      content,
+      content: [
+        {
+          type: "text",
+          text:
+            message.trim() ||
+            "این تصویر را بررسی کن و توضیح بده.",
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: image,
+          },
+        },
+      ],
     });
   } else {
     messages.push({
@@ -501,17 +412,22 @@ async function streamGemini(
       async start(controller) {
         try {
           while (true) {
-            const { value, done } =
-              await reader.read();
+            const {
+              value,
+              done,
+            } = await reader.read();
 
-            if (done) break;
+            if (done) {
+              break;
+            }
 
-            const chunk =
-              decoder.decode(value, {
-                stream: true,
-              });
-
-            buffer += chunk;
+            buffer +=
+              decoder.decode(
+                value,
+                {
+                  stream: true,
+                }
+              );
 
             const lines =
               buffer.split("\n");
@@ -536,7 +452,12 @@ async function streamGemini(
                   .slice(5)
                   .trim();
 
-              if (!data) continue;
+              if (
+                !data ||
+                data === "[DONE]"
+              ) {
+                continue;
+              }
 
               try {
                 const parsed =
@@ -555,7 +476,7 @@ async function streamGemini(
                   );
                 }
               } catch {
-                // Ignore incomplete SSE JSON.
+                // Ignore malformed SSE chunks.
               }
             }
           }
@@ -564,7 +485,11 @@ async function streamGemini(
             const line =
               buffer.trim();
 
-            if (line.startsWith("data:")) {
+            if (
+              line.startsWith(
+                "data:"
+              )
+            ) {
               const data =
                 line
                   .slice(5)
@@ -587,7 +512,7 @@ async function streamGemini(
                   );
                 }
               } catch {
-                // Ignore incomplete final JSON.
+                // Ignore malformed final JSON.
               }
             }
           }
@@ -682,17 +607,22 @@ async function streamOpenRouter(
       async start(controller) {
         try {
           while (true) {
-            const { value, done } =
-              await reader.read();
-
-            if (done) break;
-
-            buffer += decoder.decode(
+            const {
               value,
-              {
-                stream: true,
-              }
-            );
+              done,
+            } = await reader.read();
+
+            if (done) {
+              break;
+            }
+
+            buffer +=
+              decoder.decode(
+                value,
+                {
+                  stream: true,
+                }
+              );
 
             const lines =
               buffer.split("\n");
@@ -787,7 +717,8 @@ async function streamGroq(
             `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: GROQ_MODEL,
+          model:
+            GROQ_MODEL,
           messages:
             buildGroqMessages(
               history,
@@ -834,17 +765,22 @@ async function streamGroq(
       async start(controller) {
         try {
           while (true) {
-            const { value, done } =
-              await reader.read();
-
-            if (done) break;
-
-            buffer += decoder.decode(
+            const {
               value,
-              {
-                stream: true,
-              }
-            );
+              done,
+            } = await reader.read();
+
+            if (done) {
+              break;
+            }
+
+            buffer +=
+              decoder.decode(
+                value,
+                {
+                  stream: true,
+                }
+              );
 
             const lines =
               buffer.split("\n");
@@ -946,13 +882,13 @@ export async function POST(
         body.image
       );
     } catch (error) {
-      const message =
+      const errorMessage =
         error instanceof Error
           ? error.message
           : "تصویر نامعتبر است.";
 
       return jsonError(
-        message,
+        errorMessage,
         400
       );
     }
@@ -976,8 +912,7 @@ export async function POST(
       process.env.GEMINI_API_KEY;
 
     const openRouterKey =
-      process.env
-        .OPENROUTER_API_KEY;
+      process.env.OPENROUTER_API_KEY;
 
     const groqKey =
       process.env.GROQ_API_KEY;
