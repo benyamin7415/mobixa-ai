@@ -567,329 +567,87 @@ function MessageContent({
 }
 
 /* =========================================================
-   LOGO
+   EMBLEM
 ========================================================= */
 
-function MobixaLogo() {
+function MobixaEmblem() {
   return (
-    <div className="hero-logo">
-      <div className="hero-orbit orbit-a" />
-      <div className="hero-orbit orbit-b" />
-      <div className="hero-orbit orbit-c" />
+    <div className="emblem" aria-hidden="true">
+      <div className="emblem-halo" />
+      <div className="emblem-ring" />
 
-      <div className="hero-glass">
-        <div className="hero-m">
-          <span className="m1" />
-          <span className="m2" />
-          <span className="m3" />
-        </div>
+      <div className="emblem-core">
+        <svg viewBox="0 0 48 48" className="emblem-m">
+          <defs>
+            <linearGradient
+              id="emblemGrad"
+              x1="0"
+              y1="0"
+              x2="1"
+              y2="1"
+            >
+              <stop
+                offset="0%"
+                stopColor="#f4eeff"
+              />
+
+              <stop
+                offset="55%"
+                stopColor="#a98bff"
+              />
+
+              <stop
+                offset="100%"
+                stopColor="#35d8ff"
+              />
+            </linearGradient>
+          </defs>
+
+          <path
+            d="M11 35V13l13 15 13-15v22"
+            fill="none"
+            stroke="url(#emblemGrad)"
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </div>
-
-      <span className="hero-star hero-star-one">
-        ✦
-      </span>
-
-      <span className="hero-star hero-star-two">
-        ✧
-      </span>
-
-      <span className="logo-spark spark-a">
-        ✦
-      </span>
-
-      <span className="logo-spark spark-b">
-        ✧
-      </span>
-
-      <span className="logo-spark spark-c">
-        ·
-      </span>
     </div>
   );
 }
 
-/* =========================================================
-   ROBOT
-========================================================= */
-
-function MobixaRobot() {
+function MobixaMark() {
   return (
-    <div className="robot-stage">
-      <div className="robot-aura" />
-
-      <svg
-        viewBox="0 0 240 240"
-        className="robot-svg"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient
-            id="robotHead"
-            x1="0"
-            y1="0"
-            x2="1"
-            y2="1"
-          >
-            <stop
-              offset="0%"
-              stopColor="#9d7cff"
-            />
-
-            <stop
-              offset="45%"
-              stopColor="#372a86"
-            />
-
-            <stop
-              offset="100%"
-              stopColor="#080a22"
-            />
-          </linearGradient>
-
-          <linearGradient
-            id="robotBody"
-            x1="0"
-            y1="0"
-            x2="1"
-            y2="1"
-          >
-            <stop
-              offset="0%"
-              stopColor="#6950db"
-            />
-
-            <stop
-              offset="50%"
-              stopColor="#17164d"
-            />
-
-            <stop
-              offset="100%"
-              stopColor="#070918"
-            />
-          </linearGradient>
-
-          <linearGradient
-            id="robotBlue"
-            x1="0"
-            y1="0"
-            x2="1"
-            y2="1"
-          >
-            <stop
-              offset="0%"
-              stopColor="#e3d4ff"
-            />
-
-            <stop
-              offset="50%"
-              stopColor="#8b5cf6"
-            />
-
-            <stop
-              offset="100%"
-              stopColor="#19d9ff"
-            />
-          </linearGradient>
-
-          <filter id="robotGlow">
-            <feGaussianBlur
-              stdDeviation="3"
-              result="blur"
-            />
-
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        <line
-          x1="120"
-          y1="29"
-          x2="120"
-          y2="14"
-          stroke="#6deaff"
-          strokeWidth="4"
-        />
-
-        <circle
-          cx="120"
-          cy="10"
-          r="7"
-          fill="#c18cff"
-          filter="url(#robotGlow)"
-        />
-
-        <rect
-          x="45"
-          y="83"
-          width="22"
-          height="53"
-          rx="11"
-          fill="#151747"
-          stroke="#735cff"
-          strokeWidth="4"
-        />
-
-        <rect
-          x="173"
-          y="83"
-          width="22"
-          height="53"
-          rx="11"
-          fill="#151747"
-          stroke="#735cff"
-          strokeWidth="4"
-        />
-
-        <rect
-          x="58"
-          y="34"
-          width="124"
-          height="112"
-          rx="48"
-          fill="url(#robotHead)"
-          stroke="#a98aff"
-          strokeWidth="4"
-        />
-
-        <rect
-          x="72"
-          y="53"
-          width="96"
-          height="73"
-          rx="32"
-          fill="#030716"
-          stroke="#27cfff"
-          strokeOpacity=".45"
-          strokeWidth="2"
-        />
-
-        <path
-          d="M89 83c4-8 12-8 16 0"
-          fill="none"
-          stroke="#49eaff"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M135 83c4-8 12-8 16 0"
-          fill="none"
-          stroke="#49eaff"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M105 101c9 9 21 9 30 0"
-          fill="none"
-          stroke="#9a7cff"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-
-        <rect
-          x="106"
-          y="139"
-          width="28"
-          height="14"
-          rx="7"
-          fill="#292469"
-        />
-
-        <path
-          d="M77 148c8-12 23-17 43-17s35 5 43 17l17 55H60l17-55Z"
-          fill="url(#robotBody)"
-          stroke="#7967ff"
-          strokeWidth="4"
-        />
-
-        <circle
-          cx="120"
-          cy="170"
-          r="17"
-          fill="#090d2b"
-          stroke="#42ddff"
-          strokeWidth="3"
-        />
-
-        <circle
-          cx="120"
-          cy="170"
-          r="7"
-          fill="#32dcff"
-          filter="url(#robotGlow)"
-        />
-
-        <path
-          d="M77 157c-18 4-27 15-35 29"
-          fill="none"
-          stroke="url(#robotBlue)"
-          strokeWidth="15"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M164 157c18-3 27-14 34-30"
-          fill="none"
-          stroke="url(#robotBlue)"
-          strokeWidth="15"
-          strokeLinecap="round"
-        />
-
-        <circle
-          cx="199"
-          cy="119"
-          r="13"
-          fill="#b99cff"
-          filter="url(#robotGlow)"
-        />
-
-        <path
-          d="M199 111v-27"
-          stroke="#d0c2ff"
-          strokeWidth="9"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M214 98l8-7M215 108l10-2"
-          stroke="#34dfff"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <span className="robot-star rs-one">
-        ✦
-      </span>
-
-      <span className="robot-star rs-two">
-        ✧
-      </span>
-
-      <span className="robot-star rs-three">
-        ✦
-      </span>
-    </div>
-  );
-}
-
-/* =========================================================
-   HAND
-========================================================= */
-
-function Hand() {
-  return (
-    <span
-      className="hello-hand"
+    <svg
+      viewBox="0 0 48 48"
       aria-hidden="true"
+      className="ai-mark"
     >
-      👋
-    </span>
+      <path
+        d="M11 35V13l13 15 13-15v22"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M15 6l-6 6 6 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -1589,24 +1347,13 @@ export default function ChatPage() {
       dir="rtl"
       className="mobixa"
     >
-      <div className="background">
-        <div className="purple-cloud cloud-one" />
-        <div className="purple-cloud cloud-two" />
-        <div className="blue-cloud cloud-three" />
-
-        <div className="neon-wave wave-one" />
-        <div className="neon-wave wave-two" />
-
-        <div className="starfield">
-          <span>✦</span>
-          <span>✧</span>
-          <span>·</span>
-          <span>✦</span>
-          <span>·</span>
-          <span>✧</span>
-          <span>✦</span>
-          <span>·</span>
-        </div>
+      <div className="background" aria-hidden="true">
+        <div className="bg-beam" />
+        <div className="bg-aura aura-one" />
+        <div className="bg-aura aura-two" />
+        <div className="bg-ring" />
+        <div className="bg-grain" />
+        <div className="bg-vignette" />
       </div>
 
       <header className="header">
@@ -1632,14 +1379,15 @@ export default function ChatPage() {
         >
           {messages.length === 0 ? (
             <div className="home-content">
-              <MobixaLogo />
-
-              <MobixaRobot />
+              <MobixaEmblem />
 
               <div className="greeting">
+                <span className="eyebrow">
+                  MOBIXA INTELLIGENCE
+                </span>
+
                 <div className="hello">
-                  <span>سلام</span>
-                  <Hand />
+                  سلام
                 </div>
 
                 <h1>
@@ -1651,7 +1399,7 @@ export default function ChatPage() {
                   </strong>
                 </h1>
 
-                <div className="under-line">
+                <div className="hairline">
                   <i />
                 </div>
               </div>
@@ -1662,75 +1410,89 @@ export default function ChatPage() {
                 <br />
                 می‌تونه شروع یک چیز بزرگ
                 باشه.
-                <br />
-
-                <span>
+                <span className="intro-sub">
                   ایده بده، سؤال بپرس،
                   بساز.
                 </span>
               </p>
 
-              <div className="cards">
+              <div className="suggestions">
                 <button
                   type="button"
-                  className="card create"
+                  className="suggestion create"
                   onClick={() =>
                     putSuggestion(
                       "این متن رو برای من حرفه‌ای و جذاب‌تر کن:"
                     )
                   }
                 >
-                  <div className="card-icon">
+                  <span className="s-icon">
                     <CreateIcon />
-                  </div>
+                  </span>
 
-                  <b>CREATE</b>
+                  <span className="s-text">
+                    <b>CREATE</b>
 
-                  <span>
-                    متنت رو حرفه‌ای کن
+                    <span>
+                      متنت رو حرفه‌ای کن
+                    </span>
+                  </span>
+
+                  <span className="s-arrow">
+                    <ChevronIcon />
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  className="card learn"
+                  className="suggestion learn"
                   onClick={() =>
                     putSuggestion(
                       "این موضوع رو خیلی ساده و قابل فهم برام توضیح بده:"
                     )
                   }
                 >
-                  <div className="card-icon">
+                  <span className="s-icon">
                     <LearnIcon />
-                  </div>
+                  </span>
 
-                  <b>
-                    LEARN MODE
-                  </b>
+                  <span className="s-text">
+                    <b>LEARN MODE</b>
 
-                  <span>
-                    هر چیزی رو ساده
-                    یاد بگیر
+                    <span>
+                      هر چیزی رو ساده
+                      یاد بگیر
+                    </span>
+                  </span>
+
+                  <span className="s-arrow">
+                    <ChevronIcon />
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  className="card idea"
+                  className="suggestion idea"
                   onClick={() =>
                     putSuggestion(
                       "برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
                     )
                   }
                 >
-                  <div className="card-icon">
+                  <span className="s-icon">
                     <IdeaIcon />
-                  </div>
+                  </span>
 
-                  <b>IDEA LAB</b>
+                  <span className="s-text">
+                    <b>IDEA LAB</b>
 
-                  <span>
-                    یه ایده خفن بساز
+                    <span>
+                      یه ایده خفن بساز
+                    </span>
+                  </span>
+
+                  <span className="s-arrow">
+                    <ChevronIcon />
                   </span>
                 </button>
               </div>
@@ -1749,14 +1511,35 @@ export default function ChatPage() {
                     }
                   >
                     <div className="message-wrapper">
+                      {message.role ===
+                        "assistant" && (
+                        <div className="ai-badge">
+                          <MobixaMark />
+                          <span>
+                            MOBIXA AI
+                          </span>
+                        </div>
+                      )}
+
                       <div className="bubble">
                         {message.role ===
                         "assistant" ? (
-                          <MessageContent
-                            content={
-                              message.content
-                            }
-                          />
+                          message.content ? (
+                            <MessageContent
+                              content={
+                                message.content
+                              }
+                            />
+                          ) : loading ? (
+                            <div
+                              className="typing"
+                              aria-label="در حال نوشتن"
+                            >
+                              <i />
+                              <i />
+                              <i />
+                            </div>
+                          ) : null
                         ) : (
                           <>
                             {message.image && (
@@ -1949,7 +1732,7 @@ export default function ChatPage() {
           padding: 0;
           width: 100%;
           min-height: 100%;
-          background: #03040d;
+          background: #03040a;
         }
 
         body {
@@ -1972,20 +1755,30 @@ export default function ChatPage() {
           height: 100svh;
           min-height: 100svh;
           overflow: hidden;
-          color: white;
+          color: #eef0fb;
+          -webkit-font-smoothing: antialiased;
           background:
             radial-gradient(
-              circle at 75% 65%,
-              rgba(0, 84, 180, 0.22),
-              transparent 32%
+              120% 55% at 50% -8%,
+              rgba(86, 62, 196, 0.34),
+              transparent 62%
             ),
             radial-gradient(
-              circle at 15% 65%,
-              rgba(102, 24, 255, 0.3),
-              transparent 35%
+              80% 45% at 92% 100%,
+              rgba(20, 88, 200, 0.2),
+              transparent 62%
             ),
-            #02030b;
+            radial-gradient(
+              70% 40% at 4% 84%,
+              rgba(112, 44, 205, 0.16),
+              transparent 62%
+            ),
+            #03040a;
         }
+
+        /* =====================================================
+           BACKGROUND
+        ===================================================== */
 
         .background {
           position: absolute;
@@ -1994,118 +1787,118 @@ export default function ChatPage() {
           pointer-events: none;
         }
 
-        .purple-cloud,
-        .blue-cloud {
+        .bg-beam {
           position: absolute;
-          border-radius: 50%;
-          filter: blur(65px);
-          opacity: 0.45;
-        }
-
-        .cloud-one {
+          top: 0;
+          left: 50%;
           width: 320px;
-          height: 320px;
-          left: -140px;
-          top: 28%;
-          background: #5417d8;
+          height: 480px;
+          transform: translateX(-50%);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(170, 150, 255, 0.2),
+              rgba(120, 100, 255, 0.05)
+                60%,
+              transparent
+            );
+          clip-path:
+            polygon(
+              42% 0,
+              58% 0,
+              100% 100%,
+              0 100%
+            );
+          filter: blur(22px);
+          opacity: 0.8;
         }
 
-        .cloud-two {
-          width: 300px;
-          height: 300px;
-          right: -130px;
-          bottom: 5%;
-          background: #2511b5;
-        }
-
-        .cloud-three {
-          width: 280px;
-          height: 280px;
-          right: -100px;
-          top: 42%;
-          background: #0058cf;
-          opacity: 0.22;
-        }
-
-        .neon-wave {
+        .bg-aura {
           position: absolute;
-          width: 130%;
-          height: 180px;
-          left: -15%;
           border-radius: 50%;
-          border-top: 1px solid
-            rgba(118, 92, 255, 0.45);
-          transform: rotate(-10deg);
-          filter:
-            drop-shadow(
-              0 0 8px
-                rgba(107, 61, 255, 0.3)
+          filter: blur(80px);
+          will-change: transform;
+        }
+
+        .aura-one {
+          width: 360px;
+          height: 360px;
+          left: -170px;
+          top: 34%;
+          background:
+            rgba(104, 52, 232, 0.4);
+          animation:
+            auraDriftA 20s ease-in-out
+              infinite alternate;
+        }
+
+        .aura-two {
+          width: 340px;
+          height: 340px;
+          right: -170px;
+          bottom: 6%;
+          background:
+            rgba(16, 100, 230, 0.26);
+          animation:
+            auraDriftB 24s ease-in-out
+              infinite alternate;
+        }
+
+        .bg-ring {
+          position: absolute;
+          top: -40px;
+          left: 50%;
+          width: min(118vw, 560px);
+          height: min(118vw, 560px);
+          transform: translateX(-50%);
+          border-radius: 50%;
+          border: 1px solid
+            rgba(176, 166, 255, 0.1);
+          box-shadow:
+            inset 0 0 90px
+              rgba(110, 82, 255, 0.07);
+        }
+
+        .bg-ring::before,
+        .bg-ring::after {
+          content: "";
+          position: absolute;
+          border-radius: 50%;
+          border: 1px solid
+            rgba(176, 166, 255, 0.06);
+        }
+
+        .bg-ring::before {
+          inset: 12%;
+        }
+
+        .bg-ring::after {
+          inset: -14%;
+        }
+
+        .bg-grain {
+          position: absolute;
+          inset: 0;
+          opacity: 0.08;
+          mix-blend-mode: overlay;
+          background-image:
+            url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        }
+
+        .bg-vignette {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(
+              ellipse at 50% 38%,
+              transparent 52%,
+              rgba(0, 0, 0, 0.6)
             );
         }
 
-        .wave-one {
-          bottom: 17%;
-        }
-
-        .wave-two {
-          bottom: 3%;
-          transform: rotate(7deg);
-          border-color:
-            rgba(0, 215, 255, 0.22);
-        }
-
-        .starfield {
-          position: absolute;
-          inset: 0;
-          color: rgba(170, 130, 255, 0.55);
-          font-size: 11px;
-        }
-
-        .starfield span {
-          position: absolute;
-          text-shadow:
-            0 0 8px #8d52ff;
-        }
-
-        .starfield span:nth-child(1) {
-          top: 19%;
-          left: 11%;
-        }
-
-        .starfield span:nth-child(2) {
-          top: 34%;
-          right: 15%;
-        }
-
-        .starfield span:nth-child(3) {
-          top: 55%;
-          left: 8%;
-        }
-
-        .starfield span:nth-child(4) {
-          top: 63%;
-          right: 8%;
-        }
-
-        .starfield span:nth-child(5) {
-          top: 75%;
-          left: 20%;
-        }
-
-        .starfield span:nth-child(6) {
-          top: 48%;
-          right: 30%;
-        }
-
-        .starfield span:nth-child(7) {
-          top: 27%;
-          right: 38%;
-        }
-
-        .starfield span:nth-child(8) {
-          bottom: 13%;
-          right: 18%;
-        }
+        /* =====================================================
+           HEADER
+        ===================================================== */
 
         .header {
           position: relative;
@@ -2125,26 +1918,28 @@ export default function ChatPage() {
           direction: ltr;
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding-top: 7px;
-          font-size: 21px;
-          font-weight: 900;
-          letter-spacing: 5px;
-          text-shadow:
-            0 0 12px
-              rgba(255, 255, 255, 0.22);
+          gap: 10px;
+          padding-top: 9px;
+          font-size: 15px;
+          font-weight: 600;
+          letter-spacing: 7px;
+          color: #f1f2fc;
         }
 
         .wordmark b {
+          padding: 3px 7px 3px 9px;
+          border-radius: 7px;
+          border: 1px solid
+            rgba(164, 140, 255, 0.5);
           background:
-            linear-gradient(
-              90deg,
-              #b05cff,
-              #20dfff
-            );
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
+            rgba(120, 90, 255, 0.13);
+          color: #d6ccff;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          box-shadow:
+            0 0 14px
+              rgba(124, 92, 255, 0.28);
         }
 
         .back {
@@ -2152,30 +1947,45 @@ export default function ChatPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
-          height: 44px;
+          gap: 8px;
+          height: 42px;
           padding: 0 17px;
           border-radius: 999px;
           border: 1px solid
-            rgba(155, 73, 255, 0.95);
+            rgba(200, 206, 255, 0.18);
           background:
-            rgba(55, 16, 111, 0.25);
-          color: white;
+            rgba(255, 255, 255, 0.045);
+          color: #eef0fb;
           box-shadow:
-            0 0 15px
-              rgba(144, 59, 255, 0.42),
-            inset 0 0 18px
-              rgba(94, 70, 255, 0.13);
-          backdrop-filter: blur(18px);
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.09),
+            0 10px 26px
+              rgba(0, 0, 0, 0.38);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           font-size: 13px;
-          font-weight: 800;
+          font-weight: 600;
           cursor: pointer;
+          transition:
+            border-color 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .back:hover {
+          border-color:
+            rgba(170, 150, 255, 0.55);
+          background:
+            rgba(130, 100, 255, 0.1);
         }
 
         .back svg {
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
         }
+
+        /* =====================================================
+           LAYOUT
+        ===================================================== */
 
         .page-content {
           position: relative;
@@ -2200,276 +2010,165 @@ export default function ChatPage() {
           display: none;
         }
 
+        /* =====================================================
+           HOME
+        ===================================================== */
+
         .home-content {
           min-height: 100%;
           display: flex;
           flex-direction: column;
           align-items: center;
-          padding-bottom: 10px;
+          padding-top: 6px;
+          padding-bottom: 12px;
         }
 
-        .hero-logo {
+        .home-content > * {
+          animation:
+            riseIn 0.8s
+              cubic-bezier(.2,.8,.2,1)
+              both;
+        }
+
+        .home-content > :nth-child(2) {
+          animation-delay: 0.08s;
+        }
+
+        .home-content > :nth-child(3) {
+          animation-delay: 0.16s;
+        }
+
+        .home-content > :nth-child(4) {
+          animation-delay: 0.26s;
+        }
+
+        .emblem {
           position: relative;
-          width: 210px;
-          height: 185px;
+          width: 104px;
+          height: 104px;
           flex: 0 0 auto;
-          margin-top: -5px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .hero-glass {
-          position: relative;
-          width: 112px;
-          height: 112px;
+        .emblem-halo {
+          position: absolute;
+          inset: -34px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(122, 88, 255, 0.5),
+              transparent 68%
+            );
+          filter: blur(14px);
+          animation:
+            haloPulse 5s ease-in-out
+              infinite;
+        }
+
+        .emblem-ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          padding: 1.5px;
+          background:
+            conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              rgba(196, 150, 255, 0.95)
+                70deg,
+              rgba(53, 216, 255, 0.9)
+                150deg,
+              transparent 230deg,
+              transparent 360deg
+            );
+          -webkit-mask:
+            linear-gradient(#000 0 0)
+              content-box,
+            linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask:
+            linear-gradient(#000 0 0)
+              content-box,
+            linear-gradient(#000 0 0);
+          mask-composite: exclude;
+          animation:
+            emblemSpin 9s linear
+              infinite;
+        }
+
+        .emblem-core {
+          position: absolute;
+          inset: 7px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           background:
             radial-gradient(
-              circle at 35% 25%,
-              rgba(181, 122, 255, 0.85),
-              rgba(42, 14, 100, 0.48)
-                42%,
-              rgba(3, 5, 25, 0.92)
-                76%
+              circle at 34% 24%,
+              rgba(140, 110, 255, 0.38),
+              rgba(12, 11, 34, 0.94)
+                68%
             );
           border: 1px solid
-            rgba(132, 89, 255, 0.8);
+            rgba(255, 255, 255, 0.09);
           box-shadow:
-            0 0 25px
-              rgba(134, 63, 255, 0.75),
             inset 0 0 30px
-              rgba(0, 194, 255, 0.2);
+              rgba(120, 90, 255, 0.25),
+            0 22px 50px
+              rgba(60, 32, 170, 0.5);
         }
 
-        .hero-orbit {
-          position: absolute;
-          border-radius: 50%;
-          border: 1px solid;
-        }
-
-        .orbit-a {
-          width: 205px;
-          height: 65px;
-          transform: rotate(-18deg);
-          border-color:
-            rgba(170, 79, 255, 0.8);
-        }
-
-        .orbit-b {
-          width: 205px;
-          height: 72px;
-          transform: rotate(46deg);
-          border-color:
-            rgba(0, 209, 255, 0.65);
-        }
-
-        .orbit-c {
-          width: 150px;
-          height: 150px;
-          border-color:
-            rgba(118, 75, 255, 0.2);
-        }
-
-        .hero-m {
-          position: relative;
-          width: 65px;
-          height: 66px;
+        .emblem-m {
+          width: 46px;
+          height: 46px;
           filter:
             drop-shadow(
-              0 0 7px #ae63ff
-            )
-            drop-shadow(
-              0 0 17px #00d9ff
+              0 0 8px
+                rgba(150, 120, 255, 0.7)
             );
-        }
-
-        .hero-m span {
-          position: absolute;
-          top: 6px;
-          display: block;
-          width: 20px;
-          height: 54px;
-          border-radius: 5px;
-          background:
-            linear-gradient(
-              180deg,
-              #f0c5ff,
-              #974cff 45%,
-              #25dfff
-            );
-        }
-
-        .m1 {
-          left: 2px;
-          transform: skewY(27deg);
-        }
-
-        .m2 {
-          left: 22px;
-          top: 18px !important;
-          width: 19px !important;
-          height: 35px !important;
-          transform: rotate(45deg);
-        }
-
-        .m3 {
-          right: 2px;
-          transform: skewY(-27deg);
-        }
-
-        .hero-star {
-          position: absolute;
-          color: white;
-          text-shadow:
-            0 0 8px #b566ff,
-            0 0 16px #00d9ff;
-        }
-
-        .hero-star-one {
-          top: -3px;
-          right: 43px;
-          font-size: 21px;
-        }
-
-        .hero-star-two {
-          bottom: 26px;
-          left: 45px;
-          font-size: 13px;
-        }
-
-        .logo-spark {
-          position: absolute;
-          color: #d6caff;
-          text-shadow:
-            0 0 10px #00cfff;
-        }
-
-        .spark-a {
-          top: 35px;
-          left: 10px;
-        }
-
-        .spark-b {
-          bottom: 22px;
-          right: 15px;
-        }
-
-        .spark-c {
-          top: 55px;
-          right: 5px;
-        }
-
-        .robot-stage {
-          position: relative;
-          width: 210px;
-          height: 155px;
-          flex: 0 0 auto;
-          margin-top: -30px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .robot-aura {
-          position: absolute;
-          width: 125px;
-          height: 90px;
-          border-radius: 50%;
-          background: #7040ff;
-          filter: blur(45px);
-          opacity: 0.38;
-        }
-
-        .robot-svg {
-          position: relative;
-          width: 160px;
-          height: 160px;
-          z-index: 2;
-          filter:
-            drop-shadow(
-              0 0 9px
-                rgba(114, 81, 255, 0.5)
-            )
-            drop-shadow(
-              0 0 18px
-                rgba(0, 210, 255, 0.16)
-            );
-        }
-
-        .robot-star {
-          position: absolute;
-          z-index: 3;
-          color: #a77cff;
-          text-shadow:
-            0 0 12px #00d9ff;
-        }
-
-        .rs-one {
-          top: 26px;
-          right: 18px;
-        }
-
-        .rs-two {
-          bottom: 17px;
-          left: 25px;
-        }
-
-        .rs-three {
-          top: 68px;
-          left: 10px;
-          font-size: 9px;
         }
 
         .greeting {
+          margin-top: 22px;
           text-align: center;
-          margin-top: -5px;
+        }
+
+        .eyebrow {
+          display: block;
+          direction: ltr;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 5px;
+          color:
+            rgba(190, 180, 255, 0.72);
         }
 
         .hello {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 9px;
-          font-size: 39px;
+          margin-top: 12px;
+          font-size: 18px;
           line-height: 1;
-          font-weight: 950;
-          text-shadow:
-            0 0 15px
-              rgba(255, 255, 255, 0.3),
-            0 0 30px
-              rgba(150, 74, 255, 0.4);
-        }
-
-        .hello-hand {
-          font-size: 34px;
-          filter:
-            drop-shadow(
-              0 0 7px
-                rgba(180, 85, 255, 0.8)
-            );
-          animation:
-            wave 2.3s ease-in-out
-              infinite;
+          font-weight: 500;
+          color:
+            rgba(222, 226, 248, 0.7);
         }
 
         .greeting h1 {
-          margin: 12px 0 0;
-          font-size: 31px;
-          line-height: 1.15;
-          font-weight: 950;
+          margin: 10px 0 0;
+          font-size: 36px;
+          line-height: 1.2;
+          font-weight: 800;
         }
 
         .greeting h1 span {
           background:
             linear-gradient(
-              90deg,
-              #b867ff,
-              #9354ff,
-              #8d6dff
+              180deg,
+              #ffffff,
+              #c9c6ee
             );
           -webkit-background-clip: text;
           background-clip: text;
@@ -2480,129 +2179,208 @@ export default function ChatPage() {
           background:
             linear-gradient(
               90deg,
-              #9259ff,
-              #19d8ff
+              #b79bff,
+              #6fdcff
             );
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
         }
 
-        .under-line {
-          width: 145px;
-          height: 4px;
-          margin: 14px auto 0;
-          border-radius: 999px;
+        .hairline {
+          width: 150px;
+          height: 1px;
+          margin: 18px auto 0;
           background:
             linear-gradient(
               90deg,
               transparent,
-              #b04cff,
-              #23dfff,
+              rgba(190, 170, 255, 0.85),
               transparent
             );
           box-shadow:
-            0 0 8px #913eff,
-            0 0 16px
-              rgba(0, 207, 255, 0.35);
+            0 0 12px
+              rgba(150, 120, 255, 0.5);
         }
 
-        .under-line i {
-          display: block;
-          width: 45px;
-          height: 2px;
-          margin: auto;
-          background: white;
-          filter: blur(1px);
+        .hairline i {
+          display: none;
         }
 
         .intro {
-          margin: 17px 0 0;
+          margin: 16px 0 0;
+          max-width: 310px;
           text-align: center;
           font-size: 14px;
           line-height: 2;
           color:
-            rgba(239, 239, 255, 0.86);
+            rgba(222, 226, 248, 0.78);
         }
 
-        .intro span {
-          color: #a5afe8;
+        .intro-sub {
+          display: block;
+          margin-top: 2px;
+          color:
+            rgba(160, 170, 214, 0.7);
+          font-size: 13px;
         }
 
-        .cards {
+        .suggestions {
           width: 100%;
-          max-width: 620px;
-          margin-top: 19px;
+          max-width: 460px;
+          margin-top: 22px;
           display: grid;
-          grid-template-columns:
-            repeat(3, 1fr);
-          gap: 9px;
-          direction: ltr;
+          gap: 10px;
         }
 
-        .card {
+        .suggestion {
           position: relative;
-          min-width: 0;
-          height: 112px;
-          border-radius: 19px;
-          padding: 10px 5px 15px;
+          width: 100%;
           display: flex;
-          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          color: white;
+          gap: 14px;
+          padding: 12px 14px;
+          border-radius: 18px;
+          text-align: right;
+          color: #eef0fb;
           background:
-            rgba(20, 15, 60, 0.42);
+            linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.06),
+              rgba(255, 255, 255, 0.015)
+            );
           border: 1px solid
-            rgba(105, 70, 255, 0.35);
-          backdrop-filter: blur(15px);
+            rgba(200, 206, 255, 0.12);
+          box-shadow:
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.07),
+            0 12px 30px
+              rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
           cursor: pointer;
           transition:
-            transform 0.2s ease,
-            box-shadow 0.2s ease;
+            transform 0.25s
+              cubic-bezier(.2,.8,.2,1),
+            border-color 0.25s ease,
+            box-shadow 0.25s ease;
         }
 
-        .card:hover {
-          transform: translateY(-3px);
+        .suggestion:hover {
+          transform: translateX(-3px);
+          border-color:
+            rgba(170, 150, 255, 0.5);
           box-shadow:
-            0 0 20px
-              rgba(124, 63, 255, 0.28);
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.1),
+            0 12px 34px
+              rgba(90, 60, 220, 0.28);
         }
 
-        .card-icon {
-          width: 28px;
-          height: 28px;
-          margin-bottom: 5px;
+        .suggestion:active {
+          transform: scale(0.985);
         }
 
-        .card-icon svg {
+        .s-icon {
+          width: 40px;
+          height: 40px;
+          flex: 0 0 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 13px;
+          border: 1px solid
+            rgba(170, 150, 255, 0.34);
+          background:
+            rgba(120, 90, 255, 0.12);
+          color: #cfc4ff;
+        }
+
+        .s-icon svg {
+          width: 21px;
+          height: 21px;
+          stroke-width: 1.7;
+        }
+
+        .suggestion.learn .s-icon {
+          border-color:
+            rgba(80, 210, 255, 0.34);
+          background:
+            rgba(40, 190, 255, 0.1);
+          color: #a8ecff;
+        }
+
+        .suggestion.idea .s-icon {
+          border-color:
+            rgba(232, 200, 138, 0.4);
+          background:
+            rgba(232, 200, 138, 0.1);
+          color: #f0d9a8;
+        }
+
+        .s-text {
+          min-width: 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .s-text b {
+          direction: ltr;
+          text-align: right;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 2.2px;
+          color: #f4f5fd;
+        }
+
+        .s-text span {
+          font-size: 13px;
+          color:
+            rgba(190, 198, 230, 0.7);
+        }
+
+        .s-arrow {
+          width: 20px;
+          height: 20px;
+          flex: 0 0 20px;
+          color:
+            rgba(190, 180, 255, 0.55);
+          transition:
+            transform 0.25s ease,
+            color 0.25s ease;
+        }
+
+        .s-arrow svg {
           width: 100%;
           height: 100%;
         }
 
-        .card b {
-          direction: ltr;
-          font-size: 10px;
-          letter-spacing: 0.8px;
+        .suggestion:hover .s-arrow {
+          transform: translateX(-3px);
+          color: #d8ceff;
         }
 
-        .card span {
-          margin-top: 5px;
-          font-size: 10px;
-          white-space: nowrap;
-        }
+        /* =====================================================
+           MESSAGES
+        ===================================================== */
 
         .messages {
           padding-top: 25px;
           padding-bottom: 20px;
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 18px;
         }
 
         .message {
           display: flex;
           width: 100%;
+          animation:
+            riseIn 0.45s
+              cubic-bezier(.2,.8,.2,1)
+              both;
         }
 
         .user-message {
@@ -2619,6 +2397,35 @@ export default function ChatPage() {
           min-width: 0;
         }
 
+        .ai-message .message-wrapper {
+          max-width: 94%;
+        }
+
+        .ai-badge {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          margin: 0 4px 7px;
+          direction: ltr;
+          justify-content: flex-end;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 2.6px;
+          color:
+            rgba(190, 180, 255, 0.75);
+        }
+
+        .ai-mark {
+          width: 15px;
+          height: 15px;
+          color: #b9a8ff;
+          filter:
+            drop-shadow(
+              0 0 5px
+                rgba(150, 120, 255, 0.7)
+            );
+        }
+
         .bubble {
           position: relative;
           border-radius: 22px;
@@ -2626,40 +2433,75 @@ export default function ChatPage() {
           font-size: 15px;
           line-height: 1.95;
           overflow-wrap: anywhere;
+          color: #eef0fb;
         }
 
         .user-message .bubble {
           direction: rtl;
+          border-bottom-right-radius: 7px;
           background:
             linear-gradient(
               135deg,
-              rgba(94, 32, 165, 0.72),
-              rgba(39, 16, 80, 0.88)
+              #6c3df0 0%,
+              #4a2bc2 55%,
+              #33208c 100%
             );
           border: 1px solid
-            rgba(159, 75, 255, 0.75);
+            rgba(255, 255, 255, 0.16);
           box-shadow:
-            0 0 18px
-              rgba(126, 50, 255, 0.2),
-            inset 0 0 25px
-              rgba(185, 72, 255, 0.08);
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.2),
+            0 14px 34px
+              rgba(70, 40, 200, 0.38);
         }
 
         .ai-message .bubble {
           direction: rtl;
+          border-bottom-left-radius: 7px;
           background:
             linear-gradient(
-              135deg,
-              rgba(7, 35, 78, 0.9),
-              rgba(8, 21, 50, 0.92)
+              160deg,
+              rgba(255, 255, 255, 0.065),
+              rgba(255, 255, 255, 0.02)
             );
           border: 1px solid
-            rgba(0, 190, 255, 0.5);
+            rgba(200, 208, 255, 0.13);
           box-shadow:
-            0 0 20px
-              rgba(0, 165, 255, 0.13),
-            inset 0 0 25px
-              rgba(0, 130, 255, 0.06);
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.07),
+            0 14px 34px
+              rgba(0, 0, 0, 0.32);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+
+        .typing {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          height: 29px;
+          padding: 0 4px;
+        }
+
+        .typing i {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #b9a8ff;
+          box-shadow:
+            0 0 10px
+              rgba(150, 120, 255, 0.8);
+          animation:
+            typingDot 1.2s ease-in-out
+              infinite;
+        }
+
+        .typing i:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .typing i:nth-child(3) {
+          animation-delay: 0.3s;
         }
 
         /*
@@ -2675,10 +2517,10 @@ export default function ChatPage() {
           border-radius: 12px;
           margin-bottom: 9px;
           border: 1px solid
-            rgba(185, 110, 255, 0.8);
+            rgba(255, 255, 255, 0.28);
           box-shadow:
-            0 0 12px
-              rgba(146, 64, 255, 0.28);
+            0 6px 18px
+              rgba(0, 0, 0, 0.35);
         }
 
         .user-text {
@@ -2686,21 +2528,34 @@ export default function ChatPage() {
         }
 
         .message-copy {
-          margin-top: 5px;
-          border: 0;
-          background: transparent;
+          margin-top: 8px;
+          padding: 5px 11px 5px 12px;
+          border: 1px solid
+            rgba(200, 206, 255, 0.14);
+          border-radius: 999px;
+          background:
+            rgba(255, 255, 255, 0.04);
           color:
-            rgba(210, 220, 255, 0.65);
+            rgba(205, 212, 242, 0.7);
           display: inline-flex;
           align-items: center;
-          gap: 5px;
+          gap: 6px;
           font-size: 10px;
           cursor: pointer;
+          transition:
+            color 0.2s ease,
+            border-color 0.2s ease;
+        }
+
+        .message-copy:hover {
+          color: #ffffff;
+          border-color:
+            rgba(170, 150, 255, 0.5);
         }
 
         .message-copy svg {
-          width: 18px;
-          height: 18px;
+          width: 15px;
+          height: 15px;
         }
 
         .message-text {
@@ -2719,6 +2574,7 @@ export default function ChatPage() {
           margin:
             4px 0 10px;
           line-height: 1.45;
+          color: #ffffff;
         }
 
         .heading-1 {
@@ -2741,12 +2597,12 @@ export default function ChatPage() {
         }
 
         .list-dot {
-          color: #b16cff;
+          color: #a98bff;
           flex: 0 0 auto;
         }
 
         .list-number {
-          color: #72eaff;
+          color: #8fe4ff;
           min-width: 25px;
         }
 
@@ -2755,18 +2611,21 @@ export default function ChatPage() {
         }
 
         .inline-bold {
-          font-weight: 900;
+          font-weight: 800;
+          color: #ffffff;
         }
 
         .inline-code {
           direction: ltr;
           unicode-bidi: plaintext;
           display: inline-block;
-          padding: 1px 5px;
-          border-radius: 5px;
+          padding: 1px 6px;
+          border-radius: 6px;
           background:
-            rgba(0, 0, 0, 0.32);
-          color: #8eefff;
+            rgba(255, 255, 255, 0.08);
+          border: 1px solid
+            rgba(200, 206, 255, 0.1);
+          color: #d3c9ff;
           font-family:
             Consolas,
             monospace;
@@ -2778,26 +2637,27 @@ export default function ChatPage() {
           width: 100%;
           margin: 12px 0;
           overflow: hidden;
-          border-radius: 13px;
-          background: #070a14;
+          border-radius: 14px;
+          background: #06070e;
           border: 1px solid
-            rgba(104, 99, 255, 0.45);
+            rgba(200, 206, 255, 0.13);
         }
 
         .code-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 7px 9px;
+          padding: 8px 11px;
           background:
-            rgba(92, 63, 170, 0.18);
+            rgba(255, 255, 255, 0.04);
           border-bottom: 1px solid
-            rgba(115, 94, 220, 0.25);
+            rgba(200, 206, 255, 0.1);
         }
 
         .code-language {
-          color: #8cdbff;
+          color: #b9b0ff;
           font-size: 9px;
+          letter-spacing: 1.5px;
           text-transform: uppercase;
         }
 
@@ -3241,16 +3101,83 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes wave {
+        @keyframes riseIn {
+          from {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes emblemSpin {
+          from {
+            transform: rotate(0deg);
+          }
+
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes haloPulse {
           0%,
           100% {
-            transform: rotate(-8deg);
+            opacity: 0.55;
+            transform: scale(0.96);
           }
 
           50% {
-            transform:
-              rotate(8deg)
-              translateY(-2px);
+            opacity: 0.95;
+            transform: scale(1.04);
+          }
+        }
+
+        @keyframes auraDriftA {
+          from {
+            transform: translate(0, 0);
+          }
+
+          to {
+            transform: translate(40px, -50px);
+          }
+        }
+
+        @keyframes auraDriftB {
+          from {
+            transform: translate(0, 0);
+          }
+
+          to {
+            transform: translate(-40px, 45px);
+          }
+        }
+
+        @keyframes typingDot {
+          0%,
+          80%,
+          100% {
+            opacity: 0.3;
+            transform: translateY(0);
+          }
+
+          40% {
+            opacity: 1;
+            transform: translateY(-4px);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .home-content > *,
+          .message,
+          .bg-aura,
+          .emblem-halo,
+          .emblem-ring,
+          .typing i {
+            animation: none;
           }
         }
 
@@ -3262,12 +3189,13 @@ export default function ChatPage() {
           }
 
           .wordmark {
-            font-size: 17px;
-            letter-spacing: 4px;
+            font-size: 13px;
+            letter-spacing: 5px;
+            padding-top: 8px;
           }
 
           .back {
-            height: 41px;
+            height: 40px;
             padding: 0 14px;
             font-size: 12px;
           }
@@ -3277,69 +3205,65 @@ export default function ChatPage() {
           }
 
           .message-area {
-            padding: 0 12px;
+            padding: 0 14px;
           }
 
-          .hero-logo {
-            width: 190px;
-            height: 158px;
-            transform: scale(0.92);
-            margin-top: -5px;
+          .emblem {
+            width: 92px;
+            height: 92px;
           }
 
-          .robot-stage {
-            width: 190px;
-            height: 138px;
-            margin-top: -27px;
+          .emblem-m {
+            width: 40px;
+            height: 40px;
           }
 
-          .robot-svg {
-            width: 145px;
-            height: 145px;
+          .greeting {
+            margin-top: 18px;
           }
 
           .hello {
-            font-size: 35px;
-          }
-
-          .hello-hand {
-            font-size: 31px;
+            font-size: 16px;
           }
 
           .greeting h1 {
-            font-size: 27px;
+            font-size: 32px;
+          }
+
+          .hairline {
+            margin-top: 14px;
           }
 
           .intro {
-            margin-top: 13px;
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.9;
+          }
+
+          .intro-sub {
             font-size: 12px;
-            line-height: 1.85;
           }
 
-          .cards {
-            gap: 6px;
-            margin-top: 15px;
+          .suggestions {
+            margin-top: 18px;
+            gap: 8px;
           }
 
-          .card {
-            height: 98px;
+          .suggestion {
+            padding: 10px 12px;
             border-radius: 16px;
-            padding: 7px 3px 14px;
           }
 
-          .card-icon {
-            width: 24px;
-            height: 24px;
+          .s-icon {
+            width: 36px;
+            height: 36px;
+            flex-basis: 36px;
+            border-radius: 12px;
           }
 
-          .card b {
-            font-size: 8px;
-            letter-spacing: 0.5px;
-          }
-
-          .card span {
-            font-size: 8px;
-            margin-top: 4px;
+          .s-icon svg {
+            width: 19px;
+            height: 19px;
           }
 
           .composer-zone {
@@ -3391,10 +3315,15 @@ export default function ChatPage() {
 
           .messages {
             padding-top: 20px;
+            gap: 16px;
           }
 
           .message-wrapper {
             max-width: 92%;
+          }
+
+          .ai-message .message-wrapper {
+            max-width: 96%;
           }
 
           .bubble {
@@ -3443,37 +3372,46 @@ export default function ChatPage() {
         }
 
         @media (max-height: 760px) and (max-width: 500px) {
-          .hero-logo {
-            height: 130px;
-            transform: scale(0.76);
-            margin-top: -17px;
+          .emblem {
+            width: 76px;
+            height: 76px;
           }
 
-          .robot-stage {
-            height: 112px;
-            transform: scale(0.78);
-            margin-top: -36px;
+          .emblem-halo {
+            inset: -24px;
           }
 
-          .hello {
-            font-size: 31px;
+          .emblem-m {
+            width: 34px;
+            height: 34px;
+          }
+
+          .greeting {
+            margin-top: 14px;
           }
 
           .greeting h1 {
+            font-size: 28px;
+          }
+
+          .hello {
             margin-top: 8px;
-            font-size: 24px;
+          }
+
+          .hairline {
+            margin-top: 11px;
           }
 
           .intro {
             margin-top: 9px;
           }
 
-          .cards {
-            margin-top: 10px;
+          .intro-sub {
+            display: none;
           }
 
-          .card {
-            height: 86px;
+          .suggestions {
+            margin-top: 14px;
           }
         }
       `}</style>
