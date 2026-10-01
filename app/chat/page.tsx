@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -260,246 +259,6 @@ function CloseIcon() {
 }
 
 /* =========================================================
-   COPY
-========================================================= */
-
-function copyWithFallback(text: string) {
-  const area = document.createElement("textarea");
-
-  area.value = text;
-  area.style.position = "fixed";
-  area.style.opacity = "0";
-  area.style.pointerEvents = "none";
-
-  document.body.appendChild(area);
-  area.select();
-
-  try {
-    document.execCommand("copy");
-  } catch {
-    // کپی پشتیبانی نشد.
-  }
-
-  document.body.removeChild(area);
-}
-
-function CopyButton({
-  text,
-  className,
-}: {
-  text: string;
-  className: string;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const timerRef =
-    useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        window.clearTimeout(
-          timerRef.current
-        );
-      }
-    };
-  }, []);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(
-        text
-      );
-    } catch {
-      copyWithFallback(text);
-    }
-
-    setCopied(true);
-
-    if (timerRef.current) {
-      window.clearTimeout(
-        timerRef.current
-      );
-    }
-
-    timerRef.current =
-      window.setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-  }
-
-  return (
-    <button
-      type="button"
-      className={`${className}${
-        copied ? " copied" : ""
-      }`}
-      onClick={copy}
-      aria-label="کپی"
-    >
-      {copied ? (
-        <>
-          <CheckIcon />
-          <span>کپی شد</span>
-        </>
-      ) : (
-        <>
-          <CopyIcon />
-          <span>کپی</span>
-        </>
-      )}
-    </button>
-  );
-}
-
-/* =========================================================
-   CODE HIGHLIGHT
-========================================================= */
-
-const KEYWORDS = new Set([
-  "const", "let", "var", "function", "return",
-  "if", "else", "for", "while", "do", "switch",
-  "case", "break", "continue", "new", "class",
-  "extends", "import", "from", "export",
-  "default", "async", "await", "try", "catch",
-  "finally", "throw", "typeof", "instanceof",
-  "in", "of", "this", "super", "static",
-  "public", "private", "protected", "interface",
-  "type", "enum", "implements", "void",
-  "def", "elif", "lambda", "pass", "with", "as",
-  "is", "not", "and", "or", "yield", "global",
-  "raise", "except", "del", "self",
-  "None", "True", "False",
-  "true", "false", "null", "undefined", "NaN",
-  "fn", "mut", "pub", "use", "struct", "impl",
-  "match", "func", "package", "defer", "go",
-  "namespace", "using", "echo", "fi", "then",
-  "done", "int", "string", "bool", "float",
-  "double", "char", "long",
-  "SELECT", "FROM", "WHERE", "INSERT", "INTO",
-  "VALUES", "UPDATE", "DELETE", "CREATE",
-  "TABLE", "JOIN", "ON", "ORDER", "BY",
-  "GROUP", "LIMIT", "AND", "OR",
-]);
-
-const HASH_COMMENT_LANGUAGES = [
-  "python", "py", "bash", "sh", "shell",
-  "zsh", "yaml", "yml", "ruby", "rb",
-  "toml", "dockerfile", "r", "perl",
-];
-
-const PLAIN_LANGUAGES = [
-  "", "text", "txt", "plaintext",
-  "markdown", "md",
-];
-
-const SLASH_PATTERN =
-  /(\/\/.*|\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_$][\w$]*\b)/g;
-
-const HASH_PATTERN =
-  /(#.*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_$][\w$]*\b)/g;
-
-function highlightCode(
-  code: string,
-  language: string
-): ReactNode[] {
-  const lang = language.toLowerCase();
-
-  if (
-    PLAIN_LANGUAGES.includes(lang) ||
-    code.length > 20000
-  ) {
-    return [code];
-  }
-
-  try {
-    const base =
-      HASH_COMMENT_LANGUAGES.includes(lang)
-        ? HASH_PATTERN
-        : SLASH_PATTERN;
-
-    const pattern = new RegExp(
-      base.source,
-      "g"
-    );
-
-    const output: ReactNode[] = [];
-
-    let last = 0;
-    let key = 0;
-    let match: RegExpExecArray | null;
-
-    while (
-      (match = pattern.exec(code)) !== null
-    ) {
-      if (match.index > last) {
-        output.push(
-          code.slice(last, match.index)
-        );
-      }
-
-      const token = match[0];
-      let tokenClass = "";
-
-      if (match[1]) {
-        tokenClass = "tk-comment";
-      } else if (match[2]) {
-        tokenClass = "tk-string";
-      } else if (match[3]) {
-        tokenClass = "tk-number";
-      } else if (match[4]) {
-        if (KEYWORDS.has(token)) {
-          tokenClass = "tk-keyword";
-        } else {
-          let next = pattern.lastIndex;
-
-          while (
-            code[next] === " " ||
-            code[next] === "\t"
-          ) {
-            next += 1;
-          }
-
-          if (code[next] === "(") {
-            tokenClass = "tk-function";
-          } else if (
-            token.length > 1 &&
-            /^[A-Z][A-Za-z0-9_]*$/.test(
-              token
-            )
-          ) {
-            tokenClass = "tk-type";
-          }
-        }
-      }
-
-      if (tokenClass) {
-        output.push(
-          <span
-            key={key++}
-            className={tokenClass}
-          >
-            {token}
-          </span>
-        );
-      } else {
-        output.push(token);
-      }
-
-      last = pattern.lastIndex;
-    }
-
-    if (last < code.length) {
-      output.push(code.slice(last));
-    }
-
-    return output;
-  } catch {
-    return [code];
-  }
-}
-
-/* =========================================================
    MARKDOWN
 ========================================================= */
 
@@ -510,30 +269,49 @@ function CodeBlock({
   code: string;
   language?: string;
 }) {
-  const nodes = useMemo(
-    () =>
-      highlightCode(
-        code,
-        language || ""
-      ),
-    [code, language]
-  );
+  const [copied, setCopied] = useState(false);
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
 
   return (
     <div className="code-block">
       <div className="code-header">
         <span className="code-language">
-          {language || "code"}
+          {language || "CODE"}
         </span>
 
-        <CopyButton
-          text={code}
+        <button
+          type="button"
           className="code-copy"
-        />
+          onClick={copyCode}
+        >
+          {copied ? (
+            <>
+              <CheckIcon />
+              <span>کپی شد</span>
+            </>
+          ) : (
+            <>
+              <CopyIcon />
+              <span>کپی</span>
+            </>
+          )}
+        </button>
       </div>
 
       <pre>
-        <code>{nodes}</code>
+        <code>{code}</code>
       </pre>
     </div>
   );
@@ -545,7 +323,7 @@ function InlineText({
   text: string;
 }) {
   const parts = text.split(
-    /(`[^`]+`|\*\*[^*]+\*\*|\[[^\]]+\]\(https?:\/\/[^\s)]+\))/g
+    /(`[^`]+`|\*\*[^*]+\*\*)/g
   );
 
   return (
@@ -553,8 +331,7 @@ function InlineText({
       {parts.map((part, index) => {
         if (
           part.startsWith("**") &&
-          part.endsWith("**") &&
-          part.length > 4
+          part.endsWith("**")
         ) {
           return (
             <strong
@@ -568,8 +345,7 @@ function InlineText({
 
         if (
           part.startsWith("`") &&
-          part.endsWith("`") &&
-          part.length > 2
+          part.endsWith("`")
         ) {
           return (
             <code
@@ -581,24 +357,6 @@ function InlineText({
           );
         }
 
-        const link = part.match(
-          /^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/
-        );
-
-        if (link) {
-          return (
-            <a
-              key={index}
-              href={link[2]}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-link"
-            >
-              {link[1]}
-            </a>
-          );
-        }
-
         return (
           <span key={index}>
             {part}
@@ -607,288 +365,6 @@ function InlineText({
       })}
     </>
   );
-}
-
-function splitTableRow(line: string) {
-  return line
-    .trim()
-    .replace(/^\|/, "")
-    .replace(/\|$/, "")
-    .split("|")
-    .map((cell) => cell.trim());
-}
-
-function renderLines(
-  lines: string[]
-): ReactNode[] {
-  const nodes: ReactNode[] = [];
-
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      nodes.push(
-        <div
-          key={i}
-          className="message-space"
-        />
-      );
-
-      i += 1;
-      continue;
-    }
-
-    if (
-      /^(-{3,}|\*{3,}|_{3,})$/.test(
-        trimmed
-      )
-    ) {
-      nodes.push(
-        <hr
-          key={i}
-          className="message-rule"
-        />
-      );
-
-      i += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith("### ")) {
-      nodes.push(
-        <h3
-          key={i}
-          dir="auto"
-          className="message-heading heading-3"
-        >
-          <InlineText
-            text={trimmed.slice(4)}
-          />
-        </h3>
-      );
-
-      i += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      nodes.push(
-        <h2
-          key={i}
-          dir="auto"
-          className="message-heading heading-2"
-        >
-          <InlineText
-            text={trimmed.slice(3)}
-          />
-        </h2>
-      );
-
-      i += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith("# ")) {
-      nodes.push(
-        <h1
-          key={i}
-          dir="auto"
-          className="message-heading heading-1"
-        >
-          <InlineText
-            text={trimmed.slice(2)}
-          />
-        </h1>
-      );
-
-      i += 1;
-      continue;
-    }
-
-    if (trimmed.startsWith(">")) {
-      const start = i;
-      const quote: string[] = [];
-
-      while (
-        i < lines.length &&
-        lines[i].trim().startsWith(">")
-      ) {
-        quote.push(
-          lines[i]
-            .trim()
-            .replace(/^>\s?/, "")
-        );
-
-        i += 1;
-      }
-
-      nodes.push(
-        <blockquote
-          key={start}
-          dir="auto"
-          className="message-quote"
-        >
-          {quote.map((item, index) => (
-            <div key={index}>
-              <InlineText text={item} />
-            </div>
-          ))}
-        </blockquote>
-      );
-
-      continue;
-    }
-
-    if (
-      trimmed.startsWith("|") &&
-      i + 1 < lines.length &&
-      /^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?$/.test(
-        lines[i + 1].trim()
-      )
-    ) {
-      const start = i;
-      const header = splitTableRow(line);
-      const rows: string[][] = [];
-
-      i += 2;
-
-      while (
-        i < lines.length &&
-        lines[i].trim().startsWith("|")
-      ) {
-        rows.push(
-          splitTableRow(lines[i])
-        );
-
-        i += 1;
-      }
-
-      nodes.push(
-        <div
-          key={start}
-          className="table-wrap"
-        >
-          <table className="message-table">
-            <thead>
-              <tr>
-                {header.map(
-                  (cell, index) => (
-                    <th key={index}>
-                      <InlineText
-                        text={cell}
-                      />
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map(
-                (row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {row.map(
-                      (cell, index) => (
-                        <td key={index}>
-                          <InlineText
-                            text={cell}
-                          />
-                        </td>
-                      )
-                    )}
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
-        </div>
-      );
-
-      continue;
-    }
-
-    const indent = Math.min(
-      line.length - line.trimStart().length,
-      8
-    );
-
-    const bullet = trimmed.match(
-      /^[-*•]\s+(.+)$/
-    );
-
-    if (bullet) {
-      nodes.push(
-        <div
-          key={i}
-          dir="auto"
-          className="message-list-item"
-          style={{
-            marginInlineStart:
-              indent * 5,
-          }}
-        >
-          <span className="list-dot">
-            •
-          </span>
-
-          <span className="list-content">
-            <InlineText text={bullet[1]} />
-          </span>
-        </div>
-      );
-
-      i += 1;
-      continue;
-    }
-
-    const numbered = trimmed.match(
-      /^(\d+)[.)]\s+(.+)$/
-    );
-
-    if (numbered) {
-      nodes.push(
-        <div
-          key={i}
-          dir="auto"
-          className="message-list-item numbered"
-          style={{
-            marginInlineStart:
-              indent * 5,
-          }}
-        >
-          <span className="list-number">
-            {numbered[1]}.
-          </span>
-
-          <span className="list-content">
-            <InlineText
-              text={numbered[2]}
-            />
-          </span>
-        </div>
-      );
-
-      i += 1;
-      continue;
-    }
-
-    nodes.push(
-      <div
-        key={i}
-        dir="auto"
-        className="message-line"
-      >
-        <InlineText text={line} />
-      </div>
-    );
-
-    i += 1;
-  }
-
-  return nodes;
 }
 
 function MessageContent({
@@ -928,7 +404,112 @@ function MessageContent({
         key={`text-${output.length}`}
         className="message-text"
       >
-        {renderLines(text.split("\n"))}
+        {text.split("\n").map((line, index) => {
+          const trimmed = line.trim();
+
+          if (trimmed.startsWith("### ")) {
+            return (
+              <h3
+                key={index}
+                className="message-heading heading-3"
+              >
+                <InlineText
+                  text={trimmed.slice(4)}
+                />
+              </h3>
+            );
+          }
+
+          if (trimmed.startsWith("## ")) {
+            return (
+              <h2
+                key={index}
+                className="message-heading heading-2"
+              >
+                <InlineText
+                  text={trimmed.slice(3)}
+                />
+              </h2>
+            );
+          }
+
+          if (trimmed.startsWith("# ")) {
+            return (
+              <h1
+                key={index}
+                className="message-heading heading-1"
+              >
+                <InlineText
+                  text={trimmed.slice(2)}
+                />
+              </h1>
+            );
+          }
+
+          if (
+            trimmed.startsWith("- ") ||
+            trimmed.startsWith("• ")
+          ) {
+            return (
+              <div
+                key={index}
+                className="message-list-item"
+              >
+                <span className="list-dot">
+                  •
+                </span>
+
+                <span className="list-content">
+                  <InlineText
+                    text={trimmed.slice(2)}
+                  />
+                </span>
+              </div>
+            );
+          }
+
+          const numbered =
+            trimmed.match(
+              /^(\d+)\.\s(.+)$/
+            );
+
+          if (numbered) {
+            return (
+              <div
+                key={index}
+                className="message-list-item numbered"
+              >
+                <span className="list-number">
+                  {numbered[1]}.
+                </span>
+
+                <span className="list-content">
+                  <InlineText
+                    text={numbered[2]}
+                  />
+                </span>
+              </div>
+            );
+          }
+
+          if (!trimmed) {
+            return (
+              <div
+                key={index}
+                className="message-space"
+              />
+            );
+          }
+
+          return (
+            <div
+              key={index}
+              className="message-line"
+            >
+              <InlineText text={line} />
+            </div>
+          );
+        })}
       </div>
     );
 
@@ -937,7 +518,7 @@ function MessageContent({
 
   for (const line of lines) {
     const match = line.match(
-      /^\s*```(.*)$/
+      /^```(.*)$/
     );
 
     if (match) {
@@ -986,7 +567,7 @@ function MessageContent({
 }
 
 /* =========================================================
-   BRAND
+   EMBLEM
 ========================================================= */
 
 function MobixaEmblem() {
@@ -1070,21 +651,6 @@ function ChevronIcon() {
   );
 }
 
-function ArrowDownIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 5v14M6 13l6 6 6-6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 /* =========================================================
    PAGE
 ========================================================= */
@@ -1137,16 +703,6 @@ export default function ChatPage() {
 
   const previewUrlRef =
     useRef<string | null>(null);
-
-  /*
-    فقط وقتی کاربر نزدیک انتهای چت است،
-    هنگام دریافت پاسخ خودکار پایین می‌رویم.
-  */
-  const stickToBottomRef =
-    useRef(true);
-
-  const [showJump, setShowJump] =
-    useState(false);
 
   function goBack() {
     if (window.history.length > 1) {
@@ -1761,73 +1317,18 @@ export default function ChatPage() {
     )}px`;
   }, [input]);
 
-  function handleScroll() {
-    const element = scrollRef.current;
-
-    if (!element) {
+  useEffect(() => {
+    if (!scrollRef.current) {
       return;
     }
 
-    const distance =
-      element.scrollHeight -
-      element.scrollTop -
-      element.clientHeight;
-
-    stickToBottomRef.current =
-      distance < 140;
-
-    setShowJump(distance > 260);
-  }
-
-  function scrollToBottom() {
-    const element = scrollRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    stickToBottomRef.current = true;
-
-    element.scrollTo({
-      top: element.scrollHeight,
+    scrollRef.current.scrollTo({
+      top:
+        scrollRef.current
+          .scrollHeight,
       behavior: "smooth",
     });
-  }
-
-  useEffect(() => {
-    const element = scrollRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const last =
-      messages[messages.length - 1];
-
-    /*
-      پیام جدید ارسال شده:
-      همیشه به پایین برو.
-    */
-
-    if (
-      last &&
-      last.role === "assistant" &&
-      !last.content
-    ) {
-      stickToBottomRef.current = true;
-    }
-
-    if (!stickToBottomRef.current) {
-      return;
-    }
-
-    element.scrollTo({
-      top: element.scrollHeight,
-      behavior: loading
-        ? "auto"
-        : "smooth",
-    });
-  }, [messages, loading]);
+  }, [messages]);
 
   useEffect(() => {
     return () => {
@@ -1847,9 +1348,12 @@ export default function ChatPage() {
       className="mobixa"
     >
       <div className="background" aria-hidden="true">
-        <div className="bg-glow glow-one" />
-        <div className="bg-glow glow-two" />
+        <div className="bg-beam" />
+        <div className="bg-aura aura-one" />
+        <div className="bg-aura aura-two" />
+        <div className="bg-ring" />
         <div className="bg-grain" />
+        <div className="bg-vignette" />
       </div>
 
       <header className="header">
@@ -1872,26 +1376,50 @@ export default function ChatPage() {
         <div
           ref={scrollRef}
           className="message-area"
-          onScroll={handleScroll}
         >
           {messages.length === 0 ? (
             <div className="home-content">
               <MobixaEmblem />
 
-              <h1 className="home-title">
-                <span>بزن بریم</span>{" "}
-                <strong>مهندس</strong>
-              </h1>
+              <div className="greeting">
+                <span className="eyebrow">
+                  MOBIXA INTELLIGENCE
+                </span>
 
-              <p className="home-sub">
-                هر چیزی که توی ذهنته بپرس،
-                ایده بده، بساز.
+                <div className="hello">
+                  سلام
+                </div>
+
+                <h1>
+                  <span>
+                    بزن بریم
+                  </span>{" "}
+                  <strong>
+                    مهندس
+                  </strong>
+                </h1>
+
+                <div className="hairline">
+                  <i />
+                </div>
+              </div>
+
+              <p className="intro">
+                اینجا هر چیزی که توی
+                ذهنت داری،
+                <br />
+                می‌تونه شروع یک چیز بزرگ
+                باشه.
+                <span className="intro-sub">
+                  ایده بده، سؤال بپرس،
+                  بساز.
+                </span>
               </p>
 
               <div className="suggestions">
                 <button
                   type="button"
-                  className="suggestion"
+                  className="suggestion create"
                   onClick={() =>
                     putSuggestion(
                       "این متن رو برای من حرفه‌ای و جذاب‌تر کن:"
@@ -1917,7 +1445,7 @@ export default function ChatPage() {
 
                 <button
                   type="button"
-                  className="suggestion"
+                  className="suggestion learn"
                   onClick={() =>
                     putSuggestion(
                       "این موضوع رو خیلی ساده و قابل فهم برام توضیح بده:"
@@ -1944,7 +1472,7 @@ export default function ChatPage() {
 
                 <button
                   type="button"
-                  className="suggestion"
+                  className="suggestion idea"
                   onClick={() =>
                     putSuggestion(
                       "برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
@@ -1972,149 +1500,98 @@ export default function ChatPage() {
           ) : (
             <div className="messages">
               {messages.map(
-                (message, index) => {
-                  const isLast =
-                    index ===
-                    messages.length - 1;
-
-                  const streaming =
-                    loading &&
-                    isLast &&
-                    message.role ===
-                      "assistant";
-
-                  if (
-                    message.role === "user"
-                  ) {
-                    return (
-                      <div
-                        key={message.id}
-                        className="message user-message"
-                      >
-                        <div className="user-bubble">
-                          {message.image && (
-                            <img
-                              src={
-                                message.image
-                              }
-                              alt="تصویر ارسال‌شده"
-                              className="sent-image"
-                            />
-                          )}
-
-                          {message.content && (
-                            <div
-                              className="user-text"
-                              dir="auto"
-                            >
-                              <InlineText
-                                text={
-                                  message.content
-                                }
-                              />
-                            </div>
-                          )}
+                (message) => (
+                  <div
+                    key={message.id}
+                    className={
+                      message.role ===
+                      "user"
+                        ? "message user-message"
+                        : "message ai-message"
+                    }
+                  >
+                    <div className="message-wrapper">
+                      {message.role ===
+                        "assistant" && (
+                        <div className="ai-badge">
+                          <MobixaMark />
+                          <span>
+                            MOBIXA AI
+                          </span>
                         </div>
-                      </div>
-                    );
-                  }
+                      )}
 
-                  const isError =
-                    message.content.startsWith(
-                      "⚠️"
-                    );
-
-                  return (
-                    <div
-                      key={message.id}
-                      className="message ai-message"
-                    >
-                      <div
-                        className={`ai-avatar${
-                          streaming
-                            ? " working"
-                            : ""
-                        }`}
-                      >
-                        <MobixaMark />
-                      </div>
-
-                      <div className="ai-body">
-                        <div
-                          className={`ai-content${
-                            streaming
-                              ? " streaming"
-                              : ""
-                          }${
-                            isError
-                              ? " is-error"
-                              : ""
-                          }`}
-                        >
-                          {message.content ? (
+                      <div className="bubble">
+                        {message.role ===
+                        "assistant" ? (
+                          message.content ? (
                             <MessageContent
                               content={
                                 message.content
                               }
                             />
-                          ) : loading &&
-                            isLast ? (
+                          ) : loading ? (
                             <div
-                              className="thinking"
-                              role="status"
+                              className="typing"
+                              aria-label="در حال نوشتن"
                             >
-                              <span className="thinking-text">
-                                در حال فکر کردن
-                              </span>
-
-                              <span className="thinking-dots">
-                                <i />
-                                <i />
-                                <i />
-                              </span>
+                              <i />
+                              <i />
+                              <i />
                             </div>
-                          ) : (
-                            <span className="stopped-note">
-                              پاسخ متوقف شد
-                            </span>
-                          )}
-                        </div>
-
-                        {message.content &&
-                          !isError &&
-                          !streaming && (
-                            <div className="message-actions">
-                              <CopyButton
-                                text={
-                                  message.content
+                          ) : null
+                        ) : (
+                          <>
+                            {message.image && (
+                              <img
+                                src={
+                                  message.image
                                 }
-                                className="message-copy"
+                                alt="تصویر ارسال‌شده"
+                                className="sent-image"
                               />
-                            </div>
-                          )}
-                      </div>
-                    </div>
-                  );
-                }
-              )}
+                            )}
 
-              <div className="jump-wrap">
-                <button
-                  type="button"
-                  className={`jump${
-                    showJump
-                      ? " show"
-                      : ""
-                  }`}
-                  onClick={scrollToBottom}
-                  aria-label="رفتن به آخرین پیام"
-                  tabIndex={
-                    showJump ? 0 : -1
-                  }
-                >
-                  <ArrowDownIcon />
-                </button>
-              </div>
+                            {message.content && (
+                              <div className="user-text">
+                                <InlineText
+                                  text={
+                                    message.content
+                                  }
+                                />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {message.role ===
+                        "assistant" &&
+                        message.content &&
+                        !message.content.startsWith(
+                          "⚠️"
+                        ) && (
+                          <button
+                            type="button"
+                            className="message-copy"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(
+                                  message.content
+                                );
+                              } catch {}
+                            }}
+                          >
+                            <CopyIcon />
+                            <span>
+                              کپی
+                            </span>
+                          </button>
+                        )}
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           )}
         </div>
@@ -2204,11 +1681,7 @@ export default function ChatPage() {
 
             <button
               type="button"
-              className={`send${
-                loading
-                  ? " is-loading"
-                  : ""
-              }`}
+              className="send"
               onClick={() => {
                 if (loading) {
                   stopGeneration();
@@ -2259,7 +1732,7 @@ export default function ChatPage() {
           padding: 0;
           width: 100%;
           min-height: 100%;
-          background: #07070c;
+          background: #03040a;
         }
 
         body {
@@ -2276,31 +1749,31 @@ export default function ChatPage() {
           font: inherit;
         }
 
-        button {
-          -webkit-tap-highlight-color:
-            transparent;
-        }
-
-        ::selection {
-          background:
-            rgba(139, 123, 255, 0.38);
-        }
-
         .mobixa {
           position: relative;
           width: 100%;
           height: 100svh;
           min-height: 100svh;
           overflow: hidden;
-          color: #ececf4;
+          color: #eef0fb;
           -webkit-font-smoothing: antialiased;
           background:
             radial-gradient(
-              110% 50% at 50% -10%,
-              rgba(112, 92, 240, 0.26),
-              transparent 64%
+              120% 55% at 50% -8%,
+              rgba(86, 62, 196, 0.34),
+              transparent 62%
             ),
-            #07070c;
+            radial-gradient(
+              80% 45% at 92% 100%,
+              rgba(20, 88, 200, 0.2),
+              transparent 62%
+            ),
+            radial-gradient(
+              70% 40% at 4% 84%,
+              rgba(112, 44, 205, 0.16),
+              transparent 62%
+            ),
+            #03040a;
         }
 
         /* =====================================================
@@ -2314,44 +1787,113 @@ export default function ChatPage() {
           pointer-events: none;
         }
 
-        .bg-glow {
+        .bg-beam {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          width: 320px;
+          height: 480px;
+          transform: translateX(-50%);
+          background:
+            linear-gradient(
+              180deg,
+              rgba(170, 150, 255, 0.2),
+              rgba(120, 100, 255, 0.05)
+                60%,
+              transparent
+            );
+          clip-path:
+            polygon(
+              42% 0,
+              58% 0,
+              100% 100%,
+              0 100%
+            );
+          filter: blur(22px);
+          opacity: 0.8;
+        }
+
+        .bg-aura {
           position: absolute;
           border-radius: 50%;
-          filter: blur(90px);
+          filter: blur(80px);
           will-change: transform;
         }
 
-        .glow-one {
-          width: 340px;
-          height: 340px;
-          left: -180px;
-          top: 40%;
+        .aura-one {
+          width: 360px;
+          height: 360px;
+          left: -170px;
+          top: 34%;
           background:
-            rgba(104, 60, 230, 0.26);
+            rgba(104, 52, 232, 0.4);
           animation:
-            glowDriftA 22s ease-in-out
+            auraDriftA 20s ease-in-out
               infinite alternate;
         }
 
-        .glow-two {
-          width: 320px;
-          height: 320px;
-          right: -180px;
-          bottom: 8%;
+        .aura-two {
+          width: 340px;
+          height: 340px;
+          right: -170px;
+          bottom: 6%;
           background:
-            rgba(28, 110, 230, 0.18);
+            rgba(16, 100, 230, 0.26);
           animation:
-            glowDriftB 26s ease-in-out
+            auraDriftB 24s ease-in-out
               infinite alternate;
+        }
+
+        .bg-ring {
+          position: absolute;
+          top: -40px;
+          left: 50%;
+          width: min(118vw, 560px);
+          height: min(118vw, 560px);
+          transform: translateX(-50%);
+          border-radius: 50%;
+          border: 1px solid
+            rgba(176, 166, 255, 0.1);
+          box-shadow:
+            inset 0 0 90px
+              rgba(110, 82, 255, 0.07);
+        }
+
+        .bg-ring::before,
+        .bg-ring::after {
+          content: "";
+          position: absolute;
+          border-radius: 50%;
+          border: 1px solid
+            rgba(176, 166, 255, 0.06);
+        }
+
+        .bg-ring::before {
+          inset: 12%;
+        }
+
+        .bg-ring::after {
+          inset: -14%;
         }
 
         .bg-grain {
           position: absolute;
           inset: 0;
-          opacity: 0.06;
+          opacity: 0.08;
           mix-blend-mode: overlay;
           background-image:
             url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+        }
+
+        .bg-vignette {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(
+              ellipse at 50% 38%,
+              transparent 52%,
+              rgba(0, 0, 0, 0.6)
+            );
         }
 
         /* =====================================================
@@ -2381,20 +1923,23 @@ export default function ChatPage() {
           font-size: 15px;
           font-weight: 600;
           letter-spacing: 7px;
-          color: #f1f1f8;
+          color: #f1f2fc;
         }
 
         .wordmark b {
           padding: 3px 7px 3px 9px;
           border-radius: 7px;
           border: 1px solid
-            rgba(164, 140, 255, 0.45);
+            rgba(164, 140, 255, 0.5);
           background:
-            rgba(120, 90, 255, 0.12);
+            rgba(120, 90, 255, 0.13);
           color: #d6ccff;
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 2px;
+          box-shadow:
+            0 0 14px
+              rgba(124, 92, 255, 0.28);
         }
 
         .back {
@@ -2407,12 +1952,17 @@ export default function ChatPage() {
           padding: 0 17px;
           border-radius: 999px;
           border: 1px solid
-            rgba(255, 255, 255, 0.1);
+            rgba(200, 206, 255, 0.18);
           background:
-            rgba(255, 255, 255, 0.04);
-          color: #ececf4;
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
+            rgba(255, 255, 255, 0.045);
+          color: #eef0fb;
+          box-shadow:
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.09),
+            0 10px 26px
+              rgba(0, 0, 0, 0.38);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
@@ -2423,7 +1973,7 @@ export default function ChatPage() {
 
         .back:hover {
           border-color:
-            rgba(160, 145, 255, 0.5);
+            rgba(170, 150, 255, 0.55);
           background:
             rgba(130, 100, 255, 0.1);
         }
@@ -2452,8 +2002,6 @@ export default function ChatPage() {
           min-height: 0;
           flex: 1;
           overflow-y: auto;
-          overscroll-behavior: contain;
-          -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           padding: 0 18px;
         }
@@ -2471,8 +2019,8 @@ export default function ChatPage() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
-          padding-bottom: 26px;
+          padding-top: 6px;
+          padding-bottom: 12px;
         }
 
         .home-content > * {
@@ -2496,8 +2044,8 @@ export default function ChatPage() {
 
         .emblem {
           position: relative;
-          width: 78px;
-          height: 78px;
+          width: 104px;
+          height: 104px;
           flex: 0 0 auto;
           display: flex;
           align-items: center;
@@ -2506,15 +2054,15 @@ export default function ChatPage() {
 
         .emblem-halo {
           position: absolute;
-          inset: -26px;
+          inset: -34px;
           border-radius: 50%;
           background:
             radial-gradient(
               circle,
-              rgba(122, 88, 255, 0.45),
+              rgba(122, 88, 255, 0.5),
               transparent 68%
             );
-          filter: blur(12px);
+          filter: blur(14px);
           animation:
             haloPulse 5s ease-in-out
               infinite;
@@ -2547,12 +2095,13 @@ export default function ChatPage() {
             linear-gradient(#000 0 0);
           mask-composite: exclude;
           animation:
-            spin 9s linear infinite;
+            emblemSpin 9s linear
+              infinite;
         }
 
         .emblem-core {
           position: absolute;
-          inset: 6px;
+          inset: 7px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -2560,37 +2109,73 @@ export default function ChatPage() {
           background:
             radial-gradient(
               circle at 34% 24%,
-              rgba(140, 110, 255, 0.34),
-              rgba(12, 11, 30, 0.95)
+              rgba(140, 110, 255, 0.38),
+              rgba(12, 11, 34, 0.94)
                 68%
             );
           border: 1px solid
-            rgba(255, 255, 255, 0.08);
+            rgba(255, 255, 255, 0.09);
+          box-shadow:
+            inset 0 0 30px
+              rgba(120, 90, 255, 0.25),
+            0 22px 50px
+              rgba(60, 32, 170, 0.5);
         }
 
         .emblem-m {
-          width: 34px;
-          height: 34px;
+          width: 46px;
+          height: 46px;
           filter:
             drop-shadow(
-              0 0 7px
-                rgba(150, 120, 255, 0.65)
+              0 0 8px
+                rgba(150, 120, 255, 0.7)
             );
         }
 
-        .home-title {
-          margin: 24px 0 0;
-          font-size: 34px;
-          line-height: 1.25;
-          font-weight: 800;
+        .greeting {
+          margin-top: 22px;
           text-align: center;
         }
 
-        .home-title span {
-          color: #ffffff;
+        .eyebrow {
+          display: block;
+          direction: ltr;
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 5px;
+          color:
+            rgba(190, 180, 255, 0.72);
         }
 
-        .home-title strong {
+        .hello {
+          margin-top: 12px;
+          font-size: 18px;
+          line-height: 1;
+          font-weight: 500;
+          color:
+            rgba(222, 226, 248, 0.7);
+        }
+
+        .greeting h1 {
+          margin: 10px 0 0;
+          font-size: 36px;
+          line-height: 1.2;
+          font-weight: 800;
+        }
+
+        .greeting h1 span {
+          background:
+            linear-gradient(
+              180deg,
+              #ffffff,
+              #c9c6ee
+            );
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+        }
+
+        .greeting h1 strong {
           background:
             linear-gradient(
               90deg,
@@ -2602,51 +2187,94 @@ export default function ChatPage() {
           color: transparent;
         }
 
-        .home-sub {
-          margin: 10px 0 0;
-          max-width: 300px;
+        .hairline {
+          width: 150px;
+          height: 1px;
+          margin: 18px auto 0;
+          background:
+            linear-gradient(
+              90deg,
+              transparent,
+              rgba(190, 170, 255, 0.85),
+              transparent
+            );
+          box-shadow:
+            0 0 12px
+              rgba(150, 120, 255, 0.5);
+        }
+
+        .hairline i {
+          display: none;
+        }
+
+        .intro {
+          margin: 16px 0 0;
+          max-width: 310px;
           text-align: center;
-          font-size: 14.5px;
-          line-height: 1.9;
+          font-size: 14px;
+          line-height: 2;
           color:
-            rgba(236, 236, 244, 0.6);
+            rgba(222, 226, 248, 0.78);
+        }
+
+        .intro-sub {
+          display: block;
+          margin-top: 2px;
+          color:
+            rgba(160, 170, 214, 0.7);
+          font-size: 13px;
         }
 
         .suggestions {
           width: 100%;
-          max-width: 440px;
-          margin-top: 28px;
+          max-width: 460px;
+          margin-top: 22px;
           display: grid;
           gap: 10px;
         }
 
         .suggestion {
+          position: relative;
           width: 100%;
           display: flex;
           align-items: center;
-          gap: 13px;
+          gap: 14px;
           padding: 12px 14px;
-          border-radius: 16px;
+          border-radius: 18px;
           text-align: right;
-          color: #ececf4;
+          color: #eef0fb;
           background:
-            rgba(255, 255, 255, 0.035);
+            linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.06),
+              rgba(255, 255, 255, 0.015)
+            );
           border: 1px solid
-            rgba(255, 255, 255, 0.09);
+            rgba(200, 206, 255, 0.12);
+          box-shadow:
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.07),
+            0 12px 30px
+              rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
           cursor: pointer;
           transition:
             transform 0.25s
               cubic-bezier(.2,.8,.2,1),
             border-color 0.25s ease,
-            background 0.25s ease;
+            box-shadow 0.25s ease;
         }
 
         .suggestion:hover {
-          transform: translateY(-2px);
+          transform: translateX(-3px);
           border-color:
-            rgba(160, 145, 255, 0.42);
-          background:
-            rgba(255, 255, 255, 0.06);
+            rgba(170, 150, 255, 0.5);
+          box-shadow:
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.1),
+            0 12px 34px
+              rgba(90, 60, 220, 0.28);
         }
 
         .suggestion:active {
@@ -2654,22 +2282,40 @@ export default function ChatPage() {
         }
 
         .s-icon {
-          width: 38px;
-          height: 38px;
-          flex: 0 0 38px;
+          width: 40px;
+          height: 40px;
+          flex: 0 0 40px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 12px;
+          border-radius: 13px;
+          border: 1px solid
+            rgba(170, 150, 255, 0.34);
           background:
-            rgba(139, 123, 255, 0.13);
-          color: #cbc1ff;
+            rgba(120, 90, 255, 0.12);
+          color: #cfc4ff;
         }
 
         .s-icon svg {
-          width: 20px;
-          height: 20px;
+          width: 21px;
+          height: 21px;
           stroke-width: 1.7;
+        }
+
+        .suggestion.learn .s-icon {
+          border-color:
+            rgba(80, 210, 255, 0.34);
+          background:
+            rgba(40, 190, 255, 0.1);
+          color: #a8ecff;
+        }
+
+        .suggestion.idea .s-icon {
+          border-color:
+            rgba(232, 200, 138, 0.4);
+          background:
+            rgba(232, 200, 138, 0.1);
+          color: #f0d9a8;
         }
 
         .s-text {
@@ -2677,30 +2323,30 @@ export default function ChatPage() {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 4px;
         }
 
         .s-text b {
           direction: ltr;
           text-align: right;
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 700;
-          letter-spacing: 2px;
-          color:
-            rgba(190, 180, 255, 0.8);
+          letter-spacing: 2.2px;
+          color: #f4f5fd;
         }
 
         .s-text span {
-          font-size: 14px;
-          color: #f1f1f8;
+          font-size: 13px;
+          color:
+            rgba(190, 198, 230, 0.7);
         }
 
         .s-arrow {
-          width: 18px;
-          height: 18px;
-          flex: 0 0 18px;
+          width: 20px;
+          height: 20px;
+          flex: 0 0 20px;
           color:
-            rgba(236, 236, 244, 0.35);
+            rgba(190, 180, 255, 0.55);
           transition:
             transform 0.25s ease,
             color 0.25s ease;
@@ -2721,264 +2367,195 @@ export default function ChatPage() {
         ===================================================== */
 
         .messages {
-          padding-top: 22px;
-          padding-bottom: 24px;
+          padding-top: 25px;
+          padding-bottom: 20px;
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 18px;
         }
 
         .message {
           display: flex;
           width: 100%;
+          animation:
+            riseIn 0.45s
+              cubic-bezier(.2,.8,.2,1)
+              both;
         }
-
-        /* ---- user ---- */
 
         .user-message {
           justify-content: flex-start;
         }
 
-        .user-bubble {
-          max-width: 84%;
+        .ai-message {
+          justify-content: flex-end;
+        }
+
+        .message-wrapper {
+          position: relative;
+          max-width: 82%;
           min-width: 0;
-          padding: 11px 16px;
-          border-radius: 20px;
-          border-bottom-right-radius: 6px;
-          font-size: 15.5px;
-          line-height: 1.9;
-          color: #f6f6fc;
+        }
+
+        .ai-message .message-wrapper {
+          max-width: 94%;
+        }
+
+        .ai-badge {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          margin: 0 4px 7px;
+          direction: ltr;
+          justify-content: flex-end;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 2.6px;
+          color:
+            rgba(190, 180, 255, 0.75);
+        }
+
+        .ai-mark {
+          width: 15px;
+          height: 15px;
+          color: #b9a8ff;
+          filter:
+            drop-shadow(
+              0 0 5px
+                rgba(150, 120, 255, 0.7)
+            );
+        }
+
+        .bubble {
+          position: relative;
+          border-radius: 22px;
+          padding: 14px 17px;
+          font-size: 15px;
+          line-height: 1.95;
           overflow-wrap: anywhere;
+          color: #eef0fb;
+        }
+
+        .user-message .bubble {
+          direction: rtl;
+          border-bottom-right-radius: 7px;
           background:
             linear-gradient(
               135deg,
-              rgba(139, 123, 255, 0.26),
-              rgba(104, 84, 240, 0.14)
+              #6c3df0 0%,
+              #4a2bc2 55%,
+              #33208c 100%
             );
           border: 1px solid
-            rgba(160, 145, 255, 0.28);
+            rgba(255, 255, 255, 0.16);
           box-shadow:
-            0 8px 24px
-              rgba(60, 40, 170, 0.18);
-          transform-origin:
-            right bottom;
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.2),
+            0 14px 34px
+              rgba(70, 40, 200, 0.38);
+        }
+
+        .ai-message .bubble {
+          direction: rtl;
+          border-bottom-left-radius: 7px;
+          background:
+            linear-gradient(
+              160deg,
+              rgba(255, 255, 255, 0.065),
+              rgba(255, 255, 255, 0.02)
+            );
+          border: 1px solid
+            rgba(200, 208, 255, 0.13);
+          box-shadow:
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.07),
+            0 14px 34px
+              rgba(0, 0, 0, 0.32);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+
+        .typing {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          height: 29px;
+          padding: 0 4px;
+        }
+
+        .typing i {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #b9a8ff;
+          box-shadow:
+            0 0 10px
+              rgba(150, 120, 255, 0.8);
           animation:
-            userIn 0.42s
-              cubic-bezier(.2,.9,.3,1.15)
-              both;
+            typingDot 1.2s ease-in-out
+              infinite;
+        }
+
+        .typing i:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .typing i:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+
+        /*
+          عکس ارسال‌شده:
+          کوچک و دقیقاً بالای متن
+        */
+
+        .sent-image {
+          display: block;
+          width: 74px;
+          height: 74px;
+          object-fit: cover;
+          border-radius: 12px;
+          margin-bottom: 9px;
+          border: 1px solid
+            rgba(255, 255, 255, 0.28);
+          box-shadow:
+            0 6px 18px
+              rgba(0, 0, 0, 0.35);
         }
 
         .user-text {
           white-space: pre-wrap;
         }
 
-        .sent-image {
-          display: block;
-          width: 120px;
-          height: 120px;
-          object-fit: cover;
-          border-radius: 13px;
-          margin-bottom: 9px;
+        .message-copy {
+          margin-top: 8px;
+          padding: 5px 11px 5px 12px;
           border: 1px solid
-            rgba(255, 255, 255, 0.2);
-        }
-
-        /* ---- assistant ---- */
-
-        .ai-message {
-          align-items: flex-start;
-          gap: 12px;
-          animation:
-            riseIn 0.5s
-              cubic-bezier(.2,.8,.2,1)
-              both;
-        }
-
-        .ai-avatar {
-          position: relative;
-          width: 30px;
-          height: 30px;
-          flex: 0 0 30px;
-          margin-top: 1px;
-          display: flex;
+            rgba(200, 206, 255, 0.14);
+          border-radius: 999px;
+          background:
+            rgba(255, 255, 255, 0.04);
+          color:
+            rgba(205, 212, 242, 0.7);
+          display: inline-flex;
           align-items: center;
-          justify-content: center;
-          border-radius: 50%;
+          gap: 6px;
+          font-size: 10px;
+          cursor: pointer;
+          transition:
+            color 0.2s ease,
+            border-color 0.2s ease;
+        }
+
+        .message-copy:hover {
           color: #ffffff;
-          background:
-            radial-gradient(
-              circle at 32% 24%,
-              #9d82ff,
-              #5b3fe0 62%,
-              #3a2aa8
-            );
-          border: 1px solid
-            rgba(255, 255, 255, 0.18);
-          box-shadow:
-            0 4px 14px
-              rgba(106, 77, 240, 0.4);
+          border-color:
+            rgba(170, 150, 255, 0.5);
         }
 
-        .ai-mark {
-          width: 16px;
-          height: 16px;
-        }
-
-        .ai-avatar::before {
-          content: "";
-          position: absolute;
-          inset: -4px;
-          border-radius: 50%;
-          padding: 1.5px;
-          background:
-            conic-gradient(
-              from 0deg,
-              transparent,
-              rgba(196, 150, 255, 0.95)
-                90deg,
-              rgba(53, 216, 255, 0.9)
-                180deg,
-              transparent 270deg
-            );
-          -webkit-mask:
-            linear-gradient(#000 0 0)
-              content-box,
-            linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask:
-            linear-gradient(#000 0 0)
-              content-box,
-            linear-gradient(#000 0 0);
-          mask-composite: exclude;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .ai-avatar.working::before {
-          opacity: 1;
-          animation:
-            spin 1.1s linear infinite;
-        }
-
-        .ai-avatar.working {
-          animation:
-            avatarPulse 1.6s ease-in-out
-              infinite;
-        }
-
-        .ai-body {
-          min-width: 0;
-          flex: 1;
-        }
-
-        .ai-content {
-          padding-top: 2px;
-          font-size: 15.5px;
-          line-height: 2;
-          color:
-            rgba(242, 242, 250, 0.95);
-          overflow-wrap: anywhere;
-        }
-
-        .ai-content.is-error {
-          padding: 10px 14px;
-          border-radius: 14px;
-          color: #ffd0d4;
-          background:
-            rgba(255, 90, 105, 0.09);
-          border: 1px solid
-            rgba(255, 110, 120, 0.3);
-        }
-
-        .stopped-note {
-          font-size: 13px;
-          color:
-            rgba(236, 236, 244, 0.45);
-        }
-
-        /* thinking */
-
-        .thinking {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          height: 30px;
-          font-size: 14.5px;
-        }
-
-        .thinking-text {
-          background:
-            linear-gradient(
-              100deg,
-              rgba(190, 190, 218, 0.4)
-                30%,
-              #ffffff 50%,
-              rgba(190, 190, 218, 0.4)
-                70%
-            );
-          background-size: 260% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation:
-            shimmer 2.1s linear
-              infinite;
-        }
-
-        .thinking-dots {
-          display: inline-flex;
-          gap: 4px;
-        }
-
-        .thinking-dots i {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: #b9a8ff;
-          animation:
-            typingDot 1.2s ease-in-out
-              infinite;
-        }
-
-        .thinking-dots i:nth-child(2) {
-          animation-delay: 0.15s;
-        }
-
-        .thinking-dots i:nth-child(3) {
-          animation-delay: 0.3s;
-        }
-
-        /* streaming caret */
-
-        .ai-content.streaming
-          .message-text:last-child
-          > :last-child:not(.message-rule):not(.table-wrap):not(.message-space)::after {
-          content: "";
-          display: inline-block;
-          width: 7px;
-          height: 1.05em;
-          margin-inline-start: 5px;
-          vertical-align: -0.2em;
-          border-radius: 2px;
-          background:
-            linear-gradient(
-              180deg,
-              #c4b5ff,
-              #6a4df0
-            );
-          box-shadow:
-            0 0 10px
-              rgba(139, 123, 255, 0.85);
-          animation:
-            caretBlink 1s steps(2, start)
-              infinite;
-        }
-
-        /* new lines fade in while streaming */
-
-        .message-text > * {
-          animation:
-            lineIn 0.4s ease both;
+        .message-copy svg {
+          width: 15px;
+          height: 15px;
         }
 
         .message-text {
@@ -2990,38 +2567,33 @@ export default function ChatPage() {
         }
 
         .message-space {
-          height: 6px;
+          height: 5px;
         }
 
         .message-heading {
-          margin: 14px 0 6px;
-          line-height: 1.5;
-          font-weight: 700;
+          margin:
+            4px 0 10px;
+          line-height: 1.45;
           color: #ffffff;
         }
 
-        .message-text
-          > .message-heading:first-child {
-          margin-top: 2px;
-        }
-
         .heading-1 {
-          font-size: 21px;
+          font-size: 22px;
         }
 
         .heading-2 {
-          font-size: 18px;
+          font-size: 19px;
         }
 
         .heading-3 {
-          font-size: 16.5px;
+          font-size: 17px;
         }
 
         .message-list-item {
           display: flex;
-          gap: 9px;
+          gap: 7px;
           align-items: flex-start;
-          margin: 4px 0;
+          margin: 3px 0;
         }
 
         .list-dot {
@@ -3030,9 +2602,8 @@ export default function ChatPage() {
         }
 
         .list-number {
-          color: #a99bff;
-          font-weight: 700;
-          min-width: 24px;
+          color: #8fe4ff;
+          min-width: 25px;
         }
 
         .list-content {
@@ -3048,310 +2619,80 @@ export default function ChatPage() {
           direction: ltr;
           unicode-bidi: plaintext;
           display: inline-block;
-          padding: 0 6px;
+          padding: 1px 6px;
           border-radius: 6px;
           background:
             rgba(255, 255, 255, 0.08);
-          color: #d9d0ff;
+          border: 1px solid
+            rgba(200, 206, 255, 0.1);
+          color: #d3c9ff;
           font-family:
-            ui-monospace,
-            SFMono-Regular,
-            Menlo,
             Consolas,
             monospace;
-          font-size: 0.88em;
-          line-height: 1.7;
+          font-size: 0.92em;
         }
-
-        .inline-link {
-          color: #a99bff;
-          text-decoration: underline;
-          text-underline-offset: 3px;
-          text-decoration-color:
-            rgba(169, 155, 255, 0.4);
-        }
-
-        .message-rule {
-          height: 1px;
-          margin: 14px 0;
-          border: 0;
-          background:
-            rgba(255, 255, 255, 0.1);
-        }
-
-        .message-quote {
-          margin: 10px 0;
-          padding: 8px 14px;
-          border-radius: 10px;
-          border-inline-start: 3px solid
-            rgba(160, 145, 255, 0.7);
-          background:
-            rgba(255, 255, 255, 0.035);
-          color:
-            rgba(236, 236, 244, 0.75);
-        }
-
-        .table-wrap {
-          margin: 12px 0;
-          overflow-x: auto;
-          border-radius: 12px;
-          border: 1px solid
-            rgba(255, 255, 255, 0.1);
-        }
-
-        .message-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13.5px;
-          line-height: 1.7;
-        }
-
-        .message-table th,
-        .message-table td {
-          padding: 8px 12px;
-          text-align: start;
-          white-space: nowrap;
-          border-bottom: 1px solid
-            rgba(255, 255, 255, 0.07);
-        }
-
-        .message-table th {
-          background:
-            rgba(255, 255, 255, 0.05);
-          color: #ffffff;
-          font-weight: 700;
-        }
-
-        .message-table tr:last-child td {
-          border-bottom: 0;
-        }
-
-        /* code block */
 
         .code-block {
           direction: ltr;
-          text-align: left;
           width: 100%;
-          margin: 14px 0;
+          margin: 12px 0;
           overflow: hidden;
           border-radius: 14px;
-          background: #0b0c12;
+          background: #06070e;
           border: 1px solid
-            rgba(255, 255, 255, 0.09);
-          box-shadow:
-            0 12px 32px
-              rgba(0, 0, 0, 0.35);
-          animation:
-            lineIn 0.45s ease both;
+            rgba(200, 206, 255, 0.13);
         }
 
         .code-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 6px 8px 6px 14px;
+          padding: 8px 11px;
           background:
             rgba(255, 255, 255, 0.04);
           border-bottom: 1px solid
-            rgba(255, 255, 255, 0.07);
+            rgba(200, 206, 255, 0.1);
         }
 
         .code-language {
-          font-family:
-            ui-monospace,
-            SFMono-Regular,
-            Menlo,
-            Consolas,
-            monospace;
-          font-size: 11.5px;
-          font-weight: 600;
-          letter-spacing: 0.3px;
-          color:
-            rgba(210, 214, 240, 0.65);
-          text-transform: lowercase;
+          color: #b9b0ff;
+          font-size: 9px;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
         }
 
         .code-copy {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 5px 10px;
+          gap: 5px;
           border: 0;
-          border-radius: 8px;
           background: transparent;
-          color:
-            rgba(220, 224, 248, 0.75);
-          font-size: 12px;
+          color: #d9dcff;
+          font-size: 9px;
           cursor: pointer;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
-        }
-
-        .code-copy:hover {
-          background:
-            rgba(255, 255, 255, 0.08);
-          color: #ffffff;
-        }
-
-        .code-copy.copied {
-          color: #7ee2a8;
         }
 
         .code-copy svg {
-          width: 15px;
-          height: 15px;
+          width: 16px;
+          height: 16px;
         }
 
         .code-block pre {
           margin: 0;
-          padding: 14px 16px;
+          padding: 13px;
           overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color:
-            rgba(255, 255, 255, 0.18)
-            transparent;
         }
 
         .code-block code {
-          color: #e4e6f5;
+          color: #e6e8ff;
           font-family:
-            ui-monospace,
-            SFMono-Regular,
-            Menlo,
             Consolas,
             "Courier New",
             monospace;
-          font-size: 12.5px;
-          line-height: 1.7;
-          white-space: pre;
-          tab-size: 2;
-        }
-
-        .tk-keyword {
-          color: #c9a9ff;
-        }
-
-        .tk-string {
-          color: #a5e3b5;
-        }
-
-        .tk-number {
-          color: #ffc58f;
-        }
-
-        .tk-comment {
-          color: #6f7794;
-          font-style: italic;
-        }
-
-        .tk-function {
-          color: #8fd1ff;
-        }
-
-        .tk-type {
-          color: #ffd68f;
-        }
-
-        /* actions */
-
-        .message-actions {
-          margin-top: 6px;
-          display: flex;
-        }
-
-        .message-copy {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 10px;
-          border: 0;
-          border-radius: 8px;
-          background: transparent;
-          color:
-            rgba(236, 236, 244, 0.48);
           font-size: 12px;
-          cursor: pointer;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
+          line-height: 1.65;
+          white-space: pre;
         }
-
-        .message-copy:hover {
-          background:
-            rgba(255, 255, 255, 0.07);
-          color: #ffffff;
-        }
-
-        .message-copy.copied {
-          color: #7ee2a8;
-        }
-
-        .message-copy svg {
-          width: 15px;
-          height: 15px;
-        }
-
-        /* jump to bottom */
-
-        .jump-wrap {
-          position: sticky;
-          bottom: 10px;
-          z-index: 6;
-          height: 0;
-          margin-top: -24px;
-          display: flex;
-          justify-content: center;
-          pointer-events: none;
-        }
-
-        .jump {
-          width: 36px;
-          height: 36px;
-          margin-top: -36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          border: 1px solid
-            rgba(255, 255, 255, 0.16);
-          background:
-            rgba(28, 28, 42, 0.92);
-          color: #ffffff;
-          box-shadow:
-            0 8px 24px
-              rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          cursor: pointer;
-          opacity: 0;
-          transform:
-            translateY(8px)
-            scale(0.8);
-          pointer-events: none;
-          transition:
-            opacity 0.25s ease,
-            transform 0.25s
-              cubic-bezier(.2,.8,.2,1);
-        }
-
-        .jump.show {
-          opacity: 1;
-          transform:
-            translateY(0)
-            scale(1);
-          pointer-events: auto;
-        }
-
-        .jump svg {
-          width: 18px;
-          height: 18px;
-        }
-
-        /* =====================================================
-           COMPOSER
-        ===================================================== */
 
         .composer-zone {
           position: relative;
@@ -3363,8 +2704,8 @@ export default function ChatPage() {
           background:
             linear-gradient(
               to top,
-              rgba(7, 7, 12, 0.96),
-              rgba(7, 7, 12, 0.7),
+              rgba(3, 4, 14, 0.96),
+              rgba(3, 4, 14, 0.68),
               transparent
             );
         }
@@ -3375,10 +2716,6 @@ export default function ChatPage() {
           margin: 0 auto 8px;
           display: flex;
           justify-content: flex-end;
-          animation:
-            riseIn 0.35s
-              cubic-bezier(.2,.8,.2,1)
-              both;
         }
 
         .image-preview-card {
@@ -3393,9 +2730,12 @@ export default function ChatPage() {
           padding: 7px 8px;
           border-radius: 16px;
           background:
-            rgba(26, 26, 40, 0.88);
+            rgba(27, 14, 65, 0.84);
           border: 1px solid
-            rgba(160, 145, 255, 0.35);
+            rgba(155, 74, 255, 0.65);
+          box-shadow:
+            0 0 18px
+              rgba(114, 47, 255, 0.2);
           backdrop-filter: blur(15px);
         }
 
@@ -3406,7 +2746,7 @@ export default function ChatPage() {
           object-fit: cover;
           border-radius: 10px;
           border: 1px solid
-            rgba(255, 255, 255, 0.2);
+            rgba(143, 99, 255, 0.7);
         }
 
         .image-preview-info {
@@ -3418,14 +2758,14 @@ export default function ChatPage() {
         }
 
         .image-preview-info span {
-          font-size: 11px;
+          font-size: 10px;
           color: white;
         }
 
         .image-preview-info small {
           color:
-            rgba(210, 214, 240, 0.6);
-          font-size: 9px;
+            rgba(195, 203, 240, 0.7);
+          font-size: 8px;
         }
 
         .remove-image {
@@ -3437,9 +2777,9 @@ export default function ChatPage() {
           justify-content: center;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.16);
+            rgba(180, 91, 255, 0.55);
           background:
-            rgba(255, 255, 255, 0.07);
+            rgba(92, 40, 145, 0.35);
           color: white;
           cursor: pointer;
         }
@@ -3460,31 +2800,19 @@ export default function ChatPage() {
           padding: 7px 7px 7px 9px;
           border-radius: 25px;
           background:
-            rgba(24, 24, 36, 0.86);
+            linear-gradient(
+              135deg,
+              rgba(16, 20, 70, 0.93),
+              rgba(7, 10, 36, 0.94)
+            );
           border: 1px solid
-            rgba(255, 255, 255, 0.1);
+            rgba(52, 120, 255, 0.72);
           box-shadow:
-            0 12px 40px
-              rgba(0, 0, 0, 0.45),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.05);
+            0 0 16px
+              rgba(77, 60, 255, 0.25),
+            inset 0 0 24px
+              rgba(67, 41, 170, 0.11);
           backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          transition:
-            border-color 0.25s ease,
-            box-shadow 0.25s ease;
-        }
-
-        .composer:focus-within {
-          border-color:
-            rgba(150, 132, 255, 0.6);
-          box-shadow:
-            0 0 0 4px
-              rgba(139, 123, 255, 0.12),
-            0 12px 40px
-              rgba(0, 0, 0, 0.45),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.05);
         }
 
         .composer textarea {
@@ -3496,22 +2824,21 @@ export default function ChatPage() {
           border: 0;
           outline: 0;
           background: transparent;
-          color: #f4f4fa;
-          caret-color: #a99bff;
+          color: white;
           padding: 9px 4px;
           text-align: right;
           direction: rtl;
-          line-height: 26px;
-          font-size: 16px;
+          line-height: 1.65;
+          font-size: 14px;
         }
 
         .composer textarea::placeholder {
           color:
-            rgba(210, 214, 240, 0.45);
+            rgba(194, 202, 239, 0.55);
         }
 
         .composer textarea:disabled {
-          opacity: 0.6;
+          opacity: 0.65;
         }
 
         .upload {
@@ -3522,28 +2849,26 @@ export default function ChatPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 12px;
+          border-radius: 11px;
           border: 1px solid
-            rgba(255, 255, 255, 0.11);
+            rgba(137, 75, 255, 0.7);
           background:
-            rgba(255, 255, 255, 0.04);
-          color:
-            rgba(236, 236, 244, 0.72);
+            rgba(74, 35, 141, 0.25);
+          color: #d8ccff;
           cursor: pointer;
+          box-shadow:
+            inset 0 0 15px
+              rgba(142, 71, 255, 0.1);
           transition:
             transform 0.2s ease,
-            border-color 0.2s ease,
-            background 0.2s ease,
-            color 0.2s ease;
+            box-shadow 0.2s ease;
         }
 
         .upload:hover {
           transform: translateY(-1px);
-          border-color:
-            rgba(160, 145, 255, 0.55);
-          background:
-            rgba(139, 123, 255, 0.14);
-          color: #ffffff;
+          box-shadow:
+            0 0 15px
+              rgba(151, 72, 255, 0.35);
         }
 
         .upload:disabled {
@@ -3565,12 +2890,12 @@ export default function ChatPage() {
             translateY(4px);
           padding: 5px 8px;
           border-radius: 7px;
-          background: rgba(12, 12, 20, 0.95);
+          background: rgba(8, 9, 26, 0.95);
           border: 1px solid
-            rgba(255, 255, 255, 0.14);
+            rgba(125, 79, 255, 0.5);
           color: white;
           white-space: nowrap;
-          font-size: 10px;
+          font-size: 9px;
           opacity: 0;
           pointer-events: none;
           transition:
@@ -3596,21 +2921,25 @@ export default function ChatPage() {
           justify-content: center;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.26);
+            rgba(202, 137, 255, 0.8);
           background:
             radial-gradient(
-              circle at 32% 24%,
-              #a58aff,
-              #6a4df0 58%,
-              #4535c8
+              circle at 32% 25%,
+              rgba(173, 108, 255, 0.8),
+              rgba(57, 22, 119, 0.82)
+                52%,
+              rgba(7, 12, 50, 0.95)
+                100%
             );
           color: white;
           cursor: pointer;
           box-shadow:
-            0 6px 18px
-              rgba(106, 77, 240, 0.5),
-            inset 0 1px 2px
-              rgba(255, 255, 255, 0.4);
+            0 0 9px
+              rgba(183, 83, 255, 0.7),
+            0 0 24px
+              rgba(96, 46, 255, 0.42),
+            inset 0 1px 3px
+              rgba(255, 255, 255, 0.45);
           transition:
             transform 0.22s
               cubic-bezier(.2,.8,.2,1),
@@ -3642,15 +2971,10 @@ export default function ChatPage() {
               transparent 360deg
             );
           filter: blur(1px);
-          opacity: 0.7;
+          opacity: 0.8;
           animation:
-            sendRing 5s linear
+            sendRing 4s linear
             infinite;
-        }
-
-        .send.is-loading::before {
-          opacity: 1;
-          animation-duration: 1.4s;
         }
 
         .send::after {
@@ -3659,24 +2983,33 @@ export default function ChatPage() {
           inset: 2px;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.16);
+            rgba(255, 255, 255, 0.17);
+          box-shadow:
+            inset 0 0 10px
+              rgba(255, 255, 255, 0.08),
+            inset 0 0 18px
+              rgba(0, 220, 255, 0.09);
           pointer-events: none;
         }
 
         .send:hover {
           transform:
-            translateY(-1px)
-            scale(1.06);
-          filter: brightness(1.1);
+            translateY(-2px)
+            scale(1.045);
+          filter: brightness(1.12);
           box-shadow:
-            0 8px 26px
-              rgba(125, 90, 255, 0.7),
-            inset 0 1px 2px
-              rgba(255, 255, 255, 0.45);
+            0 0 10px
+              rgba(195, 103, 255, 1),
+            0 0 26px
+              rgba(157, 66, 255, 0.9),
+            0 0 48px
+              rgba(0, 215, 255, 0.4),
+            inset 0 1px 3px
+              rgba(255, 255, 255, 0.52);
         }
 
         .send:active {
-          transform: scale(0.9);
+          transform: scale(0.91);
         }
 
         .send:focus-visible {
@@ -3687,15 +3020,15 @@ export default function ChatPage() {
         }
 
         .send:disabled {
-          opacity: 0.4;
+          opacity: 0.45;
           cursor: not-allowed;
           transform: none;
-          filter: grayscale(0.2);
+          filter: grayscale(0.15);
         }
 
         .send:disabled::before {
           animation: none;
-          opacity: 0.2;
+          opacity: 0.25;
         }
 
         .send-icon {
@@ -3706,7 +3039,11 @@ export default function ChatPage() {
           filter:
             drop-shadow(
               0 0 4px
-                rgba(255, 255, 255, 0.5)
+                rgba(255, 255, 255, 0.7)
+            )
+            drop-shadow(
+              0 0 9px
+                rgba(28, 224, 255, 0.38)
             );
           transform: none;
         }
@@ -3745,31 +3082,16 @@ export default function ChatPage() {
           align-items: center;
           justify-content: space-between;
           color:
-            rgba(210, 214, 240, 0.4);
-          font-size: 10px;
-          line-height: 10px;
+            rgba(132, 143, 193, 0.72);
+          font-size: 8px;
         }
 
         .footer span:first-child {
           color:
-            rgba(166, 140, 255, 0.8);
+            rgba(166, 104, 255, 0.85);
         }
-
-        /* =====================================================
-           KEYFRAMES
-        ===================================================== */
 
         @keyframes sendRing {
-          from {
-            transform: rotate(0deg);
-          }
-
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes spin {
           from {
             transform: rotate(0deg);
           }
@@ -3791,31 +3113,13 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes userIn {
+        @keyframes emblemSpin {
           from {
-            opacity: 0;
-            transform:
-              translateY(12px)
-              scale(0.94);
+            transform: rotate(0deg);
           }
 
           to {
-            opacity: 1;
-            transform:
-              translateY(0)
-              scale(1);
-          }
-        }
-
-        @keyframes lineIn {
-          from {
-            opacity: 0;
-            transform: translateY(5px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
+            transform: rotate(360deg);
           }
         }
 
@@ -3832,22 +3136,7 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes avatarPulse {
-          0%,
-          100% {
-            box-shadow:
-              0 4px 14px
-                rgba(106, 77, 240, 0.4);
-          }
-
-          50% {
-            box-shadow:
-              0 4px 26px
-                rgba(140, 110, 255, 0.85);
-          }
-        }
-
-        @keyframes glowDriftA {
+        @keyframes auraDriftA {
           from {
             transform: translate(0, 0);
           }
@@ -3857,7 +3146,7 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes glowDriftB {
+        @keyframes auraDriftB {
           from {
             transform: translate(0, 0);
           }
@@ -3881,50 +3170,16 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes shimmer {
-          from {
-            background-position: 150% 0;
-          }
-
-          to {
-            background-position: -50% 0;
-          }
-        }
-
-        @keyframes caretBlink {
-          0%,
-          100% {
-            opacity: 1;
-          }
-
-          50% {
-            opacity: 0.15;
-          }
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .home-content > *,
           .message,
-          .user-bubble,
-          .message-text > *,
-          .code-block,
-          .bg-glow,
+          .bg-aura,
           .emblem-halo,
           .emblem-ring,
-          .ai-avatar,
-          .ai-avatar::before,
-          .thinking-text,
-          .thinking-dots i,
-          .ai-content.streaming
-            .message-text:last-child
-            > :last-child::after {
+          .typing i {
             animation: none;
           }
         }
-
-        /* =====================================================
-           MOBILE
-        ===================================================== */
 
         @media (max-width: 500px) {
           .header {
@@ -3954,67 +3209,61 @@ export default function ChatPage() {
           }
 
           .emblem {
-            width: 68px;
-            height: 68px;
+            width: 92px;
+            height: 92px;
           }
 
           .emblem-m {
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
           }
 
-          .home-title {
-            margin-top: 20px;
-            font-size: 30px;
+          .greeting {
+            margin-top: 18px;
           }
 
-          .home-sub {
-            font-size: 13.5px;
+          .hello {
+            font-size: 16px;
+          }
+
+          .greeting h1 {
+            font-size: 32px;
+          }
+
+          .hairline {
+            margin-top: 14px;
+          }
+
+          .intro {
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.9;
+          }
+
+          .intro-sub {
+            font-size: 12px;
           }
 
           .suggestions {
-            margin-top: 22px;
+            margin-top: 18px;
             gap: 8px;
           }
 
           .suggestion {
             padding: 10px 12px;
+            border-radius: 16px;
           }
 
           .s-icon {
             width: 36px;
             height: 36px;
             flex-basis: 36px;
+            border-radius: 12px;
           }
 
-          .messages {
-            padding-top: 18px;
-            gap: 22px;
-          }
-
-          .user-bubble {
-            max-width: 88%;
-            font-size: 15px;
-            padding: 10px 14px;
-          }
-
-          .ai-message {
-            gap: 10px;
-          }
-
-          .ai-avatar {
-            width: 28px;
-            height: 28px;
-            flex-basis: 28px;
-          }
-
-          .ai-content {
-            font-size: 15px;
-          }
-
-          .sent-image {
-            width: 104px;
-            height: 104px;
+          .s-icon svg {
+            width: 19px;
+            height: 19px;
           }
 
           .composer-zone {
@@ -4061,8 +3310,33 @@ export default function ChatPage() {
           }
 
           .footer {
-            font-size: 9px;
-            line-height: 9px;
+            font-size: 7px;
+          }
+
+          .messages {
+            padding-top: 20px;
+            gap: 16px;
+          }
+
+          .message-wrapper {
+            max-width: 92%;
+          }
+
+          .ai-message .message-wrapper {
+            max-width: 96%;
+          }
+
+          .bubble {
+            font-size: 14px;
+            line-height: 1.95;
+            padding: 13px 14px;
+          }
+
+          .sent-image {
+            width: 64px;
+            height: 64px;
+            border-radius: 10px;
+            margin-bottom: 8px;
           }
 
           .image-preview-card {
@@ -4082,6 +3356,14 @@ export default function ChatPage() {
             border-radius: 10px;
           }
 
+          .image-preview-info span {
+            font-size: 10px;
+          }
+
+          .image-preview-info small {
+            font-size: 8px;
+          }
+
           .remove-image {
             width: 27px;
             height: 27px;
@@ -4091,30 +3373,45 @@ export default function ChatPage() {
 
         @media (max-height: 760px) and (max-width: 500px) {
           .emblem {
-            width: 56px;
-            height: 56px;
+            width: 76px;
+            height: 76px;
           }
 
           .emblem-halo {
-            inset: -20px;
+            inset: -24px;
           }
 
           .emblem-m {
-            width: 26px;
-            height: 26px;
+            width: 34px;
+            height: 34px;
           }
 
-          .home-title {
-            margin-top: 16px;
-            font-size: 26px;
+          .greeting {
+            margin-top: 14px;
           }
 
-          .home-sub {
-            margin-top: 6px;
+          .greeting h1 {
+            font-size: 28px;
+          }
+
+          .hello {
+            margin-top: 8px;
+          }
+
+          .hairline {
+            margin-top: 11px;
+          }
+
+          .intro {
+            margin-top: 9px;
+          }
+
+          .intro-sub {
+            display: none;
           }
 
           .suggestions {
-            margin-top: 16px;
+            margin-top: 14px;
           }
         }
       `}</style>
