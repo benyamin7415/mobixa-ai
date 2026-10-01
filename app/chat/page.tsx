@@ -128,78 +128,6 @@ function CheckIcon() {
   );
 }
 
-function CreateIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path
-        d="m5 27 5.5-1.5L25 11l-4-4L6.5 21.5 5 27Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-
-      <path
-        d="m18 8 4 4M22 4v4M20 6h4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function LearnIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path
-        d="M4 7 16 3l12 4v18l-12 4-12-4V7Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-
-      <path
-        d="M16 3v26M4 7l12 4 12-4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
-function IdeaIcon() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path
-        d="M10 23c-2-1.7-3-4.1-3-6.8C7 10.6 11 7 16 7s9 3.6 9 9.2c0 2.7-1 5.1-3 6.8-1.2 1-1.8 2.2-2 3.5H12c-.2-1.3-.8-2.5-2-3.5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-
-      <path
-        d="M12 30h8M14 26h4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M16 2v2M28 10h-2M6 10H4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function ImageUploadIcon() {
   return (
     <svg
@@ -986,89 +914,8 @@ function MessageContent({
 }
 
 /* =========================================================
-   BRAND
+   ICONS 2
 ========================================================= */
-
-function MobixaEmblem() {
-  return (
-    <div className="emblem" aria-hidden="true">
-      <div className="emblem-halo" />
-      <div className="emblem-ring" />
-
-      <div className="emblem-core">
-        <svg viewBox="0 0 48 48" className="emblem-m">
-          <defs>
-            <linearGradient
-              id="emblemGrad"
-              x1="0"
-              y1="0"
-              x2="1"
-              y2="1"
-            >
-              <stop
-                offset="0%"
-                stopColor="#f4eeff"
-              />
-
-              <stop
-                offset="55%"
-                stopColor="#a98bff"
-              />
-
-              <stop
-                offset="100%"
-                stopColor="#35d8ff"
-              />
-            </linearGradient>
-          </defs>
-
-          <path
-            d="M11 35V13l13 15 13-15v22"
-            fill="none"
-            stroke="url(#emblemGrad)"
-            strokeWidth="3.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-function MobixaMark() {
-  return (
-    <svg
-      viewBox="0 0 48 48"
-      aria-hidden="true"
-      className="ai-mark"
-    >
-      <path
-        d="M11 35V13l13 15 13-15v22"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="4.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M15 6l-6 6 6 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function ArrowDownIcon() {
   return (
@@ -1148,20 +995,50 @@ export default function ChatPage() {
   const [showJump, setShowJump] =
     useState(false);
 
+  const [greeting, setGreeting] =
+    useState("سلام");
+
+  const [showIntro, setShowIntro] =
+    useState(true);
+
+  useEffect(() => {
+    const hour =
+      new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+      setGreeting("صبح بخیر");
+    } else if (hour >= 12 && hour < 17) {
+      setGreeting("ظهر بخیر");
+    } else if (hour >= 17 && hour < 20) {
+      setGreeting("عصر بخیر");
+    } else {
+      setGreeting("شب بخیر");
+    }
+  }, []);
+
+  /*
+    انیمیشن ورود کوتاه؛
+    بعد از اتمام از صفحه حذف می‌شود.
+  */
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => {
+        setShowIntro(false);
+      },
+      2100
+    );
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
+
   function goBack() {
     if (window.history.length > 1) {
       router.back();
     } else {
       router.push("/");
     }
-  }
-
-  function putSuggestion(text: string) {
-    setInput(text);
-
-    requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-    });
   }
 
   function openImagePicker() {
@@ -1849,6 +1726,16 @@ export default function ChatPage() {
       <div className="background" aria-hidden="true">
         <div className="bg-glow glow-one" />
         <div className="bg-glow glow-two" />
+        <div className="bg-glow glow-three" />
+        <div className="bg-grid" />
+
+        <span className="bg-spark sp-1">✦</span>
+        <span className="bg-spark sp-2">✧</span>
+        <span className="bg-spark sp-3">✦</span>
+        <span className="bg-spark sp-4">✧</span>
+        <span className="bg-spark sp-5">✦</span>
+        <span className="bg-spark sp-6">✧</span>
+
         <div className="bg-grain" />
       </div>
 
@@ -1876,97 +1763,42 @@ export default function ChatPage() {
         >
           {messages.length === 0 ? (
             <div className="home-content">
-              <MobixaEmblem />
+              <div className="home-chip">
+                <span>✦</span>
+                {greeting}
+              </div>
 
               <h1 className="home-title">
                 <span>بزن بریم</span>{" "}
                 <strong>مهندس</strong>
               </h1>
 
+              <div
+                className="rotator"
+                aria-hidden="true"
+              >
+                <span>ایده بده</span>
+                <span>سؤال بپرس</span>
+                <span>کد بنویس</span>
+                <span>
+                  متنت رو حرفه‌ای کن
+                </span>
+                <span>
+                  عکس رو تحلیل کن
+                </span>
+              </div>
+
               <p className="home-sub">
-                هر چیزی که توی ذهنته بپرس،
-                ایده بده، بساز.
+                هر چیزی که توی ذهنته،
+                همین‌جا شروع می‌شه.
               </p>
 
-              <div className="suggestions">
-                <button
-                  type="button"
-                  className="suggestion"
-                  onClick={() =>
-                    putSuggestion(
-                      "این متن رو برای من حرفه‌ای و جذاب‌تر کن:"
-                    )
-                  }
-                >
-                  <span className="s-icon">
-                    <CreateIcon />
-                  </span>
+              <div className="home-hint">
+                <ArrowDownIcon />
 
-                  <span className="s-text">
-                    <b>CREATE</b>
-
-                    <span>
-                      متنت رو حرفه‌ای کن
-                    </span>
-                  </span>
-
-                  <span className="s-arrow">
-                    <ChevronIcon />
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="suggestion"
-                  onClick={() =>
-                    putSuggestion(
-                      "این موضوع رو خیلی ساده و قابل فهم برام توضیح بده:"
-                    )
-                  }
-                >
-                  <span className="s-icon">
-                    <LearnIcon />
-                  </span>
-
-                  <span className="s-text">
-                    <b>LEARN MODE</b>
-
-                    <span>
-                      هر چیزی رو ساده
-                      یاد بگیر
-                    </span>
-                  </span>
-
-                  <span className="s-arrow">
-                    <ChevronIcon />
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="suggestion"
-                  onClick={() =>
-                    putSuggestion(
-                      "برای این موضوع چند ایده خلاقانه و خفن بهم بده:"
-                    )
-                  }
-                >
-                  <span className="s-icon">
-                    <IdeaIcon />
-                  </span>
-
-                  <span className="s-text">
-                    <b>IDEA LAB</b>
-
-                    <span>
-                      یه ایده خفن بساز
-                    </span>
-                  </span>
-
-                  <span className="s-arrow">
-                    <ChevronIcon />
-                  </span>
-                </button>
+                <span>
+                  پیامت رو پایین بنویس
+                </span>
               </div>
             </div>
           ) : (
@@ -2029,19 +1861,9 @@ export default function ChatPage() {
                       key={message.id}
                       className="message ai-message"
                     >
-                      <div
-                        className={`ai-avatar${
-                          streaming
-                            ? " working"
-                            : ""
-                        }`}
-                      >
-                        <MobixaMark />
-                      </div>
-
                       <div className="ai-body">
                         <div
-                          className={`ai-content${
+                          className={`ai-content ai-bubble${
                             streaming
                               ? " streaming"
                               : ""
@@ -2248,6 +2070,38 @@ export default function ChatPage() {
         </div>
       </section>
 
+      {showIntro && (
+        <div
+          className="intro-overlay"
+          aria-hidden="true"
+        >
+          <div className="intro-glow" />
+
+          <div className="intro-word">
+            {"MOBIXA"
+              .split("")
+              .map((letter, index) => (
+                <span
+                  key={index}
+                  style={{
+                    animationDelay: `${
+                      0.12 + index * 0.08
+                    }s`,
+                  }}
+                >
+                  {letter}
+                </span>
+              ))}
+          </div>
+
+          <div className="intro-line" />
+
+          <div className="intro-tag">
+            AI
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         * {
           box-sizing: border-box;
@@ -2259,7 +2113,7 @@ export default function ChatPage() {
           padding: 0;
           width: 100%;
           min-height: 100%;
-          background: #07070c;
+          background: #d9d0ff;
         }
 
         body {
@@ -2283,7 +2137,7 @@ export default function ChatPage() {
 
         ::selection {
           background:
-            rgba(139, 123, 255, 0.38);
+            rgba(124, 92, 255, 0.28);
         }
 
         .mobixa {
@@ -2292,15 +2146,30 @@ export default function ChatPage() {
           height: 100svh;
           min-height: 100svh;
           overflow: hidden;
-          color: #ececf4;
+          color: #1d1a3d;
           -webkit-font-smoothing: antialiased;
           background:
             radial-gradient(
-              110% 50% at 50% -10%,
-              rgba(112, 92, 240, 0.26),
-              transparent 64%
+              120% 60% at 50% -10%,
+              rgba(255, 255, 255, 0.7),
+              transparent 60%
             ),
-            #07070c;
+            radial-gradient(
+              90% 60% at 100% 100%,
+              rgba(255, 160, 214, 0.55),
+              transparent 62%
+            ),
+            radial-gradient(
+              90% 60% at 0% 90%,
+              rgba(140, 190, 255, 0.6),
+              transparent 62%
+            ),
+            linear-gradient(
+              165deg,
+              #cdbfff 0%,
+              #c3d5ff 50%,
+              #e2d0ff 100%
+            );
         }
 
         /* =====================================================
@@ -2317,32 +2186,121 @@ export default function ChatPage() {
         .bg-glow {
           position: absolute;
           border-radius: 50%;
-          filter: blur(90px);
+          filter: blur(80px);
           will-change: transform;
         }
 
         .glow-one {
           width: 340px;
           height: 340px;
-          left: -180px;
-          top: 40%;
+          left: -150px;
+          top: 6%;
           background:
-            rgba(104, 60, 230, 0.26);
+            rgba(139, 108, 255, 0.5);
           animation:
-            glowDriftA 22s ease-in-out
+            glowDriftA 18s ease-in-out
               infinite alternate;
         }
 
         .glow-two {
           width: 320px;
           height: 320px;
-          right: -180px;
-          bottom: 8%;
+          right: -160px;
+          top: 38%;
           background:
-            rgba(28, 110, 230, 0.18);
+            rgba(70, 200, 255, 0.42);
           animation:
-            glowDriftB 26s ease-in-out
+            glowDriftB 22s ease-in-out
               infinite alternate;
+        }
+
+        .glow-three {
+          width: 320px;
+          height: 320px;
+          left: 10%;
+          bottom: -140px;
+          background:
+            rgba(255, 130, 200, 0.45);
+          animation:
+            glowDriftC 20s ease-in-out
+              infinite alternate;
+        }
+
+        .bg-grid {
+          position: absolute;
+          inset: 0;
+          background-image:
+            radial-gradient(
+              rgba(90, 70, 210, 0.2) 1px,
+              transparent 1.3px
+            );
+          background-size: 22px 22px;
+          -webkit-mask-image:
+            linear-gradient(
+              to bottom,
+              #000,
+              transparent 72%
+            );
+          mask-image:
+            linear-gradient(
+              to bottom,
+              #000,
+              transparent 72%
+            );
+        }
+
+        .bg-spark {
+          position: absolute;
+          color: #ffffff;
+          text-shadow:
+            0 0 10px
+              rgba(124, 92, 255, 0.9),
+            0 0 22px
+              rgba(124, 92, 255, 0.5);
+          animation:
+            twinkle 4s ease-in-out
+              infinite;
+        }
+
+        .sp-1 {
+          top: 17%;
+          left: 12%;
+          font-size: 14px;
+        }
+
+        .sp-2 {
+          top: 26%;
+          right: 14%;
+          font-size: 18px;
+          animation-delay: 0.8s;
+        }
+
+        .sp-3 {
+          top: 52%;
+          left: 7%;
+          font-size: 11px;
+          animation-delay: 1.6s;
+        }
+
+        .sp-4 {
+          top: 60%;
+          right: 9%;
+          font-size: 15px;
+          animation-delay: 2.2s;
+        }
+
+        .sp-5 {
+          top: 38%;
+          left: 46%;
+          font-size: 10px;
+          animation-delay: 1.2s;
+        }
+
+        .sp-6 {
+          top: 72%;
+          left: 22%;
+          font-size: 13px;
+          animation-delay: 2.8s;
         }
 
         .bg-grain {
@@ -2370,6 +2328,10 @@ export default function ChatPage() {
           align-items: flex-start;
           justify-content: space-between;
           direction: ltr;
+          animation:
+            introDown 0.7s
+              cubic-bezier(.2,.8,.2,1)
+              1.35s backwards;
         }
 
         .wordmark {
@@ -2379,22 +2341,27 @@ export default function ChatPage() {
           gap: 10px;
           padding-top: 9px;
           font-size: 15px;
-          font-weight: 600;
+          font-weight: 800;
           letter-spacing: 7px;
-          color: #f1f1f8;
+          color: #1d1a3d;
         }
 
         .wordmark b {
           padding: 3px 7px 3px 9px;
           border-radius: 7px;
-          border: 1px solid
-            rgba(164, 140, 255, 0.45);
           background:
-            rgba(120, 90, 255, 0.12);
-          color: #d6ccff;
+            linear-gradient(
+              135deg,
+              #7c5cff,
+              #4f7cff
+            );
+          color: #ffffff;
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 2px;
+          box-shadow:
+            0 6px 16px
+              rgba(100, 80, 240, 0.4);
         }
 
         .back {
@@ -2407,25 +2374,27 @@ export default function ChatPage() {
           padding: 0 17px;
           border-radius: 999px;
           border: 1px solid
-            rgba(255, 255, 255, 0.1);
+            rgba(255, 255, 255, 0.9);
           background:
-            rgba(255, 255, 255, 0.04);
-          color: #ececf4;
+            rgba(255, 255, 255, 0.55);
+          color: #1d1a3d;
+          box-shadow:
+            0 8px 24px
+              rgba(90, 70, 200, 0.16);
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
           transition:
-            border-color 0.2s ease,
-            background 0.2s ease;
+            background 0.2s ease,
+            transform 0.2s ease;
         }
 
         .back:hover {
-          border-color:
-            rgba(160, 145, 255, 0.5);
           background:
-            rgba(130, 100, 255, 0.1);
+            rgba(255, 255, 255, 0.85);
+          transform: translateY(-1px);
         }
 
         .back svg {
@@ -2475,245 +2444,172 @@ export default function ChatPage() {
           padding-bottom: 26px;
         }
 
-        .home-content > * {
+        .home-content > :nth-child(1) {
           animation:
-            riseIn 0.8s
+            homeIn 0.8s
               cubic-bezier(.2,.8,.2,1)
-              both;
+              1.45s backwards;
         }
 
         .home-content > :nth-child(2) {
-          animation-delay: 0.08s;
+          animation:
+            homeIn 0.8s
+              cubic-bezier(.2,.8,.2,1)
+              1.55s backwards;
         }
 
         .home-content > :nth-child(3) {
-          animation-delay: 0.16s;
+          animation:
+            homeIn 0.8s
+              cubic-bezier(.2,.8,.2,1)
+              1.65s backwards;
         }
 
         .home-content > :nth-child(4) {
-          animation-delay: 0.26s;
-        }
-
-        .emblem {
-          position: relative;
-          width: 78px;
-          height: 78px;
-          flex: 0 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .emblem-halo {
-          position: absolute;
-          inset: -26px;
-          border-radius: 50%;
-          background:
-            radial-gradient(
-              circle,
-              rgba(122, 88, 255, 0.45),
-              transparent 68%
-            );
-          filter: blur(12px);
           animation:
-            haloPulse 5s ease-in-out
-              infinite;
+            homeIn 0.8s
+              cubic-bezier(.2,.8,.2,1)
+              1.75s backwards;
         }
 
-        .emblem-ring {
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          padding: 1.5px;
-          background:
-            conic-gradient(
-              from 0deg,
-              transparent 0deg,
-              rgba(196, 150, 255, 0.95)
-                70deg,
-              rgba(53, 216, 255, 0.9)
-                150deg,
-              transparent 230deg,
-              transparent 360deg
-            );
-          -webkit-mask:
-            linear-gradient(#000 0 0)
-              content-box,
-            linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask:
-            linear-gradient(#000 0 0)
-              content-box,
-            linear-gradient(#000 0 0);
-          mask-composite: exclude;
+        .home-content > :nth-child(5) {
           animation:
-            spin 9s linear infinite;
+            homeIn 0.8s
+              cubic-bezier(.2,.8,.2,1)
+              1.9s backwards;
         }
 
-        .emblem-core {
-          position: absolute;
-          inset: 6px;
-          border-radius: 50%;
-          display: flex;
+        .home-chip {
+          display: inline-flex;
           align-items: center;
-          justify-content: center;
+          gap: 8px;
+          padding: 7px 15px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #4a36d6;
           background:
-            radial-gradient(
-              circle at 34% 24%,
-              rgba(140, 110, 255, 0.34),
-              rgba(12, 11, 30, 0.95)
-                68%
-            );
+            rgba(255, 255, 255, 0.62);
           border: 1px solid
-            rgba(255, 255, 255, 0.08);
+            rgba(255, 255, 255, 0.95);
+          box-shadow:
+            0 8px 22px
+              rgba(100, 80, 230, 0.18);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
         }
 
-        .emblem-m {
-          width: 34px;
-          height: 34px;
-          filter:
-            drop-shadow(
-              0 0 7px
-                rgba(150, 120, 255, 0.65)
-            );
+        .home-chip span {
+          color: #ec4899;
         }
 
         .home-title {
-          margin: 24px 0 0;
-          font-size: 34px;
+          margin: 20px 0 0;
+          font-size: 42px;
           line-height: 1.25;
-          font-weight: 800;
+          font-weight: 900;
           text-align: center;
+          color: #1d1a3d;
         }
 
         .home-title span {
-          color: #ffffff;
+          color: #1d1a3d;
         }
 
         .home-title strong {
           background:
             linear-gradient(
               90deg,
-              #b79bff,
-              #6fdcff
+              #6a4df0,
+              #3b82f6,
+              #ec4899,
+              #6a4df0
             );
+          background-size: 250% 100%;
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
+          animation:
+            titleShift 6s linear
+              infinite;
+        }
+
+        .rotator {
+          position: relative;
+          width: 100%;
+          height: 40px;
+          margin-top: 12px;
+          font-size: 22px;
+          font-weight: 800;
+          text-align: center;
+        }
+
+        .rotator span {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #4a36d6;
+          opacity: 0;
+          animation:
+            wordCycle 12.5s ease-in-out
+              infinite both;
+        }
+
+        .rotator span:nth-child(1) {
+          animation-delay: 1.8s;
+        }
+
+        .rotator span:nth-child(2) {
+          animation-delay: 4.3s;
+        }
+
+        .rotator span:nth-child(3) {
+          animation-delay: 6.8s;
+        }
+
+        .rotator span:nth-child(4) {
+          animation-delay: 9.3s;
+        }
+
+        .rotator span:nth-child(5) {
+          animation-delay: 11.8s;
         }
 
         .home-sub {
-          margin: 10px 0 0;
+          margin: 6px 0 0;
           max-width: 300px;
           text-align: center;
           font-size: 14.5px;
           line-height: 1.9;
           color:
-            rgba(236, 236, 244, 0.6);
+            rgba(29, 26, 61, 0.68);
         }
 
-        .suggestions {
-          width: 100%;
-          max-width: 440px;
-          margin-top: 28px;
-          display: grid;
-          gap: 10px;
-        }
-
-        .suggestion {
-          width: 100%;
-          display: flex;
+        .home-hint {
+          margin-top: 30px;
+          display: inline-flex;
           align-items: center;
-          gap: 13px;
-          padding: 12px 14px;
-          border-radius: 16px;
-          text-align: right;
-          color: #ececf4;
+          gap: 8px;
+          padding: 8px 15px;
+          border-radius: 999px;
+          font-size: 13px;
+          color:
+            rgba(29, 26, 61, 0.7);
           background:
-            rgba(255, 255, 255, 0.035);
+            rgba(255, 255, 255, 0.5);
           border: 1px solid
-            rgba(255, 255, 255, 0.09);
-          cursor: pointer;
-          transition:
-            transform 0.25s
-              cubic-bezier(.2,.8,.2,1),
-            border-color 0.25s ease,
-            background 0.25s ease;
+            rgba(255, 255, 255, 0.9);
         }
 
-        .suggestion:hover {
-          transform: translateY(-2px);
-          border-color:
-            rgba(160, 145, 255, 0.42);
-          background:
-            rgba(255, 255, 255, 0.06);
-        }
-
-        .suggestion:active {
-          transform: scale(0.985);
-        }
-
-        .s-icon {
-          width: 38px;
-          height: 38px;
-          flex: 0 0 38px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 12px;
-          background:
-            rgba(139, 123, 255, 0.13);
-          color: #cbc1ff;
-        }
-
-        .s-icon svg {
-          width: 20px;
-          height: 20px;
-          stroke-width: 1.7;
-        }
-
-        .s-text {
-          min-width: 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-        }
-
-        .s-text b {
-          direction: ltr;
-          text-align: right;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 2px;
-          color:
-            rgba(190, 180, 255, 0.8);
-        }
-
-        .s-text span {
-          font-size: 14px;
-          color: #f1f1f8;
-        }
-
-        .s-arrow {
-          width: 18px;
-          height: 18px;
-          flex: 0 0 18px;
-          color:
-            rgba(236, 236, 244, 0.35);
-          transition:
-            transform 0.25s ease,
-            color 0.25s ease;
-        }
-
-        .s-arrow svg {
-          width: 100%;
-          height: 100%;
-        }
-
-        .suggestion:hover .s-arrow {
-          transform: translateX(-3px);
-          color: #d8ceff;
+        .home-hint svg {
+          width: 16px;
+          height: 16px;
+          color: #6a4df0;
+          animation:
+            hintBounce 1.8s ease-in-out
+              infinite;
         }
 
         /* =====================================================
@@ -2725,7 +2621,7 @@ export default function ChatPage() {
           padding-bottom: 24px;
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 18px;
         }
 
         .message {
@@ -2733,7 +2629,7 @@ export default function ChatPage() {
           width: 100%;
         }
 
-        /* ---- user ---- */
+        /* ---- user (right) ---- */
 
         .user-message {
           justify-content: flex-start;
@@ -2743,23 +2639,26 @@ export default function ChatPage() {
           max-width: 84%;
           min-width: 0;
           padding: 11px 16px;
-          border-radius: 20px;
+          border-radius: 22px;
           border-bottom-right-radius: 6px;
           font-size: 15.5px;
           line-height: 1.9;
-          color: #f6f6fc;
+          color: #ffffff;
           overflow-wrap: anywhere;
           background:
             linear-gradient(
               135deg,
-              rgba(139, 123, 255, 0.26),
-              rgba(104, 84, 240, 0.14)
+              #7c5cff 0%,
+              #5b6cff 55%,
+              #3b8cff 100%
             );
           border: 1px solid
-            rgba(160, 145, 255, 0.28);
+            rgba(255, 255, 255, 0.35);
           box-shadow:
-            0 8px 24px
-              rgba(60, 40, 170, 0.18);
+            0 12px 28px
+              rgba(91, 80, 240, 0.35),
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.3);
           transform-origin:
             right bottom;
           animation:
@@ -2780,120 +2679,64 @@ export default function ChatPage() {
           border-radius: 13px;
           margin-bottom: 9px;
           border: 1px solid
-            rgba(255, 255, 255, 0.2);
+            rgba(255, 255, 255, 0.5);
         }
 
-        /* ---- assistant ---- */
+        /* ---- assistant (left) ---- */
 
         .ai-message {
-          align-items: flex-start;
-          gap: 12px;
-          animation:
-            riseIn 0.5s
-              cubic-bezier(.2,.8,.2,1)
-              both;
-        }
-
-        .ai-avatar {
-          position: relative;
-          width: 30px;
-          height: 30px;
-          flex: 0 0 30px;
-          margin-top: 1px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          color: #ffffff;
-          background:
-            radial-gradient(
-              circle at 32% 24%,
-              #9d82ff,
-              #5b3fe0 62%,
-              #3a2aa8
-            );
-          border: 1px solid
-            rgba(255, 255, 255, 0.18);
-          box-shadow:
-            0 4px 14px
-              rgba(106, 77, 240, 0.4);
-        }
-
-        .ai-mark {
-          width: 16px;
-          height: 16px;
-        }
-
-        .ai-avatar::before {
-          content: "";
-          position: absolute;
-          inset: -4px;
-          border-radius: 50%;
-          padding: 1.5px;
-          background:
-            conic-gradient(
-              from 0deg,
-              transparent,
-              rgba(196, 150, 255, 0.95)
-                90deg,
-              rgba(53, 216, 255, 0.9)
-                180deg,
-              transparent 270deg
-            );
-          -webkit-mask:
-            linear-gradient(#000 0 0)
-              content-box,
-            linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask:
-            linear-gradient(#000 0 0)
-              content-box,
-            linear-gradient(#000 0 0);
-          mask-composite: exclude;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .ai-avatar.working::before {
-          opacity: 1;
-          animation:
-            spin 1.1s linear infinite;
-        }
-
-        .ai-avatar.working {
-          animation:
-            avatarPulse 1.6s ease-in-out
-              infinite;
+          justify-content: flex-end;
         }
 
         .ai-body {
+          max-width: 94%;
           min-width: 0;
-          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          transform-origin:
+            left bottom;
+          animation:
+            aiIn 0.5s
+              cubic-bezier(.2,.9,.3,1.1)
+              both;
         }
 
-        .ai-content {
-          padding-top: 2px;
+        .ai-bubble {
+          min-width: 0;
+          max-width: 100%;
+          padding: 12px 16px;
+          border-radius: 22px;
+          border-bottom-left-radius: 6px;
           font-size: 15.5px;
           line-height: 2;
-          color:
-            rgba(242, 242, 250, 0.95);
+          color: #1d1a3d;
           overflow-wrap: anywhere;
+          background:
+            rgba(255, 255, 255, 0.76);
+          border: 1px solid
+            rgba(255, 255, 255, 0.95);
+          box-shadow:
+            0 12px 32px
+              rgba(86, 66, 200, 0.16),
+            inset 0 1px 0
+              rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
         }
 
-        .ai-content.is-error {
-          padding: 10px 14px;
-          border-radius: 14px;
-          color: #ffd0d4;
+        .ai-bubble.is-error {
+          color: #a8202c;
           background:
-            rgba(255, 90, 105, 0.09);
-          border: 1px solid
-            rgba(255, 110, 120, 0.3);
+            rgba(255, 235, 238, 0.85);
+          border-color:
+            rgba(220, 70, 85, 0.35);
         }
 
         .stopped-note {
           font-size: 13px;
           color:
-            rgba(236, 236, 244, 0.45);
+            rgba(29, 26, 61, 0.5);
         }
 
         /* thinking */
@@ -2910,10 +2753,10 @@ export default function ChatPage() {
           background:
             linear-gradient(
               100deg,
-              rgba(190, 190, 218, 0.4)
+              rgba(29, 26, 61, 0.38)
                 30%,
-              #ffffff 50%,
-              rgba(190, 190, 218, 0.4)
+              #6a4df0 50%,
+              rgba(29, 26, 61, 0.38)
                 70%
             );
           background-size: 260% 100%;
@@ -2934,7 +2777,7 @@ export default function ChatPage() {
           width: 5px;
           height: 5px;
           border-radius: 50%;
-          background: #b9a8ff;
+          background: #7c5cff;
           animation:
             typingDot 1.2s ease-in-out
               infinite;
@@ -2963,12 +2806,12 @@ export default function ChatPage() {
           background:
             linear-gradient(
               180deg,
-              #c4b5ff,
-              #6a4df0
+              #8b6cff,
+              #4f7cff
             );
           box-shadow:
             0 0 10px
-              rgba(139, 123, 255, 0.85);
+              rgba(124, 92, 255, 0.7);
           animation:
             caretBlink 1s steps(2, start)
               infinite;
@@ -2996,8 +2839,8 @@ export default function ChatPage() {
         .message-heading {
           margin: 14px 0 6px;
           line-height: 1.5;
-          font-weight: 700;
-          color: #ffffff;
+          font-weight: 800;
+          color: #120f33;
         }
 
         .message-text
@@ -3025,13 +2868,13 @@ export default function ChatPage() {
         }
 
         .list-dot {
-          color: #a98bff;
+          color: #7c5cff;
           flex: 0 0 auto;
         }
 
         .list-number {
-          color: #a99bff;
-          font-weight: 700;
+          color: #6a4df0;
+          font-weight: 800;
           min-width: 24px;
         }
 
@@ -3041,7 +2884,7 @@ export default function ChatPage() {
 
         .inline-bold {
           font-weight: 800;
-          color: #ffffff;
+          color: #120f33;
         }
 
         .inline-code {
@@ -3051,8 +2894,8 @@ export default function ChatPage() {
           padding: 0 6px;
           border-radius: 6px;
           background:
-            rgba(255, 255, 255, 0.08);
-          color: #d9d0ff;
+            rgba(106, 77, 240, 0.11);
+          color: #4a36d6;
           font-family:
             ui-monospace,
             SFMono-Regular,
@@ -3064,11 +2907,11 @@ export default function ChatPage() {
         }
 
         .inline-link {
-          color: #a99bff;
+          color: #4a36d6;
           text-decoration: underline;
           text-underline-offset: 3px;
           text-decoration-color:
-            rgba(169, 155, 255, 0.4);
+            rgba(74, 54, 214, 0.4);
         }
 
         .message-rule {
@@ -3076,7 +2919,7 @@ export default function ChatPage() {
           margin: 14px 0;
           border: 0;
           background:
-            rgba(255, 255, 255, 0.1);
+            rgba(29, 26, 61, 0.12);
         }
 
         .message-quote {
@@ -3084,11 +2927,11 @@ export default function ChatPage() {
           padding: 8px 14px;
           border-radius: 10px;
           border-inline-start: 3px solid
-            rgba(160, 145, 255, 0.7);
+            #7c5cff;
           background:
-            rgba(255, 255, 255, 0.035);
+            rgba(106, 77, 240, 0.07);
           color:
-            rgba(236, 236, 244, 0.75);
+            rgba(29, 26, 61, 0.78);
         }
 
         .table-wrap {
@@ -3096,7 +2939,7 @@ export default function ChatPage() {
           overflow-x: auto;
           border-radius: 12px;
           border: 1px solid
-            rgba(255, 255, 255, 0.1);
+            rgba(29, 26, 61, 0.12);
         }
 
         .message-table {
@@ -3112,14 +2955,14 @@ export default function ChatPage() {
           text-align: start;
           white-space: nowrap;
           border-bottom: 1px solid
-            rgba(255, 255, 255, 0.07);
+            rgba(29, 26, 61, 0.08);
         }
 
         .message-table th {
           background:
-            rgba(255, 255, 255, 0.05);
-          color: #ffffff;
-          font-weight: 700;
+            rgba(106, 77, 240, 0.09);
+          color: #120f33;
+          font-weight: 800;
         }
 
         .message-table tr:last-child td {
@@ -3132,15 +2975,15 @@ export default function ChatPage() {
           direction: ltr;
           text-align: left;
           width: 100%;
-          margin: 14px 0;
+          margin: 12px 0;
           overflow: hidden;
           border-radius: 14px;
-          background: #0b0c12;
+          background: #14122b;
           border: 1px solid
-            rgba(255, 255, 255, 0.09);
+            rgba(255, 255, 255, 0.08);
           box-shadow:
-            0 12px 32px
-              rgba(0, 0, 0, 0.35);
+            0 14px 34px
+              rgba(30, 20, 90, 0.35);
           animation:
             lineIn 0.45s ease both;
         }
@@ -3151,9 +2994,9 @@ export default function ChatPage() {
           justify-content: space-between;
           padding: 6px 8px 6px 14px;
           background:
-            rgba(255, 255, 255, 0.04);
+            rgba(255, 255, 255, 0.06);
           border-bottom: 1px solid
-            rgba(255, 255, 255, 0.07);
+            rgba(255, 255, 255, 0.08);
         }
 
         .code-language {
@@ -3167,7 +3010,7 @@ export default function ChatPage() {
           font-weight: 600;
           letter-spacing: 0.3px;
           color:
-            rgba(210, 214, 240, 0.65);
+            rgba(210, 214, 240, 0.7);
           text-transform: lowercase;
         }
 
@@ -3180,7 +3023,7 @@ export default function ChatPage() {
           border-radius: 8px;
           background: transparent;
           color:
-            rgba(220, 224, 248, 0.75);
+            rgba(220, 224, 248, 0.8);
           font-size: 12px;
           cursor: pointer;
           transition:
@@ -3190,7 +3033,7 @@ export default function ChatPage() {
 
         .code-copy:hover {
           background:
-            rgba(255, 255, 255, 0.08);
+            rgba(255, 255, 255, 0.1);
           color: #ffffff;
         }
 
@@ -3210,12 +3053,12 @@ export default function ChatPage() {
           -webkit-overflow-scrolling: touch;
           scrollbar-width: thin;
           scrollbar-color:
-            rgba(255, 255, 255, 0.18)
+            rgba(255, 255, 255, 0.22)
             transparent;
         }
 
         .code-block code {
-          color: #e4e6f5;
+          color: #e8eaf8;
           font-family:
             ui-monospace,
             SFMono-Regular,
@@ -3242,7 +3085,7 @@ export default function ChatPage() {
         }
 
         .tk-comment {
-          color: #6f7794;
+          color: #7d86a8;
           font-style: italic;
         }
 
@@ -3270,7 +3113,7 @@ export default function ChatPage() {
           border-radius: 8px;
           background: transparent;
           color:
-            rgba(236, 236, 244, 0.48);
+            rgba(29, 26, 61, 0.55);
           font-size: 12px;
           cursor: pointer;
           transition:
@@ -3280,12 +3123,12 @@ export default function ChatPage() {
 
         .message-copy:hover {
           background:
-            rgba(255, 255, 255, 0.07);
-          color: #ffffff;
+            rgba(255, 255, 255, 0.7);
+          color: #4a36d6;
         }
 
         .message-copy.copied {
-          color: #7ee2a8;
+          color: #138a55;
         }
 
         .message-copy svg {
@@ -3300,7 +3143,7 @@ export default function ChatPage() {
           bottom: 10px;
           z-index: 6;
           height: 0;
-          margin-top: -24px;
+          margin-top: -18px;
           display: flex;
           justify-content: center;
           pointer-events: none;
@@ -3315,15 +3158,13 @@ export default function ChatPage() {
           justify-content: center;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.16);
+            rgba(255, 255, 255, 0.95);
           background:
-            rgba(28, 28, 42, 0.92);
-          color: #ffffff;
+            rgba(255, 255, 255, 0.9);
+          color: #4a36d6;
           box-shadow:
             0 8px 24px
-              rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
+              rgba(86, 66, 200, 0.28);
           cursor: pointer;
           opacity: 0;
           transform:
@@ -3363,10 +3204,15 @@ export default function ChatPage() {
           background:
             linear-gradient(
               to top,
-              rgba(7, 7, 12, 0.96),
-              rgba(7, 7, 12, 0.7),
+              rgba(214, 204, 255, 0.92),
+              rgba(214, 204, 255, 0.55)
+                60%,
               transparent
             );
+          animation:
+            introUp 0.8s
+              cubic-bezier(.2,.8,.2,1)
+              1.5s backwards;
         }
 
         .image-preview-wrap {
@@ -3393,9 +3239,12 @@ export default function ChatPage() {
           padding: 7px 8px;
           border-radius: 16px;
           background:
-            rgba(26, 26, 40, 0.88);
+            rgba(255, 255, 255, 0.82);
           border: 1px solid
-            rgba(160, 145, 255, 0.35);
+            rgba(255, 255, 255, 0.95);
+          box-shadow:
+            0 10px 28px
+              rgba(86, 66, 200, 0.2);
           backdrop-filter: blur(15px);
         }
 
@@ -3406,7 +3255,7 @@ export default function ChatPage() {
           object-fit: cover;
           border-radius: 10px;
           border: 1px solid
-            rgba(255, 255, 255, 0.2);
+            rgba(106, 77, 240, 0.3);
         }
 
         .image-preview-info {
@@ -3419,12 +3268,13 @@ export default function ChatPage() {
 
         .image-preview-info span {
           font-size: 11px;
-          color: white;
+          font-weight: 700;
+          color: #1d1a3d;
         }
 
         .image-preview-info small {
           color:
-            rgba(210, 214, 240, 0.6);
+            rgba(29, 26, 61, 0.6);
           font-size: 9px;
         }
 
@@ -3437,10 +3287,10 @@ export default function ChatPage() {
           justify-content: center;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.16);
+            rgba(106, 77, 240, 0.25);
           background:
-            rgba(255, 255, 255, 0.07);
-          color: white;
+            rgba(106, 77, 240, 0.1);
+          color: #4a36d6;
           cursor: pointer;
         }
 
@@ -3460,14 +3310,14 @@ export default function ChatPage() {
           padding: 7px 7px 7px 9px;
           border-radius: 25px;
           background:
-            rgba(24, 24, 36, 0.86);
+            rgba(255, 255, 255, 0.8);
           border: 1px solid
-            rgba(255, 255, 255, 0.1);
+            rgba(255, 255, 255, 0.98);
           box-shadow:
-            0 12px 40px
-              rgba(0, 0, 0, 0.45),
+            0 14px 40px
+              rgba(86, 66, 200, 0.24),
             inset 0 1px 0
-              rgba(255, 255, 255, 0.05);
+              rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           transition:
@@ -3477,14 +3327,14 @@ export default function ChatPage() {
 
         .composer:focus-within {
           border-color:
-            rgba(150, 132, 255, 0.6);
+            rgba(124, 92, 255, 0.7);
           box-shadow:
             0 0 0 4px
-              rgba(139, 123, 255, 0.12),
-            0 12px 40px
-              rgba(0, 0, 0, 0.45),
+              rgba(124, 92, 255, 0.18),
+            0 14px 40px
+              rgba(86, 66, 200, 0.28),
             inset 0 1px 0
-              rgba(255, 255, 255, 0.05);
+              rgba(255, 255, 255, 0.9);
         }
 
         .composer textarea {
@@ -3496,8 +3346,8 @@ export default function ChatPage() {
           border: 0;
           outline: 0;
           background: transparent;
-          color: #f4f4fa;
-          caret-color: #a99bff;
+          color: #1d1a3d;
+          caret-color: #6a4df0;
           padding: 9px 4px;
           text-align: right;
           direction: rtl;
@@ -3507,7 +3357,7 @@ export default function ChatPage() {
 
         .composer textarea::placeholder {
           color:
-            rgba(210, 214, 240, 0.45);
+            rgba(29, 26, 61, 0.42);
         }
 
         .composer textarea:disabled {
@@ -3524,26 +3374,23 @@ export default function ChatPage() {
           justify-content: center;
           border-radius: 12px;
           border: 1px solid
-            rgba(255, 255, 255, 0.11);
+            rgba(106, 77, 240, 0.25);
           background:
-            rgba(255, 255, 255, 0.04);
-          color:
-            rgba(236, 236, 244, 0.72);
+            rgba(106, 77, 240, 0.08);
+          color: #5b3fe0;
           cursor: pointer;
           transition:
             transform 0.2s ease,
             border-color 0.2s ease,
-            background 0.2s ease,
-            color 0.2s ease;
+            background 0.2s ease;
         }
 
         .upload:hover {
           transform: translateY(-1px);
           border-color:
-            rgba(160, 145, 255, 0.55);
+            rgba(106, 77, 240, 0.6);
           background:
-            rgba(139, 123, 255, 0.14);
-          color: #ffffff;
+            rgba(106, 77, 240, 0.16);
         }
 
         .upload:disabled {
@@ -3565,9 +3412,7 @@ export default function ChatPage() {
             translateY(4px);
           padding: 5px 8px;
           border-radius: 7px;
-          background: rgba(12, 12, 20, 0.95);
-          border: 1px solid
-            rgba(255, 255, 255, 0.14);
+          background: #1d1a3d;
           color: white;
           white-space: nowrap;
           font-size: 10px;
@@ -3596,7 +3441,7 @@ export default function ChatPage() {
           justify-content: center;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.26);
+            rgba(255, 255, 255, 0.5);
           background:
             radial-gradient(
               circle at 32% 24%,
@@ -3610,7 +3455,7 @@ export default function ChatPage() {
             0 6px 18px
               rgba(106, 77, 240, 0.5),
             inset 0 1px 2px
-              rgba(255, 255, 255, 0.4);
+              rgba(255, 255, 255, 0.45);
           transition:
             transform 0.22s
               cubic-bezier(.2,.8,.2,1),
@@ -3634,15 +3479,15 @@ export default function ChatPage() {
               transparent 0deg,
               rgba(190, 91, 255, 0.95)
                 65deg,
-              rgba(35, 225, 255, 0.95)
+              rgba(35, 200, 255, 0.95)
                 145deg,
               transparent 215deg,
-              rgba(173, 76, 255, 0.9)
+              rgba(255, 110, 190, 0.9)
                 300deg,
               transparent 360deg
             );
           filter: blur(1px);
-          opacity: 0.7;
+          opacity: 0.8;
           animation:
             sendRing 5s linear
             infinite;
@@ -3659,7 +3504,7 @@ export default function ChatPage() {
           inset: 2px;
           border-radius: 50%;
           border: 1px solid
-            rgba(255, 255, 255, 0.16);
+            rgba(255, 255, 255, 0.3);
           pointer-events: none;
         }
 
@@ -3667,12 +3512,12 @@ export default function ChatPage() {
           transform:
             translateY(-1px)
             scale(1.06);
-          filter: brightness(1.1);
+          filter: brightness(1.08);
           box-shadow:
             0 8px 26px
-              rgba(125, 90, 255, 0.7),
+              rgba(125, 90, 255, 0.65),
             inset 0 1px 2px
-              rgba(255, 255, 255, 0.45);
+              rgba(255, 255, 255, 0.5);
         }
 
         .send:active {
@@ -3682,12 +3527,12 @@ export default function ChatPage() {
         .send:focus-visible {
           outline:
             2px solid
-              rgba(42, 222, 255, 0.9);
+              rgba(42, 160, 255, 0.9);
           outline-offset: 4px;
         }
 
         .send:disabled {
-          opacity: 0.4;
+          opacity: 0.45;
           cursor: not-allowed;
           transform: none;
           filter: grayscale(0.2);
@@ -3745,14 +3590,117 @@ export default function ChatPage() {
           align-items: center;
           justify-content: space-between;
           color:
-            rgba(210, 214, 240, 0.4);
+            rgba(29, 26, 61, 0.52);
           font-size: 10px;
           line-height: 10px;
         }
 
         .footer span:first-child {
-          color:
-            rgba(166, 140, 255, 0.8);
+          color: #6a4df0;
+          font-weight: 700;
+        }
+
+        /* =====================================================
+           INTRO
+        ===================================================== */
+
+        .intro-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          pointer-events: none;
+          background:
+            linear-gradient(
+              150deg,
+              #6b4bff 0%,
+              #4f80ff 52%,
+              #ff8ccf 100%
+            );
+          animation:
+            introReveal 0.85s
+              cubic-bezier(.7,0,.2,1)
+              1.15s forwards;
+        }
+
+        .intro-glow {
+          position: absolute;
+          width: 420px;
+          height: 420px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(255, 255, 255, 0.4),
+              transparent 65%
+            );
+          animation:
+            haloPulse 2.4s ease-in-out
+              infinite;
+        }
+
+        .intro-word,
+        .intro-line,
+        .intro-tag {
+          position: relative;
+          animation:
+            introFade 0.4s ease
+              1.0s forwards;
+        }
+
+        .intro-word {
+          display: flex;
+          direction: ltr;
+          font-size: 40px;
+          font-weight: 900;
+          letter-spacing: 8px;
+          color: #ffffff;
+          text-shadow:
+            0 0 24px
+              rgba(255, 255, 255, 0.6);
+        }
+
+        .intro-word span {
+          display: inline-block;
+          opacity: 0;
+          animation:
+            introLetter 0.6s
+              cubic-bezier(.2,.8,.2,1)
+              forwards;
+        }
+
+        .intro-line {
+          width: 0;
+          height: 2px;
+          border-radius: 2px;
+          background:
+            rgba(255, 255, 255, 0.9);
+          box-shadow:
+            0 0 14px
+              rgba(255, 255, 255, 0.9);
+          animation:
+            introLine 0.7s
+              cubic-bezier(.2,.8,.2,1)
+              0.5s forwards,
+            introFade 0.4s ease
+              1.0s forwards;
+        }
+
+        .intro-tag {
+          padding: 4px 12px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 3px;
+          color: #ffffff;
+          border: 1px solid
+            rgba(255, 255, 255, 0.7);
+          background:
+            rgba(255, 255, 255, 0.18);
         }
 
         /* =====================================================
@@ -3760,16 +3708,6 @@ export default function ChatPage() {
         ===================================================== */
 
         @keyframes sendRing {
-          from {
-            transform: rotate(0deg);
-          }
-
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes spin {
           from {
             transform: rotate(0deg);
           }
@@ -3791,6 +3729,44 @@ export default function ChatPage() {
           }
         }
 
+        @keyframes homeIn {
+          from {
+            opacity: 0;
+            transform:
+              translateY(22px)
+              scale(0.96);
+          }
+
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
+        @keyframes introDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
+        @keyframes introUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
         @keyframes userIn {
           from {
             opacity: 0;
@@ -3804,6 +3780,21 @@ export default function ChatPage() {
             transform:
               translateY(0)
               scale(1);
+          }
+        }
+
+        @keyframes aiIn {
+          from {
+            opacity: 0;
+            transform:
+              translateX(-10px)
+              translateY(8px)
+              scale(0.96);
+          }
+
+          to {
+            opacity: 1;
+            transform: none;
           }
         }
 
@@ -3832,28 +3823,13 @@ export default function ChatPage() {
           }
         }
 
-        @keyframes avatarPulse {
-          0%,
-          100% {
-            box-shadow:
-              0 4px 14px
-                rgba(106, 77, 240, 0.4);
-          }
-
-          50% {
-            box-shadow:
-              0 4px 26px
-                rgba(140, 110, 255, 0.85);
-          }
-        }
-
         @keyframes glowDriftA {
           from {
             transform: translate(0, 0);
           }
 
           to {
-            transform: translate(40px, -50px);
+            transform: translate(50px, 40px);
           }
         }
 
@@ -3863,7 +3839,70 @@ export default function ChatPage() {
           }
 
           to {
-            transform: translate(-40px, 45px);
+            transform: translate(-50px, -40px);
+          }
+        }
+
+        @keyframes glowDriftC {
+          from {
+            transform: translate(0, 0);
+          }
+
+          to {
+            transform: translate(40px, -50px);
+          }
+        }
+
+        @keyframes twinkle {
+          0%,
+          100% {
+            opacity: 0.25;
+            transform: scale(0.8);
+          }
+
+          50% {
+            opacity: 1;
+            transform: scale(1.15);
+          }
+        }
+
+        @keyframes titleShift {
+          from {
+            background-position: 0% 0;
+          }
+
+          to {
+            background-position: 250% 0;
+          }
+        }
+
+        @keyframes wordCycle {
+          0% {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+
+          4%,
+          17% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+
+          21%,
+          100% {
+            opacity: 0;
+            transform: translateY(-14px);
+          }
+        }
+
+        @keyframes hintBounce {
+          0%,
+          100% {
+            transform: translateY(-2px);
+          }
+
+          50% {
+            transform: translateY(3px);
           }
         }
 
@@ -3902,23 +3941,81 @@ export default function ChatPage() {
           }
         }
 
+        @keyframes introLetter {
+          from {
+            opacity: 0;
+            transform:
+              translateY(18px)
+              scale(0.9);
+          }
+
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
+        @keyframes introLine {
+          from {
+            width: 0;
+          }
+
+          to {
+            width: 150px;
+          }
+        }
+
+        @keyframes introFade {
+          to {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+        }
+
+        @keyframes introReveal {
+          from {
+            -webkit-clip-path:
+              circle(150% at 50% 50%);
+            clip-path:
+              circle(150% at 50% 50%);
+          }
+
+          to {
+            -webkit-clip-path:
+              circle(0% at 50% 50%);
+            clip-path:
+              circle(0% at 50% 50%);
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
+          .intro-overlay {
+            display: none;
+          }
+
+          .header,
+          .composer-zone,
           .home-content > *,
           .message,
           .user-bubble,
+          .ai-body,
           .message-text > *,
           .code-block,
           .bg-glow,
-          .emblem-halo,
-          .emblem-ring,
-          .ai-avatar,
-          .ai-avatar::before,
+          .bg-spark,
+          .rotator span,
+          .home-title strong,
+          .home-hint svg,
           .thinking-text,
           .thinking-dots i,
           .ai-content.streaming
             .message-text:last-child
             > :last-child::after {
             animation: none;
+          }
+
+          .rotator span:first-child {
+            opacity: 1;
           }
         }
 
@@ -3953,43 +4050,27 @@ export default function ChatPage() {
             padding: 0 14px;
           }
 
-          .emblem {
-            width: 68px;
-            height: 68px;
-          }
-
-          .emblem-m {
-            width: 30px;
-            height: 30px;
-          }
-
           .home-title {
-            margin-top: 20px;
-            font-size: 30px;
+            margin-top: 18px;
+            font-size: 36px;
+          }
+
+          .rotator {
+            font-size: 20px;
+            height: 36px;
           }
 
           .home-sub {
             font-size: 13.5px;
           }
 
-          .suggestions {
-            margin-top: 22px;
-            gap: 8px;
-          }
-
-          .suggestion {
-            padding: 10px 12px;
-          }
-
-          .s-icon {
-            width: 36px;
-            height: 36px;
-            flex-basis: 36px;
+          .home-hint {
+            margin-top: 24px;
           }
 
           .messages {
             padding-top: 18px;
-            gap: 22px;
+            gap: 16px;
           }
 
           .user-bubble {
@@ -3998,18 +4079,13 @@ export default function ChatPage() {
             padding: 10px 14px;
           }
 
-          .ai-message {
-            gap: 10px;
+          .ai-body {
+            max-width: 96%;
           }
 
-          .ai-avatar {
-            width: 28px;
-            height: 28px;
-            flex-basis: 28px;
-          }
-
-          .ai-content {
+          .ai-bubble {
             font-size: 15px;
+            padding: 11px 14px;
           }
 
           .sent-image {
@@ -4087,34 +4163,21 @@ export default function ChatPage() {
             height: 27px;
             flex-basis: 27px;
           }
+
+          .intro-word {
+            font-size: 34px;
+            letter-spacing: 6px;
+          }
         }
 
         @media (max-height: 760px) and (max-width: 500px) {
-          .emblem {
-            width: 56px;
-            height: 56px;
-          }
-
-          .emblem-halo {
-            inset: -20px;
-          }
-
-          .emblem-m {
-            width: 26px;
-            height: 26px;
-          }
-
           .home-title {
-            margin-top: 16px;
-            font-size: 26px;
+            margin-top: 14px;
+            font-size: 32px;
           }
 
-          .home-sub {
-            margin-top: 6px;
-          }
-
-          .suggestions {
-            margin-top: 16px;
+          .home-hint {
+            margin-top: 18px;
           }
         }
       `}</style>
