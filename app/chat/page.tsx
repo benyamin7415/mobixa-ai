@@ -318,7 +318,16 @@ const HASH_COMMENT_LANGUAGES = [
 
 const PLAIN_LANGUAGES = [
   "", "text", "txt", "plaintext",
-  "markdown", "md",
+  "markdown", "md", "prompt",
+];
+
+/*
+  بلاک‌های متنی (پرامپت، کپشن، ایمیل و ...)
+  باید خط‌به‌خط بشکنند و از کادر بیرون نزنند.
+*/
+const WRAP_LANGUAGES = [
+  "text", "txt", "plaintext",
+  "markdown", "md", "prompt",
 ];
 
 const SLASH_PATTERN =
@@ -447,11 +456,15 @@ function CodeBlock({
     [code, language]
   );
 
+  const lang = (language || "").toLowerCase();
+
+  const wrap = WRAP_LANGUAGES.includes(lang);
+
   return (
     <div className="code-block">
       <div className="code-header">
         <span className="code-language">
-          {language || "code"}
+          {wrap ? "متن" : language || "code"}
         </span>
 
         <CopyButton
@@ -460,8 +473,10 @@ function CodeBlock({
         />
       </div>
 
-      <pre>
-        <code>{nodes}</code>
+      <pre className={wrap ? "wrap" : undefined}>
+        <code dir={wrap ? "auto" : undefined}>
+          {nodes}
+        </code>
       </pre>
     </div>
   );
@@ -828,8 +843,14 @@ function MessageContent({
     return null;
   }
 
+  /*
+    اگر مدل سه‌بک‌تیک را وسط یک خط نوشته بود،
+    آن را به ابتدای یک خط جدید می‌بریم.
+  */
+
   const lines = content
     .replace(/\r/g, "")
+    .replace(/([^\n`])(```)/g, "$1\n$2")
     .split("\n");
 
   const output: ReactNode[] = [];
@@ -863,29 +884,95 @@ function MessageContent({
     textBuffer = [];
   };
 
+  const pushCode = () => {
+    output.push(
+      <CodeBlock
+        key={`code-${output.length}`}
+        code={codeBuffer.join("\n")}
+        language={codeLanguage}
+      />
+    );
+
+    codeBuffer = [];
+    codeLanguage = "";
+    insideCode = false;
+  };
+
   for (const line of lines) {
     const match = line.match(
       /^\s*```(.*)$/
     );
 
     if (match) {
+      const info = match[1].trim();
+
       if (!insideCode) {
         flushText();
-        insideCode = true;
-        codeLanguage = match[1].trim();
-        codeBuffer = [];
-      } else {
-        output.push(
-          <CodeBlock
-            key={`code-${output.length}`}
-            code={codeBuffer.join("\n")}
-            language={codeLanguage}
-          />
-        );
 
+        insideCode = true;
         codeBuffer = [];
         codeLanguage = "";
-        insideCode = false;
+
+        /*
+          ```text  یا  ```ts کد...
+          اولین کلمه اگر شبیه اسم زبان بود
+          زبان است و بقیه‌ی خط، محتوای کد.
+        */
+
+        /*
+          کادر تک‌خطی: ```متن```
+          (بدون اسم زبان)
+        */
+
+        if (info.endsWith("```")) {
+          codeBuffer.push(
+            info.slice(0, -3).trim()
+          );
+
+          pushCode();
+          continue;
+        }
+
+        const info2 = info.match(
+          /^([A-Za-z0-9_+#.-]{1,20})(?:\s+(.*))?$/
+        );
+
+        let rest = "";
+
+        if (info2) {
+          codeLanguage = info2[1];
+          rest = info2[2] || "";
+        } else {
+          rest = info;
+        }
+
+        /*
+          کادر تک‌خطی: ```متن```
+        */
+
+        if (rest.endsWith("```")) {
+          codeBuffer.push(
+            rest.slice(0, -3).trim()
+          );
+
+          pushCode();
+          continue;
+        }
+
+        if (rest) {
+          codeBuffer.push(rest);
+        }
+      } else {
+        pushCode();
+
+        /*
+          اگر بعد از بستن کادر در همان خط متنی بود،
+          آن را به عنوان متن عادی نگه می‌داریم.
+        */
+
+        if (info) {
+          textBuffer.push(info);
+        }
       }
 
       continue;
@@ -899,13 +986,7 @@ function MessageContent({
   }
 
   if (insideCode) {
-    output.push(
-      <CodeBlock
-        key={`code-${output.length}`}
-        code={codeBuffer.join("\n")}
-        language={codeLanguage}
-      />
-    );
+    pushCode();
   }
 
   flushText();
@@ -3070,6 +3151,21 @@ export default function ChatPage() {
           line-height: 1.7;
           white-space: pre;
           tab-size: 2;
+        }
+
+        .code-block pre.wrap {
+          overflow-x: hidden;
+        }
+
+        .code-block pre.wrap code {
+          display: block;
+          text-align: start;
+          font-family: inherit;
+          font-size: 14.5px;
+          line-height: 1.95;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .tk-keyword {
