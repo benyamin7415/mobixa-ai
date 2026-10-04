@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import LiveVoice from "./LiveVoice";
 
 type Message = {
   id: string;
@@ -1017,8 +1018,75 @@ function ArrowDownIcon() {
    PAGE
 ========================================================= */
 
+/* =========================================================
+   LIVE VOICE ICON
+========================================================= */
+
+function LiveIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="live-icon"
+    >
+      <rect x="2.7" y="9" width="2.6" height="6" rx="1.3" fill="currentColor" />
+      <rect x="6.7" y="6" width="2.6" height="12" rx="1.3" fill="currentColor" />
+      <rect x="10.7" y="3" width="2.6" height="18" rx="1.3" fill="currentColor" />
+      <rect x="14.7" y="6" width="2.6" height="12" rx="1.3" fill="currentColor" />
+      <rect x="18.7" y="9" width="2.6" height="6" rx="1.3" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function ChatPage() {
   const router = useRouter();
+
+  /*
+    مکالمه‌ی صوتی زنده
+  */
+  const [liveOpen, setLiveOpen] =
+    useState(false);
+
+  function openLive() {
+    if (loading) {
+      return;
+    }
+
+    setLiveOpen(true);
+  }
+
+  function getLiveHistory(): HistoryMessage[] {
+    return messages
+      .filter(
+        (item) =>
+          item.content.trim() &&
+          !item.content.startsWith("⚠️")
+      )
+      .slice(-12)
+      .map((item) => ({
+        role: item.role,
+        content: item.content.slice(0, 20000),
+      }));
+  }
+
+  function addLiveTurn(
+    userText: string,
+    assistantText: string
+  ) {
+    setMessages((old) => [
+      ...old,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: userText,
+      },
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: assistantText,
+      },
+    ]);
+  }
 
   const [messages, setMessages] =
     useState<Message[]>([]);
@@ -2105,6 +2173,23 @@ export default function ChatPage() {
               }
             />
 
+            {!loading &&
+              !input.trim() &&
+              !selectedImage && (
+                <button
+                  type="button"
+                  className="live-btn"
+                  onClick={openLive}
+                  aria-label="شروع مکالمه صوتی"
+                >
+                  <LiveIcon />
+
+                  <span className="live-tooltip">
+                    مکالمه صوتی
+                  </span>
+                </button>
+              )}
+
             <button
               type="button"
               className={`send${
@@ -2181,6 +2266,14 @@ export default function ChatPage() {
             AI
           </div>
         </div>
+      )}
+
+      {liveOpen && (
+        <LiveVoice
+          history={getLiveHistory()}
+          onTurn={addLiveTurn}
+          onClose={() => setLiveOpen(false)}
+        />
       )}
 
       <style jsx global>{`
@@ -4274,6 +4367,217 @@ export default function ChatPage() {
 
           .home-hint {
             margin-top: 18px;
+          }
+        }
+
+        /* =====================================================
+           LIVE VOICE BUTTON
+        ===================================================== */
+
+        .live-btn {
+          position: relative;
+          isolation: isolate;
+          order: 1;
+          width: 38px;
+          height: 38px;
+          flex: 0 0 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          border: 1px solid
+            rgba(255, 255, 255, 0.5);
+          background:
+            radial-gradient(
+              circle at 32% 24%,
+              #7b6bff,
+              #3a2bb8 62%,
+              #231a78
+            );
+          color: white;
+          cursor: pointer;
+          box-shadow:
+            0 6px 18px
+              rgba(69, 53, 200, 0.45),
+            inset 0 1px 2px
+              rgba(255, 255, 255, 0.4);
+          transition:
+            transform 0.22s
+              cubic-bezier(.2,.8,.2,1),
+            box-shadow 0.22s ease,
+            filter 0.22s ease;
+          animation:
+            liveIn 0.45s
+              cubic-bezier(.2,.9,.2,1)
+              both;
+        }
+
+        .live-btn::before {
+          content: "";
+          position: absolute;
+          inset: -3px;
+          z-index: -1;
+          border-radius: 50%;
+          background:
+            conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              rgba(35, 200, 255, 0.95)
+                70deg,
+              rgba(190, 91, 255, 0.95)
+                150deg,
+              transparent 220deg,
+              rgba(255, 110, 190, 0.9)
+                300deg,
+              transparent 360deg
+            );
+          filter: blur(1px);
+          opacity: 0.85;
+          animation:
+            sendRing 6s linear
+            infinite;
+        }
+
+        .live-btn::after {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          border-radius: 50%;
+          border: 1px solid
+            rgba(255, 255, 255, 0.28);
+          pointer-events: none;
+        }
+
+        .live-btn:hover {
+          transform:
+            translateY(-1px)
+            scale(1.06);
+          filter: brightness(1.12);
+          box-shadow:
+            0 8px 26px
+              rgba(90, 70, 230, 0.65),
+            inset 0 1px 2px
+              rgba(255, 255, 255, 0.5);
+        }
+
+        .live-btn:active {
+          transform: scale(0.9);
+        }
+
+        .live-btn:focus-visible {
+          outline:
+            2px solid
+              rgba(42, 160, 255, 0.9);
+          outline-offset: 4px;
+        }
+
+        /* وقتی دکمه مکالمه نمایش داده می‌شود، دکمه ارسال (که غیرفعال است) جایش را می‌گیرد */
+        .live-btn + .send {
+          display: none;
+        }
+
+        .live-icon {
+          position: relative;
+          z-index: 3;
+          width: 20px;
+          height: 20px;
+        }
+
+        .live-icon rect {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation:
+            liveBar 1.3s ease-in-out
+            infinite;
+        }
+
+        .live-icon rect:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .live-icon rect:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+
+        .live-icon rect:nth-child(4) {
+          animation-delay: 0.45s;
+        }
+
+        .live-icon rect:nth-child(5) {
+          animation-delay: 0.6s;
+        }
+
+        .live-tooltip {
+          position: absolute;
+          bottom: calc(100% + 10px);
+          right: 50%;
+          transform:
+            translateX(50%)
+            translateY(4px);
+          padding: 5px 8px;
+          border-radius: 7px;
+          background: #1d1a3d;
+          color: white;
+          white-space: nowrap;
+          font-size: 10px;
+          opacity: 0;
+          pointer-events: none;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
+        }
+
+        .live-btn:hover .live-tooltip {
+          opacity: 1;
+          transform:
+            translateX(50%)
+            translateY(0);
+        }
+
+        @keyframes liveBar {
+          0%,
+          100% {
+            transform: scaleY(0.45);
+          }
+
+          50% {
+            transform: scaleY(1);
+          }
+        }
+
+        @keyframes liveIn {
+          from {
+            opacity: 0;
+            transform: scale(0.55);
+          }
+
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @media (max-width: 500px) {
+          .live-btn {
+            width: 36px;
+            height: 36px;
+            flex-basis: 36px;
+          }
+
+          .live-icon {
+            width: 19px;
+            height: 19px;
+          }
+
+          .live-tooltip {
+            display: none;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .live-icon rect,
+          .live-btn::before {
+            animation: none;
           }
         }
       `}</style>
