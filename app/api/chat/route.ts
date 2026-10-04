@@ -151,11 +151,11 @@ content inside a fenced block whose language is "text".
 The user will get a nice separate box with a copy button.
 
 - Write one short friendly line BEFORE the box (outside it). Put any
-  explanation, translation or tips AFTER the box, outside it.
+  explanation, translation or tips AFTER the box, outside the box.
 - If the user asks for several copy-ready items, give each one in its own
   separate box.
-- If the user asks for a prompt/text in English and also a translation, put
-  the English version in the box and write the Persian translation below it as
+- If the user asks for a prompt/text in English and also a translation, put the
+  English version in the box and write the Persian translation below it as
   normal text (not inside a box), unless they ask for the translation to be in a box too.
 - Inside the box keep proper spaces between words and natural paragraphs or
   line breaks. No emoji and no commentary inside the box.
@@ -272,6 +272,14 @@ const GEMINI_MODELS: string[] = Array.from(
     ].filter(Boolean)
   )
 );
+
+const GROQ_TEXT_MODELS = [
+  "openai/gpt-oss-120b",
+];
+
+const GROQ_IMAGE_MODELS = [
+  "qwen/qwen3.8-27b",
+];
 
 const OPENROUTER_TEXT_MODELS = [
   "openai/gpt-oss-120b",
@@ -852,6 +860,121 @@ async function requestGemini(
 
 /*
 ============================================================
+GROQ REQUEST
+============================================================
+*/
+
+async function requestGroq(
+  apiKey: string,
+  model: string,
+  message: string,
+  history: NormalizedTurn[],
+  image: ImageData | null,
+  signal?: AbortSignal
+): Promise<Response> {
+  const messages: any[] = [
+    {
+      role: "system",
+      content:
+        SYSTEM_INSTRUCTION,
+    },
+  ];
+
+  for (const item of history) {
+    messages.push({
+      role:
+        item.role === "model"
+          ? "assistant"
+          : "user",
+      content:
+        item.parts[0].text,
+    });
+  }
+
+  if (image) {
+    const content: any[] = [];
+
+    if (message.trim()) {
+      content.push({
+        type: "text",
+        text: message.trim(),
+      });
+    }
+
+    content.push({
+      type: "image_url",
+      image_url: {
+        url:
+          `data:${image.mimeType};base64,${image.data}`,
+      },
+    });
+
+    messages.push({
+      role: "user",
+      content,
+    });
+  } else {
+    messages.push({
+      role: "user",
+      content:
+        message.trim(),
+    });
+  }
+
+  const body: Record<string, unknown> = {
+    model,
+    stream: true,
+    max_tokens:
+      MAX_OUTPUT_TOKENS,
+    temperature: 0.8,
+    messages,
+  };
+
+  /*
+    Qwen 3.8 supports non-thinking mode.
+    This keeps Groq's fallback output focused on the
+    final answer and prevents reasoning from appearing
+    in the user's chat.
+  */
+
+  if (
+    model === "qwen/qwen3.8-27b"
+  ) {
+    body.reasoning_effort = "none";
+  }
+
+  return fetchWithStartTimeout(
+    "https://api.groq.com/openai/v1/chat/completions",
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+
+        Authorization:
+          `Bearer ${apiKey}`,
+
+        Accept:
+          "text/event-stream",
+
+        "HTTP-Referer":
+          "https://mobixa-ai.benyaminkazemi3308.workers.dev",
+
+        "X-Title":
+          "Mobixa AI",
+      },
+
+      body: JSON.stringify(body),
+    },
+    PROVIDER_START_TIMEOUT_MS,
+    signal
+  );
+}
+
+
+/*
+============================================================
 OPENROUTER REQUEST
 ============================================================
 */
@@ -1004,13 +1127,25 @@ const extractOpenRouterText: TextExtractor =
       : [];
   };
 
+const extractGroqText: TextExtractor =
+  (data) => {
+    const text =
+      data?.choices?.[0]
+        ?.delta?.content;
+
+    return typeof text === "string" &&
+      text
+      ? [text]
+      : [];
+  };
+
 
 /*
 ============================================================
 SSE → PLAIN TEXT STREAM
 ============================================================
 
-یک تابع مشترک برای هر دو سرویس.
+یک تابع مشترک برای هر سه سرویس.
 متن هر تکه دقیقاً همان‌طور که هست (با فاصله‌ها و
 خط‌های جدید) به مرورگر فرستاده می‌شود.
 */
@@ -1315,10 +1450,17 @@ export async function POST(
     const geminiKey =
       process.env.GEMINI_API_KEY;
 
+    const groqKey =
+      process.env.GROQ_API_KEY;
+
     const openRouterKey =
       process.env.OPENROUTER_API_KEY;
 
-    if (!geminiKey && !openRouterKey) {
+    if (
+      !geminiKey &&
+      !groqKey &&
+      !openRouterKey
+    ) {
       return jsonResponse(
         {
           error:
@@ -1417,7 +1559,93 @@ export async function POST(
 
     /*
     ========================================================
-    OPENROUTER — FALLBACK
+    GROQ — SECONDARY FALLBACK
+    ========================================================
+    */
+
+    if (groqKey) {
+      const models =
+        image
+          ? GROQ_IMAGE_MODELS
+          : GROQ_TEXT_MODELS;
+
+      for (const model of models) {
+        if (signal?.aborted) {
+          return new Response(null, {
+            status: 499,
+          });
+        }
+
+        try {
+          const response =
+            await requestGroq(
+              groqKey,
+              model,
+              message,
+              history,
+              image,
+              signal
+            );
+
+          if (
+            response.ok &&
+            response.body
+          ) {
+            const primed =
+              await primeStream(
+                createTextStream(
+                  response,
+                  extractGroqText,
+                  "GROQ"
+                )
+              );
+
+            if (primed) {
+              return textStreamResponse(
+                primed
+              );
+            }
+
+            lastMessage =
+              "empty response";
+
+            console.error(
+              `Groq (${model}) returned an empty or broken stream.`
+            );
+
+            continue;
+          }
+
+          lastStatus =
+            response.status;
+
+          lastMessage =
+            await readProviderError(
+              response
+            );
+
+          console.error(
+            `Groq (${model}) ${response.status}:`,
+            lastMessage
+          );
+        } catch (error) {
+          lastMessage =
+            error instanceof Error
+              ? error.message
+              : "";
+
+          console.error(
+            `GROQ_REQUEST_ERROR (${model}):`,
+            error
+          );
+        }
+      }
+    }
+
+
+    /*
+    ========================================================
+    OPENROUTER — FINAL FALLBACK
     ========================================================
     */
 
