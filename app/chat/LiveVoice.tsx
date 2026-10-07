@@ -40,6 +40,8 @@ type Status =
 
 type RGB = [number, number, number];
 
+type LangMode = "auto" | "fa" | "en";
+
 type TtsItem = {
   text: string;
   blob: Blob | null;
@@ -50,10 +52,13 @@ type TtsItem = {
 ========================================================= */
 
 const VOICE_PREFIX =
-  "[حالت مکالمه‌ی صوتی زنده: این پیام از طریق صدا آمده و جوابت هم با صدا خوانده می‌شود. " +
-  "خیلی کوتاه، گرم و محاوره‌ای جواب بده (حداکثر دو تا سه جمله). " +
-  "هیچ مارک‌داون، لیست، جدول، کد، لینک یا ایموجی ننویس. " +
-  "جمله‌ها ساده و مناسب شنیدن باشند. اگر کاربر توضیح کامل خواست، خلاصه و روان بگو.]\n\n";
+  "[LIVE VOICE MODE: the user spoke this message out loud and your reply will be read aloud. " +
+  "Reply in the SAME language the user spoke. " +
+  "Keep it short, warm and conversational (two or three sentences at most). " +
+  "Do not use markdown, lists, tables, code, links or emojis. " +
+  "Write numbers and abbreviations the way they are spoken. " +
+  "For Persian: use natural, friendly spoken Persian that sounds good when read aloud, and avoid unnecessary English words. " +
+  "If the user wants a long explanation, give a short spoken summary instead.]\n\n";
 
 const SILENCE_END_MS = 1100;
 const MIN_SPEECH_MS = 350;
@@ -84,30 +89,38 @@ const STATUS_LABELS: Record<Status, string> = {
 
 const PALETTES: Record<Status, RGB[]> = {
   connecting: [
-    [139, 108, 255],
-    [255, 122, 200],
-    [94, 168, 255],
+    [120, 92, 255],
+    [255, 120, 196],
+    [255, 204, 140],
   ],
   listening: [
-    [43, 200, 255],
-    [124, 92, 255],
-    [194, 123, 255],
+    [40, 176, 255],
+    [112, 82, 245],
+    [128, 232, 255],
   ],
   thinking: [
-    [139, 108, 255],
-    [255, 122, 200],
-    [94, 168, 255],
+    [120, 92, 255],
+    [255, 120, 196],
+    [255, 204, 140],
   ],
   speaking: [
-    [255, 111, 208],
-    [154, 107, 255],
-    [54, 217, 255],
+    [255, 112, 190],
+    [140, 94, 255],
+    [255, 200, 130],
   ],
   error: [
     [255, 93, 122],
-    [180, 80, 160],
-    [120, 90, 200],
+    [190, 84, 170],
+    [130, 96, 220],
   ],
+};
+
+const LANG_ORDER: LangMode[] = ["auto", "fa", "en"];
+
+const LANG_LABELS: Record<LangMode, string> = {
+  auto: "همه زبان‌ها",
+  fa: "فارسی",
+  en: "English",
 };
 
 /* =========================================================
@@ -138,19 +151,14 @@ function mixColor(a: RGB, b: RGB, t: number): RGB {
   ];
 }
 
-function toFaDigits(value: string) {
-  const digits = "۰۱۲۳۴۵۶۷۸۹";
-
-  return value.replace(/\d/g, (d) => digits[Number(d)]);
-}
-
 function formatTime(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
 
-  return toFaDigits(
-    `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
-  );
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(
+    2,
+    "0"
+  )}`;
 }
 
 /*
@@ -214,6 +222,15 @@ function takeSentences(
   return { ready: "", rest: buffer };
 }
 
+/*
+  برای متن‌های فارسی/عربی از مدل eleven_v3 استفاده می‌شود
+  (فقط همین مدل رسماً فارسی را پشتیبانی می‌کند).
+  برای بقیه‌ی زبان‌ها مدل پیش‌فرض خود API صدا استفاده می‌شود.
+*/
+function pickTtsModel(text: string): string {
+  return /[\u0600-\u06FF]/.test(text) ? "eleven_v3" : "";
+}
+
 function pickRecorderMime(): string {
   if (typeof MediaRecorder === "undefined") {
     return "";
@@ -237,6 +254,314 @@ function pickRecorderMime(): string {
   }
 
   return "";
+}
+
+/* =========================================================
+   ORB DRAWING (pure function)
+========================================================= */
+
+type OrbFrame = {
+  t: number;
+  status: Status;
+  lvl: number;
+  rot: number;
+  colors: RGB[];
+  freq: Uint8Array | null;
+};
+
+const PARTICLES = Array.from({ length: 34 }, (_, i) => ({
+  angle: (i / 34) * Math.PI * 2 + (i % 5) * 0.37,
+  radius: 112 + ((i * 37) % 44),
+  speed: 0.00018 + ((i * 13) % 7) * 0.00007,
+  size: 0.9 + ((i * 7) % 4) * 0.45,
+  phase: i * 1.7,
+}));
+
+const GOLD: RGB = [244, 200, 120];
+
+function drawOrb(g: CanvasRenderingContext2D, f: OrbFrame) {
+  const { t, status: st, lvl, rot, colors, freq } = f;
+
+  const S = CANVAS_SIZE;
+  const cx = S / 2;
+  const cy = S / 2;
+  const TAU = Math.PI * 2;
+
+  const c0 = colors[0];
+  const c1 = colors[1];
+  const c2 = colors[2];
+
+  const R = 64 * (1 + lvl * 0.12);
+  const ringR = 92;
+  const busy = st === "thinking" || st === "connecting";
+
+  g.clearRect(0, 0, S, S);
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = 1;
+  g.shadowBlur = 0;
+
+  /* ---- هاله‌ی پشت ---- */
+
+  const halo = g.createRadialGradient(cx, cy, R * 0.5, cx, cy, S / 2);
+
+  halo.addColorStop(0, rgba(c1, 0.2 + lvl * 0.3));
+  halo.addColorStop(0.55, rgba(c0, 0.07 + lvl * 0.12));
+  halo.addColorStop(1, rgba(c0, 0));
+
+  g.fillStyle = halo;
+  g.fillRect(0, 0, S, S);
+
+  /* ---- موج‌های پخش‌شونده ---- */
+
+  const rippleAlpha =
+    st === "speaking" ? 0.3 : st === "listening" ? lvl * 0.5 : 0;
+
+  if (rippleAlpha > 0.01) {
+    for (let j = 0; j < 3; j++) {
+      const phase = ((t / 1900 + j / 3) % 1 + 1) % 1;
+
+      g.strokeStyle = rgba(c1, (1 - phase) * rippleAlpha);
+      g.lineWidth = 1.6;
+      g.beginPath();
+      g.arc(cx, cy, R + 10 + phase * 78, 0, TAU);
+      g.stroke();
+    }
+  }
+
+  /* ---- مدارهای شیب‌دار با ذره‌ی نورانی ---- */
+
+  const orbitSpeed = busy ? 2.4 : 1;
+
+  for (let k = 0; k < 3; k++) {
+    const tilt = rot * (k % 2 ? -1.4 : 1.1) * orbitSpeed + k * 1.05;
+    const rx = 134 + lvl * 8;
+    const ry = 44 + k * 16 + lvl * 6;
+    const col = k === 2 ? GOLD : colors[k];
+
+    g.strokeStyle = rgba(col, k === 2 ? 0.3 : 0.15);
+    g.lineWidth = 1.1;
+    g.beginPath();
+    g.ellipse(cx, cy, rx, ry, tilt, 0, TAU);
+    g.stroke();
+
+    const a =
+      (t / (1100 + k * 380)) * (k % 2 ? -1 : 1) * orbitSpeed + k * 2;
+
+    const ex = rx * Math.cos(a);
+    const ey = ry * Math.sin(a);
+
+    const px = cx + ex * Math.cos(tilt) - ey * Math.sin(tilt);
+    const py = cy + ex * Math.sin(tilt) + ey * Math.cos(tilt);
+
+    const dotR = 3.4 + lvl * 2.2;
+
+    const dot = g.createRadialGradient(px, py, 0, px, py, dotR * 3);
+
+    dot.addColorStop(0, rgba(col, 0.95));
+    dot.addColorStop(0.35, rgba(col, 0.4));
+    dot.addColorStop(1, rgba(col, 0));
+
+    g.fillStyle = dot;
+    g.beginPath();
+    g.arc(px, py, dotR * 3, 0, TAU);
+    g.fill();
+
+    g.fillStyle = "rgba(255,255,255,0.95)";
+    g.beginPath();
+    g.arc(px, py, dotR * 0.5, 0, TAU);
+    g.fill();
+  }
+
+  /* ---- ذره‌های معلق ---- */
+
+  for (let i = 0; i < PARTICLES.length; i++) {
+    const p = PARTICLES[i];
+
+    const a = p.angle + t * p.speed * (1 + lvl * 3 + (busy ? 2 : 0));
+    const r = p.radius + Math.sin(t / 700 + p.phase) * 6 + lvl * 18;
+
+    const x = cx + Math.cos(a) * r;
+    const y = cy + Math.sin(a) * r * 0.92;
+
+    const tw = 0.5 + 0.5 * Math.sin(t / 500 + p.phase);
+    const col = mixColor(c0, c2, (i % 7) / 7);
+
+    g.fillStyle = rgba(col, 0.25 + tw * 0.5);
+    g.beginPath();
+    g.arc(x, y, p.size * (1 + lvl * 0.8), 0, TAU);
+    g.fill();
+  }
+
+  /* ---- کره‌ی شیشه‌ای ---- */
+
+  g.save();
+
+  g.shadowColor = rgba(c1, 0.5);
+  g.shadowBlur = 36;
+  g.shadowOffsetY = 18;
+
+  const base = g.createRadialGradient(
+    cx - R * 0.32,
+    cy - R * 0.38,
+    R * 0.08,
+    cx,
+    cy,
+    R * 1.08
+  );
+
+  base.addColorStop(0, "rgba(255,255,255,1)");
+  base.addColorStop(0.3, rgba(mixColor([255, 255, 255], c0, 0.4), 1));
+  base.addColorStop(0.65, rgba(c1, 1));
+  base.addColorStop(1, rgba(mixColor(c2, [34, 12, 110], 0.55), 1));
+
+  g.fillStyle = base;
+  g.beginPath();
+  g.arc(cx, cy, R, 0, TAU);
+  g.fill();
+
+  g.restore();
+
+  /* ---- مایع رنگی داخل کره ---- */
+
+  g.save();
+  g.beginPath();
+  g.arc(cx, cy, R, 0, TAU);
+  g.clip();
+
+  for (let k = 0; k < 3; k++) {
+    const ang = (t / 1300) * (k % 2 ? -1 : 1) * (busy ? 2 : 1) + k * 2.1;
+    const dist = R * (0.32 + lvl * 0.28);
+
+    const bx = cx + Math.cos(ang) * dist;
+    const by = cy + Math.sin(ang) * dist;
+    const rad = R * (0.8 + lvl * 0.3);
+
+    const grad = g.createRadialGradient(bx, by, 0, bx, by, rad);
+
+    grad.addColorStop(0, rgba(colors[(k + 1) % 3], 0.8));
+    grad.addColorStop(1, rgba(colors[(k + 1) % 3], 0));
+
+    g.fillStyle = grad;
+    g.fillRect(cx - R, cy - R, R * 2, R * 2);
+  }
+
+  const glass = g.createRadialGradient(
+    cx,
+    cy + R * 0.95,
+    0,
+    cx,
+    cy + R * 0.95,
+    R * 1.1
+  );
+
+  glass.addColorStop(0, "rgba(255,255,255,0.55)");
+  glass.addColorStop(1, "rgba(255,255,255,0)");
+
+  g.fillStyle = glass;
+  g.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+  g.restore();
+
+  /* ---- درخشش شیشه‌ای ---- */
+
+  g.save();
+  g.translate(cx - R * 0.3, cy - R * 0.46);
+  g.rotate(-0.55);
+  g.scale(1, 0.52);
+
+  const spec = g.createRadialGradient(0, 0, 0, 0, 0, R * 0.5);
+
+  spec.addColorStop(0, "rgba(255,255,255,0.9)");
+  spec.addColorStop(1, "rgba(255,255,255,0)");
+
+  g.fillStyle = spec;
+  g.beginPath();
+  g.arc(0, 0, R * 0.5, 0, TAU);
+  g.fill();
+  g.restore();
+
+  const rim = g.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
+
+  rim.addColorStop(0, "rgba(255,255,255,0.95)");
+  rim.addColorStop(0.5, "rgba(255,255,255,0.12)");
+  rim.addColorStop(1, "rgba(255,255,255,0.5)");
+
+  g.strokeStyle = rim;
+  g.lineWidth = 1.6;
+  g.beginPath();
+  g.arc(cx, cy, R - 0.8, 0, TAU);
+  g.stroke();
+
+  /* ---- نوارهای صوتی دور کره ---- */
+
+  const half = BAR_COUNT / 2;
+
+  g.lineCap = "round";
+  g.lineWidth = 3;
+
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const j = i < half ? i : BAR_COUNT - 1 - i;
+
+    let a: number;
+
+    if (freq && freq.length > 0) {
+      const bin = 2 + Math.floor((j / half) * 38);
+      const v = (freq[bin] || 0) / 255;
+
+      a = Math.min(1, Math.pow(v, 1.4) * 1.5) * 0.8 + lvl * 0.2;
+    } else if (busy) {
+      a = 0.16 + 0.12 * Math.sin(i * 0.5 - t / 180);
+    } else if (st === "speaking") {
+      const w =
+        0.5 +
+        0.5 * Math.sin(j * 0.8 + t / 130) * Math.sin(j * 0.35 - t / 260);
+
+      a = lvl * (0.35 + 0.65 * w) + 0.04;
+    } else {
+      a = 0.06 + 0.03 * Math.sin(i * 0.4 + t / 400);
+    }
+
+    a = clamp(a, 0, 1);
+
+    const len = 3 + a * 42;
+    const ang = (i / BAR_COUNT) * TAU + rot - Math.PI / 2;
+
+    const x0 = cx + Math.cos(ang) * ringR;
+    const y0 = cy + Math.sin(ang) * ringR;
+    const x1 = cx + Math.cos(ang) * (ringR + len);
+    const y1 = cy + Math.sin(ang) * (ringR + len);
+
+    const pos = (i / BAR_COUNT) * 3;
+    const k = Math.floor(pos) % 3;
+
+    const col = mixColor(
+      colors[k],
+      colors[(k + 1) % 3],
+      pos - Math.floor(pos)
+    );
+
+    g.strokeStyle = rgba(col, 0.5 + a * 0.5);
+    g.beginPath();
+    g.moveTo(x0, y0);
+    g.lineTo(x1, y1);
+    g.stroke();
+  }
+
+  /* ---- حلقه‌ی باریک و کمان چرخان ---- */
+
+  g.lineWidth = 1.2;
+  g.strokeStyle = rgba(c1, 0.2);
+  g.beginPath();
+  g.arc(cx, cy, ringR - 9, 0, TAU);
+  g.stroke();
+
+  if (busy) {
+    g.lineWidth = 3;
+    g.strokeStyle = rgba(c2, 0.95);
+    g.beginPath();
+    g.arc(cx, cy, ringR - 9, t / 280, t / 280 + 1.3);
+    g.stroke();
+  }
 }
 
 /* =========================================================
@@ -288,6 +613,28 @@ function MicOffIcon() {
   );
 }
 
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+      />
+      <path
+        d="M3 12h18M12 3c2.6 2.4 4 5.5 4 9s-1.4 6.6-4 9c-2.6-2.4-4-5.5-4-9s1.4-6.6 4-9z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function EndIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -321,6 +668,7 @@ export default function LiveVoice({
   const [needTap, setNeedTap] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [seconds, setSeconds] = useState(0);
+  const [lang, setLang] = useState<LangMode>("auto");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const captionRef = useRef<HTMLDivElement | null>(null);
@@ -329,6 +677,7 @@ export default function LiveVoice({
   const statusRef = useRef<Status>("connecting");
   const mutedRef = useRef(false);
   const closingRef = useRef(false);
+  const langRef = useRef<LangMode>("auto");
 
   const historyRef = useRef<LiveHistoryItem[]>(
     history.slice(-HISTORY_LIMIT)
@@ -348,6 +697,24 @@ export default function LiveVoice({
     onTurnRef.current = onTurn;
     onCloseRef.current = onClose;
   });
+
+  /* ---------- فونت وزیرمتن (خوانا و مدرن برای فارسی) ---------- */
+
+  useEffect(() => {
+    const id = "lv-vazirmatn-font";
+
+    if (document.getElementById(id)) {
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css";
+
+    document.head.appendChild(link);
+  }, []);
 
   /* ---------- زمان مکالمه ---------- */
 
@@ -669,7 +1036,7 @@ export default function LiveVoice({
 
       const now = performance.now();
 
-      if (calibFrames < 40) {
+      if (calibFrames < 20) {
         calibSum += rms;
         calibFrames += 1;
         noise = Math.min(0.025, calibSum / calibFrames);
@@ -692,7 +1059,7 @@ export default function LiveVoice({
       }
 
       if (!speaking) {
-        if (loudFrames >= 4) {
+        if (loudFrames >= 2) {
           speaking = true;
           speechStart = now - 70;
           lastVoice = now;
@@ -731,7 +1098,11 @@ export default function LiveVoice({
         const response = await fetch("/api/voice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify(
+            pickTtsModel(text)
+              ? { text, modelId: pickTtsModel(text) }
+              : { text }
+          ),
           signal,
         });
 
@@ -913,13 +1284,16 @@ export default function LiveVoice({
 
         const synth = window.speechSynthesis;
 
-        const voice = synth
-          ? synth
-              .getVoices()
-              .find((v) => v.lang.toLowerCase().startsWith("fa"))
-          : undefined;
+        const arabicScript = /[\u0600-\u06FF]/.test(text);
 
-        if (!synth || !voice) {
+        const voice =
+          synth && arabicScript
+            ? synth
+                .getVoices()
+                .find((v) => /^(fa|ar)/i.test(v.lang))
+            : undefined;
+
+        if (!synth || (arabicScript && !voice)) {
           timer = window.setTimeout(
             finish,
             Math.min(7000, 700 + text.length * 55)
@@ -928,8 +1302,12 @@ export default function LiveVoice({
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.voice = voice;
-        utterance.lang = voice.lang;
+
+        if (voice) {
+          utterance.voice = voice;
+          utterance.lang = voice.lang;
+        }
+
         utterance.onend = finish;
         utterance.onerror = finish;
 
@@ -991,7 +1369,7 @@ export default function LiveVoice({
       try {
         /* ---------- 1) صدا → متن ---------- */
 
-        const sttResponse = await fetch("/api/live?lang=fa", {
+        const sttResponse = await fetch(`/api/live?lang=${langRef.current}`, {
           method: "POST",
           headers: {
             "Content-Type": blob.type || "audio/webm",
@@ -1518,159 +1896,19 @@ export default function LiveVoice({
       lvl += (tgt - lvl) * (tgt > lvl ? 0.35 : 0.12);
       rot += 0.003 + lvl * 0.01;
 
-      const cx = CANVAS_SIZE / 2;
-      const cy = CANVAS_SIZE / 2;
-      const baseR = 62;
-      const ringR = baseR + 34;
-
-      g.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-      /* --- هاله‌ی بیرونی --- */
-
-      g.globalCompositeOperation = "source-over";
-
-      const halo = g.createRadialGradient(
-        cx,
-        cy,
-        baseR * 0.4,
-        cx,
-        cy,
-        CANVAS_SIZE / 2
-      );
-
-      halo.addColorStop(0, rgba(colors[1], 0.1 + lvl * 0.28));
-      halo.addColorStop(1, rgba(colors[1], 0));
-
-      g.fillStyle = halo;
-      g.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-      /* --- لکه‌های نورانی چرخان --- */
-
-      g.globalCompositeOperation = "lighter";
-
-      for (let k = 0; k < 3; k++) {
-        const angle =
-          (t / 1800) * (k % 2 ? -1 : 1) + k * 2.1;
-
-        const dist = 16 + lvl * 28;
-        const bx = cx + Math.cos(angle) * dist;
-        const by = cy + Math.sin(angle) * dist;
-        const radius = baseR * (0.95 + lvl * 0.45);
-
-        const blob = g.createRadialGradient(
-          bx,
-          by,
-          0,
-          bx,
-          by,
-          radius
-        );
-
-        blob.addColorStop(0, rgba(colors[k], 0.85));
-        blob.addColorStop(1, rgba(colors[k], 0));
-
-        g.fillStyle = blob;
-        g.beginPath();
-        g.arc(bx, by, radius, 0, Math.PI * 2);
-        g.fill();
-      }
-
-      /* --- هسته‌ی روشن --- */
-
-      const coreR = baseR * 0.55 * (1 + lvl * 0.3);
-
-      const core = g.createRadialGradient(cx, cy, 0, cx, cy, coreR);
-
-      core.addColorStop(0, "rgba(255,255,255,0.55)");
-      core.addColorStop(1, "rgba(255,255,255,0)");
-
-      g.fillStyle = core;
-      g.beginPath();
-      g.arc(cx, cy, coreR, 0, Math.PI * 2);
-      g.fill();
-
-      /* --- حلقه‌ی نوارهای صوتی --- */
-
-      g.globalCompositeOperation = "source-over";
-      g.lineCap = "round";
-      g.lineWidth = 3;
-
-      const half = BAR_COUNT / 2;
-      const useMic =
-        st === "listening" &&
-        !mutedRef.current &&
-        freqBuf.length > 0;
-
-      for (let i = 0; i < BAR_COUNT; i++) {
-        const j = i < half ? i : BAR_COUNT - 1 - i;
-
-        let a: number;
-
-        if (useMic) {
-          const bin = 2 + Math.floor((j / half) * 38);
-          const v = (freqBuf[bin] || 0) / 255;
-
-          a = Math.min(1, Math.pow(v, 1.4) * 1.5) * 0.8 + lvl * 0.2;
-        } else if (st === "thinking" || st === "connecting") {
-          a = 0.16 + 0.12 * Math.sin(i * 0.5 - t / 180);
-        } else if (st === "speaking") {
-          const w =
-            0.5 +
-            0.5 *
-              Math.sin(j * 0.8 + t / 130) *
-              Math.sin(j * 0.35 - t / 260);
-
-          a = lvl * (0.35 + 0.65 * w) + 0.04;
-        } else {
-          a = 0.06 + 0.03 * Math.sin(i * 0.4 + t / 400);
-        }
-
-        a = clamp(a, 0, 1);
-
-        const len = 3 + a * 46;
-        const ang = (i / BAR_COUNT) * Math.PI * 2 + rot - Math.PI / 2;
-
-        const x0 = cx + Math.cos(ang) * ringR;
-        const y0 = cy + Math.sin(ang) * ringR;
-        const x1 = cx + Math.cos(ang) * (ringR + len);
-        const y1 = cy + Math.sin(ang) * (ringR + len);
-
-        const pos = (i / BAR_COUNT) * 3;
-        const k = Math.floor(pos) % 3;
-        const color = mixColor(
-          colors[k],
-          colors[(k + 1) % 3],
-          pos - Math.floor(pos)
-        );
-
-        g.strokeStyle = rgba(color, 0.5 + a * 0.5);
-        g.beginPath();
-        g.moveTo(x0, y0);
-        g.lineTo(x1, y1);
-        g.stroke();
-      }
-
-      /* --- حلقه‌ی باریک و کمان چرخان --- */
-
-      g.lineWidth = 1.2;
-      g.strokeStyle = "rgba(255,255,255,0.14)";
-      g.beginPath();
-      g.arc(cx, cy, ringR - 10, 0, Math.PI * 2);
-      g.stroke();
-
-      if (st === "thinking" || st === "connecting") {
-        g.lineWidth = 3;
-        g.strokeStyle = rgba(colors[2], 0.9);
-        g.beginPath();
-        g.arc(
-          cx,
-          cy,
-          ringR - 10,
-          t / 280,
-          t / 280 + 1.3
-        );
-        g.stroke();
-      }
+      drawOrb(g, {
+        t,
+        status: st,
+        lvl,
+        rot,
+        colors,
+        freq:
+          st === "listening" &&
+          !mutedRef.current &&
+          freqBuf.length > 0
+            ? freqBuf
+            : null,
+      });
     }
 
     function loop(t: number) {
@@ -1681,21 +1919,28 @@ export default function LiveVoice({
         void actx.resume().catch(() => undefined);
       }
 
-      if (micAnalyser && statusRef.current === "listening") {
-        processMic();
-      } else {
-        micLevel *= 0.85;
-      }
-
       draw(t);
     }
 
     raf = requestAnimationFrame(loop);
 
+    /*
+      تشخیص صحبت جدا از انیمیشن اجرا می‌شود
+      تا حتی روی گوشی‌های ضعیف هم دقیق کار کند.
+    */
+    const vadTimer = window.setInterval(() => {
+      if (micAnalyser && statusRef.current === "listening") {
+        processMic();
+      } else {
+        micLevel *= 0.85;
+      }
+    }, 30);
+
     void init();
 
     return () => {
       shutdown();
+      window.clearInterval(vadTimer);
       cancelAnimationFrame(raf);
       void actx.close().catch(() => undefined);
     };
@@ -1718,6 +1963,16 @@ export default function LiveVoice({
     window.setTimeout(() => {
       onCloseRef.current();
     }, 430);
+  }
+
+  function cycleLang() {
+    const next =
+      LANG_ORDER[
+        (LANG_ORDER.indexOf(langRef.current) + 1) % LANG_ORDER.length
+      ];
+
+    langRef.current = next;
+    setLang(next);
   }
 
   let hint = "";
@@ -1749,12 +2004,22 @@ export default function LiveVoice({
         <span className="lv-blob lv-b1" />
         <span className="lv-blob lv-b2" />
         <span className="lv-blob lv-b3" />
+
+        <i className="lv-spark s1">✦</i>
+        <i className="lv-spark s2">✦</i>
+        <i className="lv-spark s3">✦</i>
+        <i className="lv-spark s4">✦</i>
+        <i className="lv-spark s5">✦</i>
       </div>
 
       <header className="lv-top">
         <div className="lv-badge">
           <i className="lv-dot" />
           <span>مکالمه‌ی زنده</span>
+        </div>
+
+        <div className="lv-brand" dir="ltr">
+          MOBIXA
         </div>
 
         <div className="lv-time" dir="ltr">
@@ -1799,8 +2064,19 @@ export default function LiveVoice({
 
         {(userText || aiText) && status !== "error" && (
           <div className="lv-captions" ref={captionRef}>
-            {userText && <p className="lv-user">{userText}</p>}
-            {aiText && <p className="lv-ai">{aiText}</p>}
+            {userText && (
+              <div className="lv-card lv-card-user">
+                <span className="lv-who">تو</span>
+                <p dir="auto">{userText}</p>
+              </div>
+            )}
+
+            {aiText && (
+              <div className="lv-card lv-card-ai">
+                <span className="lv-who">✦ موبیکسا</span>
+                <p dir="auto">{aiText}</p>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -1837,16 +2113,30 @@ export default function LiveVoice({
 
           <span>پایان</span>
         </div>
+
+        <div className="lv-ctl">
+          <button
+            type="button"
+            className="lv-btn lv-lang"
+            onClick={cycleLang}
+            aria-label="تغییر زبان تشخیص صدا"
+          >
+            <GlobeIcon />
+          </button>
+
+          <span>{LANG_LABELS[lang]}</span>
+        </div>
       </footer>
 
       <style jsx global>{`
         .lv-root {
-          --c1: #8b6cff;
-          --c2: #ff7ac8;
-          --c3: #5ea8ff;
+          --c1: #7852f5;
+          --c2: #ff78c4;
+          --c3: #ffcc8c;
           position: fixed;
           inset: 0;
           z-index: 9999;
+          box-sizing: border-box;
           height: 100vh;
           height: 100dvh;
           display: flex;
@@ -1855,44 +2145,57 @@ export default function LiveVoice({
           justify-content: space-between;
           direction: rtl;
           text-align: center;
-          color: #fff;
+          color: #1d1a3d;
           overflow: hidden;
-          font-family: Tahoma, Arial, sans-serif;
+          font-family: Vazirmatn, system-ui, -apple-system, "Segoe UI",
+            Roboto, "Noto Sans Arabic UI", "Noto Sans Arabic", Tahoma,
+            sans-serif;
           -webkit-font-smoothing: antialiased;
-          padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px
-            calc(env(safe-area-inset-bottom, 0px) + 22px);
-          background: radial-gradient(
-            120% 70% at 50% -10%,
-            #34208a 0%,
-            #170f40 52%,
-            #0a0720 100%
-          );
-          animation: lvReveal 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+          padding: calc(env(safe-area-inset-top, 0px) + 14px) 18px
+            calc(env(safe-area-inset-bottom, 0px) + 18px);
+          background:
+            radial-gradient(
+              120% 60% at 50% -10%,
+              rgba(255, 255, 255, 0.9),
+              transparent 60%
+            ),
+            radial-gradient(
+              90% 60% at 100% 100%,
+              rgba(255, 170, 220, 0.62),
+              transparent 62%
+            ),
+            radial-gradient(
+              90% 60% at 0% 90%,
+              rgba(150, 200, 255, 0.68),
+              transparent 62%
+            ),
+            linear-gradient(165deg, #dccfff 0%, #d2e2ff 48%, #f1deff 100%);
+          animation: lvReveal 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
         }
 
         .lv-root.st-listening {
-          --c1: #2bc8ff;
-          --c2: #7c5cff;
-          --c3: #c27bff;
+          --c1: #7052f5;
+          --c2: #28b0ff;
+          --c3: #80e8ff;
         }
 
         .lv-root.st-thinking,
         .lv-root.st-connecting {
-          --c1: #8b6cff;
-          --c2: #ff7ac8;
-          --c3: #5ea8ff;
+          --c1: #7852f5;
+          --c2: #ff78c4;
+          --c3: #ffcc8c;
         }
 
         .lv-root.st-speaking {
-          --c1: #ff6fd0;
-          --c2: #9a6bff;
-          --c3: #36d9ff;
+          --c1: #ff70be;
+          --c2: #8c5eff;
+          --c3: #ffc882;
         }
 
         .lv-root.st-error {
           --c1: #ff5d7a;
-          --c2: #7c5cff;
-          --c3: #c27bff;
+          --c2: #be54aa;
+          --c3: #8260dc;
         }
 
         .lv-root.closing {
@@ -1914,41 +2217,127 @@ export default function LiveVoice({
           pointer-events: none;
         }
 
+        .lv-bg::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(
+            rgba(106, 77, 240, 0.2) 1px,
+            transparent 1.6px
+          );
+          background-size: 22px 22px;
+          -webkit-mask-image: radial-gradient(
+            70% 55% at 50% 40%,
+            #000,
+            transparent 78%
+          );
+          mask-image: radial-gradient(
+            70% 55% at 50% 40%,
+            #000,
+            transparent 78%
+          );
+        }
+
+        @property --c1 {
+          syntax: "<color>";
+          inherits: true;
+          initial-value: #7852f5;
+        }
+
+        @property --c2 {
+          syntax: "<color>";
+          inherits: true;
+          initial-value: #ff78c4;
+        }
+
+        @property --c3 {
+          syntax: "<color>";
+          inherits: true;
+          initial-value: #ffcc8c;
+        }
+
+        .lv-root {
+          transition:
+            --c1 1.2s ease,
+            --c2 1.2s ease,
+            --c3 1.2s ease;
+        }
+
         .lv-blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(90px);
-          opacity: 0.38;
+          opacity: 0.6;
           will-change: transform;
-          transition: background-color 1.2s ease;
         }
 
         .lv-b1 {
-          width: 380px;
-          height: 380px;
-          left: -140px;
-          top: 8%;
-          background-color: var(--c1);
+          width: 520px;
+          height: 520px;
+          left: -230px;
+          top: -2%;
+          background: radial-gradient(closest-side, var(--c1), transparent);
           animation: lvDriftA 14s ease-in-out infinite alternate;
         }
 
         .lv-b2 {
-          width: 360px;
-          height: 360px;
-          right: -150px;
-          top: 42%;
-          background-color: var(--c2);
+          width: 500px;
+          height: 500px;
+          right: -230px;
+          top: 36%;
+          background: radial-gradient(closest-side, var(--c2), transparent);
           animation: lvDriftB 17s ease-in-out infinite alternate;
         }
 
         .lv-b3 {
-          width: 300px;
-          height: 300px;
-          left: 22%;
-          bottom: -130px;
-          opacity: 0.28;
-          background-color: var(--c3);
+          width: 420px;
+          height: 420px;
+          left: 6%;
+          bottom: -200px;
+          opacity: 0.55;
+          background: radial-gradient(closest-side, var(--c3), transparent);
           animation: lvDriftA 20s ease-in-out infinite alternate-reverse;
+        }
+
+        .lv-spark {
+          position: absolute;
+          font-style: normal;
+          color: #fff;
+          text-shadow: 0 0 12px rgba(120, 82, 245, 0.8);
+          animation: lvTwinkle 3.4s ease-in-out infinite;
+        }
+
+        .lv-spark.s1 {
+          top: 14%;
+          right: 12%;
+          font-size: 16px;
+        }
+
+        .lv-spark.s2 {
+          top: 24%;
+          left: 9%;
+          font-size: 11px;
+          animation-delay: 0.8s;
+        }
+
+        .lv-spark.s3 {
+          top: 46%;
+          right: 6%;
+          font-size: 10px;
+          animation-delay: 1.6s;
+        }
+
+        .lv-spark.s4 {
+          top: 58%;
+          left: 14%;
+          font-size: 14px;
+          animation-delay: 2.2s;
+        }
+
+        .lv-spark.s5 {
+          top: 9%;
+          left: 38%;
+          font-size: 9px;
+          animation-delay: 1.1s;
         }
 
         /* ---------- Top ---------- */
@@ -1958,22 +2347,25 @@ export default function LiveVoice({
           z-index: 2;
           width: 100%;
           max-width: 560px;
-          display: flex;
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
           align-items: center;
-          justify-content: space-between;
           animation: lvFadeDown 0.7s ease 0.35s both;
         }
 
         .lv-badge {
+          justify-self: start;
           display: inline-flex;
           align-items: center;
           gap: 8px;
           padding: 7px 14px;
           border-radius: 999px;
-          font-size: 12px;
+          font-size: 12.5px;
           font-weight: 700;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #2a1f7a;
+          background: rgba(255, 255, 255, 0.72);
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          box-shadow: 0 6px 18px rgba(86, 66, 200, 0.16);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
         }
@@ -1982,14 +2374,27 @@ export default function LiveVoice({
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background: #ff5d7a;
+          background: #ff3d73;
           animation: lvPulseDot 1.6s ease-out infinite;
         }
 
+        .lv-brand {
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 5px;
+          color: #2a1f7a;
+          opacity: 0.85;
+        }
+
         .lv-time {
+          justify-self: end;
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.7);
+          font-weight: 700;
+          color: #2a1f7a;
+          opacity: 0.75;
           font-variant-numeric: tabular-nums;
+          font-family: Vazirmatn, system-ui, -apple-system, "Segoe UI",
+            Roboto, sans-serif;
         }
 
         /* ---------- Stage ---------- */
@@ -2005,12 +2410,12 @@ export default function LiveVoice({
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: 6px;
         }
 
         .lv-orb {
           position: relative;
-          width: min(86vw, 360px);
+          width: min(78vw, 320px);
           aspect-ratio: 1;
           padding: 0;
           border: 0;
@@ -2033,10 +2438,16 @@ export default function LiveVoice({
         }
 
         .lv-status {
-          margin-top: -8px;
-          font-size: 21px;
-          font-weight: 700;
-          background: linear-gradient(90deg, #fff, #d9ccff, #fff);
+          margin-top: -6px;
+          font-size: 23px;
+          font-weight: 800;
+          line-height: 1.5;
+          background: linear-gradient(
+            90deg,
+            #4a35d0,
+            #b43fe0 55%,
+            #1f9bff
+          );
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -2046,45 +2457,77 @@ export default function LiveVoice({
 
         .lv-hint {
           min-height: 20px;
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.64);
+          font-size: 14px;
+          font-weight: 500;
+          color: rgba(29, 26, 61, 0.68);
           animation: lvTextIn 0.6s ease both;
         }
 
         .lv-captions {
           width: 100%;
-          max-height: 24vh;
-          margin-top: 10px;
-          padding: 14px 6px 0;
+          flex: 0 1 auto;
+          min-height: 0;
+          max-height: 36vh;
+          margin-top: 8px;
+          padding: 4px 2px;
           overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
           scrollbar-width: none;
-          -webkit-mask-image: linear-gradient(
-            to bottom,
-            transparent 0,
-            #000 24%
-          );
-          mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
         }
 
         .lv-captions::-webkit-scrollbar {
           display: none;
         }
 
-        .lv-captions p {
-          margin: 0 0 8px;
+        .lv-card {
+          position: relative;
+          padding: 10px 14px 12px;
+          border-radius: 18px;
+          text-align: start;
+          background: rgba(255, 255, 255, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          box-shadow: 0 8px 22px rgba(86, 66, 200, 0.14);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
           animation: lvTextIn 0.4s ease both;
         }
 
-        .lv-user {
-          font-size: 13px;
-          line-height: 1.8;
-          color: rgba(160, 222, 255, 0.82);
+        .lv-card-user {
+          border-inline-start: 4px solid #28b0ff;
         }
 
-        .lv-ai {
-          font-size: 15px;
-          line-height: 1.95;
-          color: rgba(255, 255, 255, 0.95);
+        .lv-card-ai {
+          border-inline-start: 4px solid #8c5eff;
+        }
+
+        .lv-who {
+          display: inline-block;
+          margin-bottom: 4px;
+          padding: 2px 9px;
+          border-radius: 999px;
+          font-size: 11.5px;
+          font-weight: 800;
+        }
+
+        .lv-card-user .lv-who {
+          color: #0c78c4;
+          background: rgba(40, 176, 255, 0.15);
+        }
+
+        .lv-card-ai .lv-who {
+          color: #5334d6;
+          background: rgba(120, 82, 245, 0.13);
+        }
+
+        .lv-card p {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 500;
+          line-height: 1.85;
+          color: #1d1a3d;
+          text-align: start;
         }
 
         .lv-error {
@@ -2095,20 +2538,22 @@ export default function LiveVoice({
 
         .lv-error p {
           margin: 0 0 14px;
-          font-size: 14px;
+          font-size: 14.5px;
+          font-weight: 500;
           line-height: 1.9;
-          color: rgba(255, 255, 255, 0.86);
+          color: #3a2a6a;
         }
 
         .lv-retry {
-          padding: 11px 24px;
+          padding: 11px 26px;
           border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          background: rgba(255, 255, 255, 0.14);
+          border: 0;
+          background: linear-gradient(145deg, #7852f5, #4a35d0);
           color: #fff;
           font-size: 14px;
           font-weight: 700;
           cursor: pointer;
+          box-shadow: 0 8px 22px rgba(86, 66, 200, 0.4);
         }
 
         /* ---------- Notice ---------- */
@@ -2117,15 +2562,16 @@ export default function LiveVoice({
           position: relative;
           z-index: 3;
           max-width: 92%;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
           padding: 9px 16px;
           border-radius: 14px;
-          font-size: 12.5px;
+          font-size: 13px;
+          font-weight: 600;
           line-height: 1.7;
-          background: rgba(255, 93, 122, 0.2);
-          border: 1px solid rgba(255, 140, 160, 0.4);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          color: #b4234f;
+          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(255, 93, 122, 0.35);
+          box-shadow: 0 8px 22px rgba(255, 93, 122, 0.18);
           animation: lvTextIn 0.35s ease both;
         }
 
@@ -2135,9 +2581,9 @@ export default function LiveVoice({
           position: relative;
           z-index: 2;
           display: flex;
-          align-items: flex-start;
+          align-items: flex-end;
           justify-content: center;
-          gap: 34px;
+          gap: 26px;
           animation: lvFadeUp 0.7s ease 0.5s both;
         }
 
@@ -2146,29 +2592,37 @@ export default function LiveVoice({
           flex-direction: column;
           align-items: center;
           gap: 8px;
-          font-size: 11.5px;
-          color: rgba(255, 255, 255, 0.7);
+          min-width: 64px;
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(29, 26, 61, 0.7);
         }
 
         .lv-btn {
-          width: 60px;
-          height: 60px;
+          width: 56px;
+          height: 56px;
           display: flex;
           align-items: center;
           justify-content: center;
           border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          background: rgba(255, 255, 255, 0.11);
-          color: #fff;
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.78);
+          color: #4a35d0;
           cursor: pointer;
+          box-shadow:
+            0 8px 22px rgba(86, 66, 200, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
-          transition: transform 0.2s ease, background 0.25s ease;
+          transition:
+            transform 0.2s ease,
+            background 0.25s ease,
+            color 0.25s ease;
         }
 
         .lv-btn svg {
-          width: 25px;
-          height: 25px;
+          width: 24px;
+          height: 24px;
         }
 
         .lv-btn:active {
@@ -2181,14 +2635,22 @@ export default function LiveVoice({
         }
 
         .lv-mute.on {
-          background: #fff;
-          color: #2a1a6e;
+          background: #2a1f7a;
+          color: #fff;
         }
 
         .lv-end {
-          border-color: rgba(255, 255, 255, 0.35);
-          background: linear-gradient(145deg, #ff6b88, #e0245e);
-          box-shadow: 0 8px 26px rgba(255, 70, 110, 0.5);
+          width: 68px;
+          height: 68px;
+          color: #fff;
+          border-color: rgba(255, 255, 255, 0.6);
+          background: linear-gradient(145deg, #ff6b9a, #e0245e);
+          box-shadow: 0 10px 28px rgba(255, 60, 110, 0.45);
+        }
+
+        .lv-end svg {
+          width: 28px;
+          height: 28px;
         }
 
         /* ---------- Keyframes ---------- */
@@ -2248,10 +2710,22 @@ export default function LiveVoice({
 
         @keyframes lvPulseDot {
           0% {
-            box-shadow: 0 0 0 0 rgba(255, 93, 122, 0.7);
+            box-shadow: 0 0 0 0 rgba(255, 61, 115, 0.6);
           }
           100% {
-            box-shadow: 0 0 0 10px rgba(255, 93, 122, 0);
+            box-shadow: 0 0 0 10px rgba(255, 61, 115, 0);
+          }
+        }
+
+        @keyframes lvTwinkle {
+          0%,
+          100% {
+            opacity: 0.25;
+            transform: scale(0.8) rotate(0deg);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2) rotate(20deg);
           }
         }
 
@@ -2288,24 +2762,30 @@ export default function LiveVoice({
           }
         }
 
-        @media (max-height: 660px) {
+        @media (max-height: 700px) {
           .lv-orb {
-            width: min(68vw, 270px);
+            width: min(62vw, 250px);
           }
 
           .lv-captions {
-            max-height: 16vh;
+            max-height: 22vh;
           }
 
           .lv-btn {
-            width: 52px;
-            height: 52px;
+            width: 50px;
+            height: 50px;
+          }
+
+          .lv-end {
+            width: 60px;
+            height: 60px;
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .lv-blob,
-          .lv-dot {
+          .lv-dot,
+          .lv-spark {
             animation: none;
           }
         }
