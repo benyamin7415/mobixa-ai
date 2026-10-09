@@ -54,11 +54,11 @@ type TtsItem = {
 const VOICE_PREFIX =
   "[LIVE VOICE MODE: the user spoke this message out loud and your reply will be read aloud. " +
   "Reply in the SAME language the user spoke. " +
-  "Keep it short, warm and conversational (two or three sentences at most). " +
+  "Keep it short, warm and conversational: usually two or three short sentences, and always finish your thought completely. " +
   "Do not use markdown, lists, tables, code, links or emojis. " +
   "Write numbers and abbreviations the way they are spoken. " +
   "For Persian: use natural, friendly spoken Persian that sounds good when read aloud, and avoid unnecessary English words. " +
-  "If the user wants a long explanation, give a short spoken summary instead.]\n\n";
+  "If the user wants a long explanation, give a short but complete spoken summary and then ask if they want more detail.]\n\n";
 
 const SILENCE_END_MS = 1100;
 const MIN_SPEECH_MS = 350;
@@ -227,6 +227,36 @@ function takeSentences(
   (فقط همین مدل رسماً فارسی را پشتیبانی می‌کند).
   برای بقیه‌ی زبان‌ها مدل پیش‌فرض خود API صدا استفاده می‌شود.
 */
+/*
+  زبان‌هایی که Deepgram Aura-2 می‌تواند بخواند
+*/
+const AURA_LANGS = ["en", "es", "de", "fr", "nl", "it", "ja"];
+
+/*
+  زبان متن را برای انتخاب سرویس صدا حدس می‌زند:
+  - زبان‌های Deepgram → همان کد زبان
+  - فارسی/عربی و بقیه → رشته‌ی خالی (یعنی ElevenLabs)
+*/
+function guessTtsLang(text: string, hint: string): string {
+  if (/[\u3040-\u30FF]/.test(text)) {
+    return "ja";
+  }
+
+  const letters = text.match(/\p{L}/gu);
+
+  if (!letters || letters.length === 0) {
+    return "";
+  }
+
+  const latin = text.match(/[A-Za-z\u00C0-\u024F]/g);
+
+  if (!latin || latin.length / letters.length < 0.8) {
+    return "";
+  }
+
+  return AURA_LANGS.includes(hint) ? hint : "";
+}
+
 function pickTtsModel(text: string): string {
   return /[\u0600-\u06FF]/.test(text) ? "eleven_v3" : "";
 }
@@ -785,6 +815,8 @@ export default function LiveVoice({
     let turnId = 0;
     let abortCtrl: AbortController | null = null;
     let ttsFailures = 0;
+    let langHint = "";
+    let quotaNotified = false;
     let playSeq = 0;
     let stopCurrent: (() => void) | null = null;
     let tapPlay: (() => void) | null = null;
@@ -1095,18 +1127,45 @@ export default function LiveVoice({
       }
 
       try {
+        const payload: {
+          text: string;
+          modelId?: string;
+          lang?: string;
+        } = { text };
+
+        const ttsModel = pickTtsModel(text);
+
+        if (ttsModel) {
+          payload.modelId = ttsModel;
+        }
+
+        const ttsLang = guessTtsLang(text, langHint);
+
+        if (ttsLang) {
+          payload.lang = ttsLang;
+        }
+
         const response = await fetch("/api/voice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            pickTtsModel(text)
-              ? { text, modelId: pickTtsModel(text) }
-              : { text }
-          ),
+          body: JSON.stringify(payload),
           signal,
         });
 
         if (!response.ok) {
+          if (
+            (response.status === 401 ||
+              response.status === 402 ||
+              response.status === 429) &&
+            !quotaNotified
+          ) {
+            quotaNotified = true;
+
+            showNotice(
+              "سرویس صدای هوش مصنوعی در دسترس نیست (احتمالاً اعتبار ماهانه تموم شده). جواب‌ها فقط نوشته می‌شن."
+            );
+          }
+
           throw new Error(`TTS ${response.status}`);
         }
 
@@ -1382,6 +1441,7 @@ export default function LiveVoice({
           .json()
           .catch(() => null)) as {
           transcript?: string;
+          language?: string;
           error?: string;
         } | null;
 
@@ -1396,6 +1456,17 @@ export default function LiveVoice({
         }
 
         heardText = (sttData?.transcript || "").trim();
+
+        if (sttData && typeof sttData.language === "string") {
+          const detected = sttData.language
+            .trim()
+            .toLowerCase()
+            .split(/[-_]/)[0];
+
+          if (detected) {
+            langHint = detected;
+          }
+        }
 
         if (heardText.length < 2) {
           beginListening();
@@ -1467,6 +1538,9 @@ export default function LiveVoice({
           }
         };
 
+        /*
+          تمام جواب جمله به جمله با صدا خوانده می‌شود
+        */
         const enqueue = (raw: string) => {
           const clean = cleanForSpeech(raw);
 
