@@ -2,8 +2,75 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
+/*
+============================================================
+MOBIXA — VOICE (TEXT TO SPEECH via ElevenLabs)
+============================================================
+
+مسیر فایل در گیت‌هاب:
+app/api/voice/route.ts
+
+تغییرات نسبت به نسخه‌ی قبل:
+- می‌شود با modelId مدل دیگری انتخاب کرد (مثلاً eleven_v3 برای فارسی)
+- اگر modelId ارسال نشود، همان مدل قبلی (eleven_multilingual_v2) استفاده می‌شود،
+  پس بخش «تبدیل متن به صدا» سایت مثل قبل کار می‌کند
+- اگر مدل انتخابی خطا داد (غیر از اعتبار/محدودیت)، خودکار با مدل قبلی دوباره امتحان می‌شود
+*/
+
 const DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
 const DEFAULT_MODEL_ID = "eleven_multilingual_v2";
+
+const ALLOWED_MODELS = [
+  "eleven_multilingual_v2",
+  "eleven_v3",
+  "eleven_flash_v2_5",
+];
+
+function voiceSettingsFor(modelId: string) {
+  /*
+    مدل eleven_v3 فقط تنظیم stability را قبول می‌کند
+    (مقدارهای 0.0 خلاقانه، 0.5 طبیعی، 1.0 پایدار)
+  */
+
+  if (modelId === "eleven_v3") {
+    return { stability: 0.5 };
+  }
+
+  return {
+    stability: 0.5,
+    similarity_boost: 0.75,
+    style: 0.3,
+    use_speaker_boost: true,
+  };
+}
+
+function callElevenLabs(
+  apiKey: string,
+  voiceId: string,
+  text: string,
+  modelId: string
+) {
+  return fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(
+      voiceId
+    )}`,
+    {
+      method: "POST",
+
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "audio/mpeg",
+      },
+
+      body: JSON.stringify({
+        text,
+        model_id: modelId,
+        voice_settings: voiceSettingsFor(modelId),
+      }),
+    }
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +78,12 @@ export async function POST(req: NextRequest) {
 
     const text = body?.text;
     const voiceId = body?.voiceId || DEFAULT_VOICE_ID;
+
+    const requestedModel =
+      typeof body?.modelId === "string" &&
+      ALLOWED_MODELS.includes(body.modelId)
+        ? body.modelId
+        : DEFAULT_MODEL_ID;
 
     if (!text || typeof text !== "string") {
       return Response.json(
@@ -38,32 +111,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(
-        voiceId
-      )}`,
-      {
-        method: "POST",
-
-        headers: {
-          "xi-api-key": apiKey,
-          "Content-Type": "application/json",
-          Accept: "audio/mpeg",
-        },
-
-        body: JSON.stringify({
-          text,
-          model_id: DEFAULT_MODEL_ID,
-
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.3,
-            use_speaker_boost: true,
-          },
-        }),
-      }
+    let response = await callElevenLabs(
+      apiKey,
+      voiceId,
+      text,
+      requestedModel
     );
+
+    /*
+      اگر مدل انتخابی مشکل داشت (نه اعتبار تمام شده و نه محدودیت تعداد)،
+      یک بار با مدل قبلی امتحان می‌کنیم
+    */
+
+    if (
+      !response.ok &&
+      requestedModel !== DEFAULT_MODEL_ID &&
+      [400, 403, 404, 422].includes(response.status)
+    ) {
+      console.error(
+        `VOICE: model ${requestedModel} failed with ${response.status}, falling back`
+      );
+
+      response = await callElevenLabs(
+        apiKey,
+        voiceId,
+        text,
+        DEFAULT_MODEL_ID
+      );
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
