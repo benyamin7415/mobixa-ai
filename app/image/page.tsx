@@ -1,679 +1,356 @@
 "use client";
 
-import Link from "next/link";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 
-/* =========================================================
-   CONSTANTS
-========================================================= */
+/*
+============================================================
+MOBIXA — IMAGE LAB (صفحه‌ی ساخت تصویر)
+============================================================
 
-const MAX_PROMPT = 2048;
+مسیر فایل در گیت‌هاب:
+app/image/page.tsx
 
-const FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@400;600;800&family=Vazirmatn:wght@300;400;500;700;800;900&display=swap";
+فقط ظاهر و تجربه‌ی کاربری عوض شده.
+اتصال به API دقیقاً مثل قبل است:
+
+POST /api/image
+body: { prompt }
+جواب: { success, image, error }
+*/
+
+type HistoryItem = {
+  id: number;
+  url: string;
+  prompt: string;
+  style: string;
+};
 
 type StyleOption = {
   id: string;
-  fa: string;
-  en: string;
+  label: string;
+  icon: string;
+  phrase: string;
 };
 
-/*
-  استایل‌ها فقط وقتی انتخاب شوند به انتهای ایده اضافه می‌شوند.
-  اگر هیچ‌کدام انتخاب نشود، دقیقاً همان متن خود کاربر ارسال می‌شود.
-*/
-const STYLE_OPTIONS: StyleOption[] = [
-  { id: "cinematic", fa: "سینمایی", en: "cinematic lighting, film still, dramatic atmosphere" },
-  { id: "realistic", fa: "فوق‌واقعی", en: "ultra realistic photo, 8k detail, natural light" },
-  { id: "anime", fa: "انیمه", en: "anime style, vibrant colors, clean line art" },
-  { id: "3d", fa: "سه‌بعدی", en: "3D render, soft studio light, smooth materials" },
-  { id: "watercolor", fa: "آبرنگ", en: "watercolor painting, soft edges, delicate texture" },
-  { id: "neon", fa: "نئونی", en: "neon cyberpunk, glowing lights, night city" },
-  { id: "fantasy", fa: "فانتزی", en: "fantasy illustration, magical atmosphere, epic scale" },
-  { id: "minimal", fa: "مینیمال", en: "minimalist, clean composition, soft pastel colors" },
-];
-
-const IDEAS: string[] = [
-  "گربه‌ای فضانورد که روی ماه چای می‌نوشد، نور طلایی غروب",
-  "شهری آینده‌نگر بالای ابرها، غروب بنفش، سینمایی",
-  "جنگل شیشه‌ای با کرم‌های شب‌تاب آبی",
-  "کتابخانه‌ای بی‌انتها با پلکان‌های معلق و نور گرم",
-  "پرتره‌ی یک ربات پیر با چشم‌های مهربان، نور نئون",
-  "ماهی‌های رنگی که بالای یک روستای کوهستانی در آسمان شنا می‌کنند",
-  "کافه‌ای کوچک زیر باران در توکیو، انعکاس نورها روی خیابان",
-  "اژدهای کریستالی روی قله‌ای برفی هنگام طلوع",
-  "ساعتی غول‌پیکر وسط کویر که زمان از آن شن می‌شود",
-  "نهنگی از جنس کهکشان که بین ستاره‌ها شنا می‌کند",
-];
-
-const STAGES = [
-  "دارم ایده‌ت رو می‌فهمم",
-  "ترکیب‌بندی رو می‌چینم",
-  "رنگ‌ها رو می‌ریزم",
-  "جزئیات رو می‌سازم",
-  "پرداخت نهایی",
-];
-
-type HistoryItem = {
-  id: string;
-  image: string;
+type IdeaOption = {
+  icon: string;
+  title: string;
   prompt: string;
-  styles: string[];
+  from: string;
+  to: string;
 };
 
 /* =========================================================
-   HELPERS
+   DATA
 ========================================================= */
 
-function hashString(text: string): number {
-  let h = 2166136261;
+const MAX_LEN = 2048;
 
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+const STYLES: StyleOption[] = [
+  { id: "none", label: "بدون سبک", icon: "✦", phrase: "" },
+  {
+    id: "cinematic",
+    label: "سینمایی",
+    icon: "🎬",
+    phrase:
+      "cinematic film still, dramatic lighting, shallow depth of field, ultra detailed",
+  },
+  {
+    id: "anime",
+    label: "انیمه",
+    icon: "🌸",
+    phrase:
+      "anime style, vibrant colors, clean line art, studio quality illustration",
+  },
+  {
+    id: "3d",
+    label: "سه‌بعدی",
+    icon: "🧊",
+    phrase:
+      "3D render, soft studio lighting, smooth materials, highly detailed",
+  },
+  {
+    id: "fantasy",
+    label: "فانتزی",
+    icon: "🐉",
+    phrase:
+      "epic fantasy art, magical atmosphere, intricate details, painterly",
+  },
+  {
+    id: "photo",
+    label: "واقع‌گرایانه",
+    icon: "📷",
+    phrase:
+      "photorealistic, DSLR photo, natural lighting, sharp focus, 85mm lens",
+  },
+  {
+    id: "watercolor",
+    label: "آبرنگ",
+    icon: "🎨",
+    phrase:
+      "watercolor painting, soft washes, delicate textures, paper grain",
+  },
+  {
+    id: "cyberpunk",
+    label: "سایبرپانک",
+    icon: "🌃",
+    phrase:
+      "cyberpunk, neon lights, rainy night city, futuristic, high contrast",
+  },
+  {
+    id: "minimal",
+    label: "مینیمال",
+    icon: "◻️",
+    phrase:
+      "minimalist design, clean composition, soft pastel colors, lots of negative space",
+  },
+  {
+    id: "oil",
+    label: "رنگ روغن",
+    icon: "🖼️",
+    phrase:
+      "oil painting, rich brush strokes, classical composition, museum quality",
+  },
+];
+
+const BOOSTERS = [
+  "نور سینمایی",
+  "جزئیات بالا",
+  "رنگ‌های زنده",
+  "پس‌زمینه‌ی تار",
+  "کیفیت ۴K",
+  "نور طلایی غروب",
+  "زاویه‌ی از پایین",
+  "فضای رویایی",
+];
+
+const IDEAS: IdeaOption[] = [
+  {
+    icon: "🌆",
+    title: "شهر آینده‌نگر",
+    prompt:
+      "یک شهر آینده‌نگر شبانه با برج‌های شیشه‌ای و ماشین‌های پرنده، نورهای نئون بنفش و آبی، بارون ملایم",
+    from: "#7852f5",
+    to: "#28b0ff",
+  },
+  {
+    icon: "🐉",
+    title: "اژدهای فانتزی",
+    prompt:
+      "یک اژدهای باشکوه روی قله‌ی کوه‌های برفی هنگام غروب، بال‌های درخشان و نور طلایی",
+    from: "#ff7a59",
+    to: "#c25bff",
+  },
+  {
+    icon: "🕌",
+    title: "معماری ایرانی",
+    prompt:
+      "گنبد و ایوان یک مسجد ایرانی با کاشی‌کاری فیروزه‌ای، نور صبح‌گاهی، عکاسی معماری",
+    from: "#18c3b5",
+    to: "#4a7bff",
+  },
+  {
+    icon: "🐱",
+    title: "گربه‌ی فضانورد",
+    prompt:
+      "یک گربه‌ی کوچولوی بامزه با لباس فضانوردی که کنار ایستگاه فضایی شناوره و زمین پشت سرشه",
+    from: "#ff78c4",
+    to: "#7852f5",
+  },
+  {
+    icon: "🌲",
+    title: "جنگل جادویی",
+    prompt:
+      "جنگلی جادویی با درخت‌های غول‌پیکر، کرم‌های شب‌تاب و مه‌ی آبی، حال‌وهوای رویایی",
+    from: "#2bd49a",
+    to: "#2a7bff",
+  },
+  {
+    icon: "☕",
+    title: "کافه‌ی دنج",
+    prompt:
+      "یک کافه‌ی دنج در یک روز بارونی با پنجره‌ی بخارگرفته، فنجان قهوه‌ی داغ و نور گرم",
+    from: "#ffb067",
+    to: "#ff6f91",
+  },
+  {
+    icon: "🤖",
+    title: "ربات مهربون",
+    prompt:
+      "یک ربات کوچک و مهربان که توی یک گلخانه‌ی آینده‌نگر داره گلدون آبیاری می‌کنه",
+    from: "#5ea8ff",
+    to: "#b06bff",
+  },
+  {
+    icon: "🏔️",
+    title: "قله‌ی رویایی",
+    prompt:
+      "طلوع خورشید بالای دریای ابر در کوهستان، رنگ‌های صورتی و نارنجی، منظره‌ی پانوراما",
+    from: "#ff8fb1",
+    to: "#ffbe5c",
+  },
+];
+
+const PLACEHOLDER_HINTS = [
+  "یه گربه‌ی فضانورد کنار ایستگاه فضایی...",
+  "شهری در آینده با ماشین‌های پرنده...",
+  "جنگلی جادویی با کرم‌های شب‌تاب...",
+  "یه کافه‌ی دنج توی یه روز بارونی...",
+  "اژدهایی روی قله‌ی کوه‌های برفی...",
+];
+
+const STAGES = [
+  "دارم ایده‌ات رو درک می‌کنم",
+  "رنگ‌ها رو انتخاب می‌کنم",
+  "نور و سایه رو می‌چینم",
+  "جزئیات رو اضافه می‌کنم",
+  "دارم لمس نهایی رو می‌زنم",
+];
+
+const SPARKS = Array.from({ length: 14 }, (_, i) => ({
+  angle: (i / 14) * 360 + (i % 2) * 12,
+  dist: 90 + ((i * 29) % 70),
+  size: 6 + ((i * 7) % 7),
+  delay: (i % 5) * 0.03,
+}));
+
+function toFaDigits(value: string | number) {
+  const digits = "۰۱۲۳۴۵۶۷۸۹";
+
+  return String(value).replace(/\d/g, (d) => digits[Number(d)]);
+}
+
+/*
+  سبک انتخاب‌شده به انتهای ایده‌ی کاربر اضافه می‌شود
+  (فرمت درخواست به API همان قبلی است: فقط prompt)
+*/
+function buildFinalPrompt(text: string, styleId: string): string {
+  const style = STYLES.find((item) => item.id === styleId);
+
+  if (!style || !style.phrase) {
+    return text.slice(0, MAX_LEN);
   }
 
-  return h >>> 0;
-}
+  const suffix = `. Style: ${style.phrase}`;
 
-function seeded(n: number): number {
-  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
-
-  return x - Math.floor(x);
-}
-
-function hash2(x: number, y: number, step: number): number {
-  let h = (x * 374761393 + y * 668265263 + step * 1442695041) | 0;
-
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  h ^= h >>> 16;
-
-  return h >>> 0;
-}
-
-function hslToRgb(
-  h: number,
-  s: number,
-  l: number
-): [number, number, number] {
-  const hue = ((h % 360) + 360) % 360;
-  const sat = s / 100;
-  const lig = l / 100;
-
-  const k = (n: number) => (n + hue / 30) % 12;
-  const a = sat * Math.min(lig, 1 - lig);
-
-  const f = (n: number) =>
-    lig - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-
-  return [
-    Math.round(f(0) * 255),
-    Math.round(f(8) * 255),
-    Math.round(f(4) * 255),
-  ];
-}
-
-function buildPrompt(base: string, styleIds: string[]): string {
-  const extra = STYLE_OPTIONS.filter((option) =>
-    styleIds.includes(option.id)
-  )
-    .map((option) => option.en)
-    .join(", ");
-
-  if (!extra) {
-    return base;
-  }
-
-  return `${base}, ${extra}`.slice(0, MAX_PROMPT);
-}
-
-function preloadImage(url: string): Promise<void> {
-  return new Promise((resolve) => {
-    const probe = new window.Image();
-
-    const timer = window.setTimeout(resolve, 15000);
-
-    const finish = () => {
-      window.clearTimeout(timer);
-      resolve();
-    };
-
-    probe.onload = finish;
-    probe.onerror = finish;
-    probe.src = url;
-  });
-}
-
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
-
-    const update = () => setReduced(query.matches);
-
-    update();
-
-    query.addEventListener("change", update);
-
-    return () => {
-      query.removeEventListener("change", update);
-    };
-  }, []);
-
-  return reduced;
+  return `${text.slice(0, MAX_LEN - suffix.length)}${suffix}`;
 }
 
 /* =========================================================
    ICONS
 ========================================================= */
 
-function BackIcon() {
+const svgProps = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.9,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
+
+function IconBack() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M19 12H5M11 6l-6 6 6 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg {...svgProps}>
+      <path d="M9 6l6 6-6 6" />
     </svg>
   );
 }
 
-function SparkIcon() {
+function IconSpark() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5Z"
-        fill="currentColor"
-      />
+    <svg {...svgProps}>
+      <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" />
+      <path d="M19 16l.7 1.8L21.5 18.5l-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7L19 16z" />
     </svg>
   );
 }
 
-function WandIcon() {
+function IconDice() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="m5 19 9.5-9.5M13 6l5 5M16.5 3v3M15 4.5h3M20.5 8v2M19.5 9h2M6 4v2M5 5h2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg {...svgProps}>
+      <rect x="4" y="4" width="16" height="16" rx="4" />
+      <circle cx="9" cy="9" r="1" fill="currentColor" />
+      <circle cx="15" cy="15" r="1" fill="currentColor" />
+      <circle cx="15" cy="9" r="1" fill="currentColor" />
+      <circle cx="9" cy="15" r="1" fill="currentColor" />
     </svg>
   );
 }
 
-function DownloadIcon() {
+function IconDownload() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 3v12M7 10l5 5 5-5M5 21h14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg {...svgProps}>
+      <path d="M12 4v11" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 20h14" />
     </svg>
   );
 }
 
-function RetryIcon() {
+function IconRetry() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg {...svgProps}>
+      <path d="M20 11a8 8 0 0 0-14.9-3" />
+      <path d="M4 4v4h4" />
+      <path d="M4 13a8 8 0 0 0 14.9 3" />
+      <path d="M20 20v-4h-4" />
     </svg>
   );
 }
 
-function CopyIcon() {
+function IconCopy() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect
-        x="8"
-        y="8"
-        width="11"
-        height="11"
-        rx="2.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-      />
-      <path
-        d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-      />
+    <svg {...svgProps}>
+      <rect x="9" y="9" width="11" height="11" rx="3" />
+      <path d="M5 15V7a3 3 0 0 1 3-3h8" />
     </svg>
   );
 }
 
-function CheckIcon() {
+function IconExpand() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="m5 12 4.5 4.5L19 7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg {...svgProps}>
+      <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
     </svg>
   );
 }
 
-function ExpandIcon() {
+function IconClose() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg {...svgProps}>
+      <path d="M6 6l12 12M18 6 6 18" />
     </svg>
   );
 }
 
-function CloseIcon() {
+function IconClear() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="m6.5 6.5 11 11M17.5 6.5l-11 11"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
+    <svg {...svgProps}>
+      <path d="M5 7h14M10 11v6M14 11v6M8 7l1-3h6l1 3M7 7l1 13h8l1-13" />
     </svg>
   );
 }
 
-/* =========================================================
-   DIFFUSION CANVAS
-   یک بومِ زنده که مثل مدل‌های انتشار (diffusion)
-   از نویز شروع می‌کند و کم‌کم به تصویر شفاف می‌رسد.
-   رنگ‌هایش از روی متن ایده‌ی خود کاربر ساخته می‌شود،
-   پس هر ایده، ظاهر مخصوص خودش را دارد.
-========================================================= */
-
-function DiffusionCanvas({
-  seedText,
-  mode,
-  finishing,
-  onDone,
-  reduced,
-}: {
-  seedText: string;
-  mode: "demo" | "generate";
-  finishing: boolean;
-  onDone: () => void;
-  reduced: boolean;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const finishingRef = useRef(finishing);
-  const onDoneRef = useRef(onDone);
-
-  useEffect(() => {
-    finishingRef.current = finishing;
-    onDoneRef.current = onDone;
-  });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-
-    if (!canvas) {
-      return;
-    }
-
-    const g = canvas.getContext("2d");
-
-    if (!g) {
-      return;
-    }
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssSize = canvas.clientWidth || 360;
-
-    canvas.width = Math.round(cssSize * dpr);
-    canvas.height = Math.round(cssSize * dpr);
-
-    const size = canvas.width;
-
-    const seed = hashString(seedText || "mobixa");
-
-    const hue = seed % 360;
-
-    /* پالت ۲۵۶ رنگی از روی ایده */
-
-    const stops = [
-      hslToRgb(hue, 86, 74),
-      hslToRgb(hue + 58, 88, 68),
-      hslToRgb(hue + 140, 90, 72),
-      hslToRgb(hue + 215, 84, 70),
-    ];
-
-    const lut = new Uint8ClampedArray(256 * 3);
-
-    for (let i = 0; i < 256; i++) {
-      const pos = (i / 255) * (stops.length - 1);
-      const index = Math.min(stops.length - 2, Math.floor(pos));
-      const mix = pos - index;
-
-      for (let c = 0; c < 3; c++) {
-        lut[i * 3 + c] =
-          stops[index][c] +
-          (stops[index + 1][c] - stops[index][c]) * mix;
-      }
-    }
-
-    const s1 = seeded(seed) * 6;
-    const s2 = seeded(seed + 1) * 6;
-    const s3 = seeded(seed + 2) * 6;
-
-    const small = document.createElement("canvas");
-    const sctx = small.getContext("2d");
-
-    if (!sctx) {
-      return;
-    }
-
-    let imageData: ImageData | null = null;
-    let lastN = 0;
-    let p = mode === "demo" ? 0.4 : 0;
-    let doneAt = 0;
-    let called = false;
-    let frame = 0;
-
-    const start = performance.now();
-
-    const render = (now: number) => {
-      frame = requestAnimationFrame(render);
-
-      if (document.hidden) {
-        return;
-      }
-
-      const t = (now - start) / 1000;
-
-      let target: number;
-
-      if (mode === "demo") {
-        target = 0.5 + 0.42 * Math.sin(t * 0.55);
-        p += (target - p) * 0.08;
-      } else {
-        target = finishingRef.current
-          ? 1
-          : 0.94 * (1 - Math.exp(-t / 8.5));
-
-        p += (target - p) * (finishingRef.current ? 0.1 : 0.04);
-
-        if (finishingRef.current && p > 0.985) {
-          if (!doneAt) {
-            doneAt = now;
-          }
-
-          if (!called && now - doneAt > 420) {
-            called = true;
-            onDoneRef.current();
-          }
-        }
-      }
-
-      const N = Math.max(
-        6,
-        Math.min(96, Math.floor(6 + 90 * Math.pow(Math.max(0, p), 1.5)))
-      );
-
-      if (N !== lastN || !imageData) {
-        small.width = N;
-        small.height = N;
-        imageData = sctx.createImageData(N, N);
-        lastN = N;
-      }
-
-      const data = imageData.data;
-      const noiseAmount = Math.pow(1 - Math.min(1, p), 1.35);
-      const step = reduced ? 0 : Math.floor(t * 10);
-
-      for (let y = 0; y < N; y++) {
-        for (let x = 0; x < N; x++) {
-          const u = x / N;
-          const v = y / N;
-
-          const wave =
-            Math.sin(u * 3.1 + t * 0.55 + s1) +
-            Math.cos(v * 3.4 - t * 0.45 + s2) +
-            Math.sin((u + v) * 2.3 + t * 0.35 + s3);
-
-          const dx = u - 0.5;
-          const dy = v - 0.56;
-          const blob = Math.exp(-(dx * dx + dy * dy) / 0.07);
-
-          let m = (wave + 3) / 6;
-
-          m = Math.max(0, Math.min(1, m * 0.8 + blob * 0.35));
-
-          const li = ((m * 255) | 0) * 3;
-
-          let r = lut[li];
-          let gr = lut[li + 1];
-          let b = lut[li + 2];
-
-          if (noiseAmount > 0.01) {
-            const h = hash2(x, y, step);
-            const k = noiseAmount * 0.92;
-
-            r += ((h & 255) - r) * k;
-            gr += (((h >> 8) & 255) - gr) * k;
-            b += (((h >> 16) & 255) - b) * k;
-          }
-
-          const idx = (y * N + x) * 4;
-
-          data[idx] = r;
-          data[idx + 1] = gr;
-          data[idx + 2] = b;
-          data[idx + 3] = 255;
-        }
-      }
-
-      sctx.putImageData(imageData, 0, 0);
-
-      g.imageSmoothingEnabled = p > 0.82;
-      g.drawImage(small, 0, 0, size, size);
-
-      /* خط اسکن نورانی */
-
-      if (!reduced) {
-        const y = ((t * 0.3) % 1.25) * size - size * 0.1;
-
-        const band = g.createLinearGradient(
-          0,
-          y - size * 0.12,
-          0,
-          y + size * 0.02
-        );
-
-        band.addColorStop(0, "rgba(255,255,255,0)");
-        band.addColorStop(0.85, "rgba(255,255,255,0.5)");
-        band.addColorStop(1, "rgba(255,255,255,0)");
-
-        g.fillStyle = band;
-        g.fillRect(0, y - size * 0.12, size, size * 0.14);
-      }
-
-      /* جرقه‌های چشمک‌زن */
-
-      for (let i = 0; i < 7; i++) {
-        const sx = seeded(seed + i * 3) * size;
-        const sy = seeded(seed + i * 3 + 1) * size;
-        const alpha = Math.max(0, Math.sin(t * 1.8 + i * 1.7));
-        const arm = size * 0.016 * (0.6 + alpha);
-
-        g.strokeStyle = `rgba(255,255,255,${(alpha * 0.9).toFixed(2)})`;
-        g.lineWidth = Math.max(1.5, size * 0.004);
-        g.lineCap = "round";
-
-        g.beginPath();
-        g.moveTo(sx - arm, sy);
-        g.lineTo(sx + arm, sy);
-        g.moveTo(sx, sy - arm);
-        g.lineTo(sx, sy + arm);
-        g.stroke();
-      }
-    };
-
-    frame = requestAnimationFrame(render);
-
-    return () => {
-      cancelAnimationFrame(frame);
-    };
-  }, [seedText, mode, reduced]);
-
-  return <canvas ref={canvasRef} className="im-diffusion" aria-hidden="true" />;
+function IconGrid() {
+  return (
+    <svg {...svgProps}>
+      <rect x="4" y="4" width="6.5" height="6.5" rx="2" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="2" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="2" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2" />
+    </svg>
+  );
 }
 
-/* =========================================================
-   GENERATING STAGE
-========================================================= */
-
-function GeneratingStage({
-  prompt,
-  finishing,
-  onDone,
-  reduced,
-}: {
-  prompt: string;
-  finishing: boolean;
-  onDone: () => void;
-  reduced: boolean;
-}) {
-  const [stage, setStage] = useState(0);
-  const [slow, setSlow] = useState(false);
-
-  useEffect(() => {
-    const stageTimer = window.setInterval(() => {
-      setStage((current) => Math.min(current + 1, STAGES.length - 1));
-    }, 3200);
-
-    const slowTimer = window.setTimeout(() => setSlow(true), 28000);
-
-    return () => {
-      window.clearInterval(stageTimer);
-      window.clearTimeout(slowTimer);
-    };
-  }, []);
-
-  const words = useMemo(
-    () =>
-      prompt
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 9),
-    [prompt]
-  );
-
-  const label = finishing ? "تمومه! دارم نشونت می‌دم ✨" : STAGES[stage];
-
+function IconPlus() {
   return (
-    <div className="im-stage-card" role="status" aria-live="polite">
-      <div className="im-frame">
-        <DiffusionCanvas
-          seedText={prompt}
-          mode="generate"
-          finishing={finishing}
-          onDone={onDone}
-          reduced={reduced}
-        />
-
-        <div className="im-corners" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
-
-        {!reduced && (
-          <div className="im-words" aria-hidden="true">
-            {words.map((word, index) => {
-              const angle = seeded(index * 7.31 + 1.3) * Math.PI * 2;
-
-              return (
-                <span
-                  key={`${word}-${index}`}
-                  style={
-                    {
-                      "--cx": Math.cos(angle).toFixed(3),
-                      "--cy": Math.sin(angle).toFixed(3),
-                      "--wd": `${(index * 0.62).toFixed(2)}s`,
-                    } as CSSProperties
-                  }
-                >
-                  {word}
-                </span>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="im-core" aria-hidden="true">
-          <i />
-        </div>
-      </div>
-
-      <div className="im-stage-info">
-        <div className="im-stage-label" key={label}>
-          {label}
-        </div>
-
-        <div className="im-stage-dots" aria-hidden="true">
-          {STAGES.map((item, index) => (
-            <i
-              key={item}
-              className={
-                finishing || index <= stage ? "on" : undefined
-              }
-            />
-          ))}
-        </div>
-
-        <div className="im-stage-sub">
-          {slow
-            ? "کمی طول کشید، ولی داره تموم می‌شه…"
-            : "هر کلمه‌ی ایده‌ت داره به پیکسل تبدیل می‌شه…"}
-        </div>
-      </div>
-    </div>
+    <svg {...svgProps}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   );
 }
 
@@ -682,66 +359,151 @@ function GeneratingStage({
 ========================================================= */
 
 export default function ImagePage() {
+  const router = useRouter();
+
+  /* ---------- state اصلی (مثل قبل) ---------- */
+
   const [prompt, setPrompt] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [styles, setStyles] = useState<string[]>([]);
-  const [stageOpen, setStageOpen] = useState(false);
-  const [imageReady, setImageReady] = useState(true);
+  /* ---------- state ظاهر ---------- */
+
+  const [styleId, setStyleId] = useState("none");
+  const [used, setUsed] = useState<{ prompt: string; style: string }>({
+    prompt: "",
+    style: "none",
+  });
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [zoom, setZoom] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
+  const [viewer, setViewer] = useState(false);
+  const [toast, setToast] = useState("");
+  const [hintIndex, setHintIndex] = useState(0);
+  const [focused, setFocused] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
-  const reduced = useReducedMotion();
-
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const promptRef = useRef<HTMLElement | null>(null);
+  const resultRef = useRef<HTMLElement | null>(null);
+  const historyRef = useRef<HTMLElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const stageRef = useRef<HTMLElement | null>(null);
-  const typerRef = useRef(0);
-  const copyTimerRef = useRef(0);
-  const aliveRef = useRef(true);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  const controllerRef = useRef<AbortController | null>(null);
+  const typeTimer = useRef<number | null>(null);
+  const toastTimer = useRef<number | null>(null);
+  const idCounter = useRef(0);
+  const scrolledFor = useRef<string | null>(null);
+
+  /* =========================================================
+     SIDE EFFECTS
+  ========================================================= */
+
+  /* فونت وزیرمتن (خوانا و مدرن برای فارسی) */
 
   useEffect(() => {
-    aliveRef.current = true;
+    const id = "mx-vazirmatn-font";
+
+    if (document.getElementById(id)) {
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css";
+
+    document.head.appendChild(link);
+  }, []);
+
+  /* جمله‌های متحرک داخل کادر ایده */
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setHintIndex((i) => (i + 1) % PLACEHOLDER_HINTS.length);
+    }, 3600);
 
     return () => {
-      aliveRef.current = false;
-      window.clearInterval(typerRef.current);
-      window.clearTimeout(copyTimerRef.current);
+      window.clearInterval(id);
     };
   }, []);
 
-  /* رشد خودکار کادر نوشتن */
+  /* بزرگ شدن خودکار کادر نوشتن */
 
   useEffect(() => {
-    const textarea = textareaRef.current;
+    const el = textareaRef.current;
 
-    if (!textarea) {
-      return;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${Math.min(el.scrollHeight, 280)}px`;
     }
-
-    textarea.style.height = "auto";
-
-    textarea.style.height = `${Math.min(
-      Math.max(112, textarea.scrollHeight),
-      260
-    )}px`;
   }, [prompt]);
 
-  /* Esc بستن نمای بزرگ */
+  /* زمان‌سنج مرحله‌ی ساخت */
 
   useEffect(() => {
-    if (!zoom) {
+    if (!loading) {
+      setElapsed(0);
       return;
     }
 
-    const onKey = (event: Event) => {
-      if (
-        (event as unknown as { key?: string }).key === "Escape"
-      ) {
-        setZoom(false);
+    const started = performance.now();
+
+    const id = window.setInterval(() => {
+      setElapsed((performance.now() - started) / 1000);
+    }, 200);
+
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [loading]);
+
+  /* وقتی تصویر آماده شد، نرم به سمتش برو */
+
+  useEffect(() => {
+    if (!image || loading) {
+      return;
+    }
+
+    if (scrolledFor.current === image) {
+      return;
+    }
+
+    scrolledFor.current = image;
+
+    const id = window.setTimeout(() => {
+      resultRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 120);
+
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [image, loading]);
+
+  /* اگر عکس از کش لود شده بود */
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setImgLoaded(true);
+    }
+  }, [image, loading]);
+
+  /* بستن نمای تمام‌صفحه با Escape */
+
+  useEffect(() => {
+    if (!viewer) {
+      return;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setViewer(false);
       }
     };
 
@@ -750,34 +512,54 @@ export default function ImagePage() {
     return () => {
       window.removeEventListener("keydown", onKey);
     };
-  }, [zoom]);
+  }, [viewer]);
 
-  /* ====================================================
-     ساخت تصویر — همان منطق و همان API قبلی
-  ==================================================== */
+  /* پاک‌سازی */
+
+  useEffect(() => {
+    return () => {
+      if (typeTimer.current) {
+        window.clearInterval(typeTimer.current);
+      }
+
+      if (toastTimer.current) {
+        window.clearTimeout(toastTimer.current);
+      }
+
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  /* =========================================================
+     ACTIONS
+  ========================================================= */
+
+  function showToast(message: string) {
+    setToast(message);
+
+    if (toastTimer.current) {
+      window.clearTimeout(toastTimer.current);
+    }
+
+    toastTimer.current = window.setTimeout(() => {
+      setToast("");
+    }, 2200);
+  }
+
+  /* ---------- ساخت تصویر (همان منطق قبلی) ---------- */
 
   const generateImage = async (retryPrompt?: string) => {
-    const base = (retryPrompt ?? prompt).trim();
+    const finalPrompt = (retryPrompt ?? prompt).trim();
 
-    if (!base || loading) return;
+    if (!finalPrompt || loading) return;
 
-    const finalPrompt = buildPrompt(base, styles);
-
-    window.clearInterval(typerRef.current);
+    const controller = new AbortController();
+    controllerRef.current = controller;
 
     setLoading(true);
     setError("");
-    setStageOpen(true);
-    setImageReady(false);
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        stageRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      });
-    });
 
     try {
       const response = await fetch("/api/image", {
@@ -786,8 +568,9 @@ export default function ImagePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: finalPrompt,
+          prompt: buildFinalPrompt(finalPrompt, styleId),
         }),
+        signal: controller.signal,
       });
 
       const data = await response.json();
@@ -799,41 +582,47 @@ export default function ImagePage() {
       }
 
       setImage(data.image);
+      setImgLoaded(false);
+      setUsed({ prompt: finalPrompt, style: styleId });
+
+      idCounter.current += 1;
 
       setHistory((old) =>
         [
           {
-            id:
-              typeof crypto !== "undefined" &&
-              "randomUUID" in crypto
-                ? crypto.randomUUID()
-                : String(Date.now()),
-            image: data.image as string,
-            prompt: base,
-            styles,
+            id: idCounter.current,
+            url: data.image as string,
+            prompt: finalPrompt,
+            style: styleId,
           },
           ...old,
-        ].slice(0, 8)
+        ].slice(0, 16)
       );
-
-      await preloadImage(data.image as string);
-
-      if (aliveRef.current) {
-        setImageReady(true);
-      }
     } catch (err: unknown) {
-      setError(
-        err instanceof Error && err.message
-          ? err.message
-          : "یه مشکلی پیش اومد، دوباره امتحان کن."
-      );
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
 
-      setStageOpen(false);
-      setImageReady(true);
+      setError(
+        (err instanceof Error && err.message) ||
+          "یه مشکلی پیش اومد، دوباره امتحان کن."
+      );
     } finally {
+      if (controllerRef.current === controller) {
+        controllerRef.current = null;
+      }
+
       setLoading(false);
     }
   };
+
+  const cancelGeneration = () => {
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+  };
+
+  /* ---------- دانلود (همان منطق قبلی) ---------- */
 
   const downloadImage = async () => {
     if (!image) return;
@@ -861,12 +650,12 @@ export default function ImagePage() {
       setTimeout(() => {
         URL.revokeObjectURL(url);
       }, 1000);
+
+      showToast("تصویر دانلود شد ✓");
     } catch (err) {
       console.error("DOWNLOAD_ERROR", err);
 
-      setError(
-        "دانلود تصویر انجام نشد. دوباره امتحان کن."
-      );
+      setError("دانلود تصویر انجام نشد. دوباره امتحان کن.");
     }
   };
 
@@ -876,2297 +665,2543 @@ export default function ImagePage() {
     generateImage(prompt);
   };
 
-  /* ====================================================
-     امکانات اضافه (فقط ظاهر و تجربه)
-  ==================================================== */
+  /* ---------- بقیه‌ی کارها ---------- */
 
-  const typeIdea = (text: string) => {
-    if (loading) return;
+  function goBack() {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
 
-    window.clearInterval(typerRef.current);
+  function fillPrompt(text: string) {
+    if (loading) {
+      return;
+    }
+
+    if (typeTimer.current) {
+      window.clearInterval(typeTimer.current);
+    }
+
+    setPrompt("");
 
     let index = 0;
 
-    setPrompt("");
-    setError("");
-
-    typerRef.current = window.setInterval(() => {
+    typeTimer.current = window.setInterval(() => {
       index += 2;
-
       setPrompt(text.slice(0, index));
 
-      if (index >= text.length) {
-        window.clearInterval(typerRef.current);
-        textareaRef.current?.focus();
+      if (index >= text.length && typeTimer.current) {
+        window.clearInterval(typeTimer.current);
+        typeTimer.current = null;
       }
-    }, 22);
-  };
+    }, 16);
 
-  const surprise = () => {
+    promptRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
+  function randomIdea() {
     const pick = IDEAS[Math.floor(Math.random() * IDEAS.length)];
 
-    typeIdea(pick);
-  };
+    fillPrompt(pick.prompt);
+  }
 
-  const toggleStyle = (id: string) => {
-    setStyles((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id]
-    );
-  };
+  function clearPrompt() {
+    if (typeTimer.current) {
+      window.clearInterval(typeTimer.current);
+      typeTimer.current = null;
+    }
 
-  const copyPrompt = async () => {
-    const text = prompt.trim();
+    setPrompt("");
+    textareaRef.current?.focus({ preventScroll: true });
+  }
 
-    if (!text) return;
+  function toggleBooster(text: string) {
+    setPrompt((old) => {
+      const current = old.trim();
+      const index = current.indexOf(text);
+
+      if (index >= 0) {
+        const before = current.slice(0, index).replace(/[،,\s]+$/, "");
+        const after = current
+          .slice(index + text.length)
+          .replace(/^[،,\s]+/, "");
+
+        return before && after ? `${before}، ${after}` : before || after;
+      }
+
+      const next = current ? `${current}، ${text}` : text;
+
+      return next.length > MAX_LEN ? old : next;
+    });
+  }
+
+  async function copyPrompt() {
+    const text = used.prompt || prompt;
 
     try {
       await navigator.clipboard.writeText(text);
+      showToast("ایده کپی شد ✓");
     } catch {
-      // کپی پشتیبانی نشد.
+      showToast("کپی نشد");
+    }
+  }
+
+  function newIdea() {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+
+    window.setTimeout(() => {
+      setPrompt("");
+      setStyleId("none");
+      textareaRef.current?.focus({ preventScroll: true });
+    }, 250);
+  }
+
+  function openFromHistory(item: HistoryItem) {
+    if (loading) {
+      return;
     }
 
-    setCopied(true);
+    scrolledFor.current = null;
 
-    window.clearTimeout(copyTimerRef.current);
-
-    copyTimerRef.current = window.setTimeout(
-      () => setCopied(false),
-      1700
-    );
-  };
-
-  const openHistory = (item: HistoryItem) => {
-    if (loading) return;
-
-    setImage(item.image);
+    setImage(item.url);
+    setImgLoaded(false);
+    setUsed({ prompt: item.prompt, style: item.style });
     setPrompt(item.prompt);
-    setStyles(item.styles);
-    setStageOpen(false);
+    setStyleId(item.style);
     setError("");
-  };
+  }
 
-  const onKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-    if (
-      event.key === "Enter" &&
-      (event.ctrlKey || event.metaKey)
-    ) {
-      event.preventDefault();
-      generateImage();
-    }
-  };
+  function scrollToHistory() {
+    historyRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
-  const tiltMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const element = cardRef.current;
+  /* =========================================================
+     DERIVED
+  ========================================================= */
 
-    if (!element || event.pointerType !== "mouse") {
-      return;
-    }
+  const ready = prompt.trim().length > 0 && !loading;
 
-    const rect = element.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
+  const ratio = Math.min(1, prompt.length / MAX_LEN);
+  const RING = 2 * Math.PI * 10;
 
-    element.style.setProperty("--rx", `${((x - 0.5) * 8).toFixed(2)}deg`);
-    element.style.setProperty("--ry", `${((0.5 - y) * 8).toFixed(2)}deg`);
-    element.style.setProperty("--gx", `${(x * 100).toFixed(1)}%`);
-    element.style.setProperty("--gy", `${(y * 100).toFixed(1)}%`);
-  };
+  const stageIndex = Math.min(
+    STAGES.length - 1,
+    Math.floor(elapsed / 4.5)
+  );
 
-  const tiltLeave = () => {
-    const element = cardRef.current;
+  const progress = Math.min(94, 100 * (1 - Math.exp(-elapsed / 13)));
 
-    if (!element) {
-      return;
-    }
+  const usedStyle = STYLES.find((item) => item.id === used.style);
 
-    element.style.setProperty("--rx", "0deg");
-    element.style.setProperty("--ry", "0deg");
-  };
-
-  const hasPrompt = prompt.trim().length > 0;
-  const finishing = !loading && imageReady;
-  const showStage = stageOpen;
-  const showResult = !!image && !stageOpen && !loading;
-  const showEmpty = !showStage && !showResult;
-
-  const ring = Math.min(1, prompt.length / MAX_PROMPT);
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
-    <main className="im-root">
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossOrigin=""
-      />
-      <link rel="stylesheet" href={FONTS_HREF} />
+    <div className="mx-root">
+      {/* ---------------- BACKGROUND ---------------- */}
 
-      {/* ============ BACKGROUND ============ */}
-      <div className="im-bg" aria-hidden="true">
-        <div className="im-aurora" />
-        <div className="im-blob b1" />
-        <div className="im-blob b2" />
-        <div className="im-blob b3" />
-        <div className="im-grid" />
+      <div className="mx-bg" aria-hidden="true">
+        <span className="mx-blob mx-b1" />
+        <span className="mx-blob mx-b2" />
+        <span className="mx-blob mx-b3" />
 
-        <span className="im-star s1"><SparkIcon /></span>
-        <span className="im-star s2"><SparkIcon /></span>
-        <span className="im-star s3"><SparkIcon /></span>
-        <span className="im-star s4"><SparkIcon /></span>
-
-        <div className="im-grain" />
+        <i className="mx-spark s1">✦</i>
+        <i className="mx-spark s2">✦</i>
+        <i className="mx-spark s3">✦</i>
+        <i className="mx-spark s4">✦</i>
+        <i className="mx-spark s5">✦</i>
+        <i className="mx-spark s6">✦</i>
       </div>
 
-      {/* ============ HEADER ============ */}
-      <header className="im-header">
-        <Link href="/" className="im-logo" aria-label="Mobixa AI">
-          <span className="im-logo-word">MOBIXA</span>
-          <b>AI</b>
-        </Link>
+      <div className="mx-scroll" ref={scrollRef}>
+        {/* ---------------- TOP BAR ---------------- */}
 
-        <Link href="/" className="im-back">
-          <BackIcon />
-          <span>بازگشت</span>
-        </Link>
-      </header>
+        <header className="mx-top">
+          <button
+            type="button"
+            className="mx-pill mx-back"
+            onClick={goBack}
+            aria-label="بازگشت"
+          >
+            <IconBack />
+            <span>بازگشت</span>
+          </button>
 
-      <div className="im-wrap">
-        {/* ============ HERO ============ */}
-        <section className="im-hero">
-          <div className="im-eyebrow im-in" style={{ "--d": "0s" } as CSSProperties}>
-            <span className="im-eyebrow-star"><SparkIcon /></span>
-            MOBIXA IMAGE LAB
+          <div className="mx-brand" dir="ltr">
+            <i className="mx-logo">
+              <IconSpark />
+            </i>
+            <b>MOBIXA</b>
           </div>
 
-          <h1 className="im-title im-in" style={{ "--d": "0.08s" } as CSSProperties}>
-            ایده بده و{" "}
-            <span>عکس تحویل بگیر</span>
-          </h1>
-
-          <p className="im-sub im-in" style={{ "--d": "0.16s" } as CSSProperties}>
-            یه ایده بده، موبیکسا تصویرشو برات می‌سازه.
-          </p>
-        </section>
-
-        <div className="im-grid-layout">
-          {/* ============ STUDIO ============ */}
-          <section
-            className="im-studio im-in"
-            style={{ "--d": "0.24s" } as CSSProperties}
+          <button
+            type="button"
+            className="mx-pill mx-hist-btn"
+            onClick={scrollToHistory}
+            aria-label="ساخته‌های من"
           >
-            <div className="im-studio-head">
-              <span className="im-studio-title">
-                <i />
-                ایده‌ی تو
-              </span>
+            <IconGrid />
+            <span>{toFaDigits(history.length)}</span>
+          </button>
+        </header>
 
-              <button
-                type="button"
-                className="im-surprise"
-                onClick={surprise}
-                disabled={loading}
-              >
-                <WandIcon />
-                <span>یه ایده بده</span>
-              </button>
+        <main className="mx-wrap">
+          {/* ---------------- HERO ---------------- */}
+
+          <section className="mx-hero">
+            <div className="mx-label">
+              <i className="mx-label-dot" />
+              MOBIXA IMAGE LAB
             </div>
 
-            <div className="im-field">
+            <h1>
+              ایده بده و <span>عکس تحویل بگیر</span>
+            </h1>
+
+            <p>یه ایده بده، موبیکسا تصویرشو برات می‌سازه.</p>
+
+            <ol className="mx-steps">
+              <li>
+                <b>۱</b>
+                ایده‌ات رو بنویس
+              </li>
+              <li className="mx-step-line" aria-hidden="true" />
+              <li>
+                <b>۲</b>
+                سبک رو انتخاب کن
+              </li>
+              <li className="mx-step-line" aria-hidden="true" />
+              <li>
+                <b>۳</b>
+                تصویرت آماده‌ست
+              </li>
+            </ol>
+          </section>
+
+          {/* ---------------- PROMPT STUDIO ---------------- */}
+
+          <section
+            className={`mx-studio${focused ? " focus" : ""}`}
+            ref={promptRef}
+          >
+            <div className="mx-field">
               <textarea
                 ref={textareaRef}
                 value={prompt}
-                onChange={(e) => {
-                  window.clearInterval(typerRef.current);
-                  setPrompt(e.target.value);
-                }}
-                onKeyDown={onKeyDown}
-                placeholder={`خب، چی تو ذهنت داری؟
-بزن بریم بسازیمش...`}
-                maxLength={MAX_PROMPT}
-                disabled={loading}
-              />
-
-              <div className="im-field-foot">
-                <div className="im-counter" aria-label="تعداد حروف">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9.5" className="track" />
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="9.5"
-                      className="bar"
-                      style={{
-                        strokeDasharray: 59.7,
-                        strokeDashoffset: 59.7 * (1 - ring),
-                      }}
-                    />
-                  </svg>
-
-                  <span>{prompt.length}/{MAX_PROMPT}</span>
-                </div>
-
-                <button
-                  type="button"
-                  className="im-copy"
-                  onClick={copyPrompt}
-                  disabled={!hasPrompt}
-                >
-                  {copied ? <CheckIcon /> : <CopyIcon />}
-                  <span>{copied ? "کپی شد" : "کپی ایده"}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="im-styles" role="group" aria-label="استایل">
-              <span className="im-styles-label">استایل</span>
-
-              <div className="im-styles-row">
-                {STYLE_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className={`im-style${
-                      styles.includes(option.id) ? " on" : ""
-                    }`}
-                    onClick={() => toggleStyle(option.id)}
-                    disabled={loading}
-                    aria-pressed={styles.includes(option.id)}
-                  >
-                    {option.fa}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="im-cta-row">
-              <div className="im-hint-keys" aria-hidden="true">
-                <kbd>Ctrl</kbd>
-                <kbd>Enter</kbd>
-              </div>
-
-              <div className="im-gen-wrap">
-                <div
-                  className={`im-gen-light${hasPrompt && !loading ? " active" : ""}`}
-                  aria-hidden="true"
-                />
-
-                <button
-                  type="button"
-                  className="im-gen"
-                  onClick={() => generateImage()}
-                  disabled={!hasPrompt || loading}
-                  aria-label="ساخت تصویر"
-                >
-                  {loading ? (
-                    <>
-                      <span className="im-spinner" />
-                      <span>در حال ساخت…</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="im-gen-icon"><SparkIcon /></span>
-                      <span>بساز</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="im-error" role="alert">
-                <span>!</span>
-                {error}
-              </div>
-            )}
-          </section>
-
-          {/* ============ STAGE ============ */}
-          <section
-            ref={stageRef}
-            className="im-stage im-in"
-            style={{ "--d": "0.32s" } as CSSProperties}
-          >
-            {showStage && (
-              <GeneratingStage
-                prompt={prompt}
-                finishing={finishing}
-                onDone={() => {
-                  setStageOpen(false);
-
+                onChange={(e) => setPrompt(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                onKeyDown={(e) => {
                   if (
-                    typeof navigator !== "undefined" &&
-                    typeof navigator.vibrate === "function"
+                    e.key === "Enter" &&
+                    (e.ctrlKey || e.metaKey)
                   ) {
-                    navigator.vibrate(18);
+                    e.preventDefault();
+                    generateImage();
                   }
                 }}
-                reduced={reduced}
+                maxLength={MAX_LEN}
+                disabled={loading}
+                rows={4}
+                aria-label="ایده‌ی تصویر"
               />
-            )}
 
-            {showEmpty && (
-              <div className="im-empty">
-                <div className="im-frame demo">
-                  <DiffusionCanvas
-                    seedText="mobixa"
-                    mode="demo"
-                    finishing={false}
-                    onDone={() => undefined}
-                    reduced={reduced}
+              {!prompt && (
+                <div className="mx-ph" aria-hidden="true">
+                  <span className="mx-ph-title">
+                    خب، چی تو ذهنت داری؟
+                  </span>
+                  <span className="mx-ph-hint" key={hintIndex}>
+                    {PLACEHOLDER_HINTS[hintIndex]}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="mx-tools">
+              <button
+                type="button"
+                className="mx-chip-btn"
+                onClick={randomIdea}
+                disabled={loading}
+              >
+                <IconDice />
+                <span>ایده‌ی تصادفی</span>
+              </button>
+
+              {prompt && !loading && (
+                <button
+                  type="button"
+                  className="mx-chip-btn mx-chip-quiet"
+                  onClick={clearPrompt}
+                  aria-label="پاک کردن"
+                >
+                  <IconClear />
+                </button>
+              )}
+
+              <div className="mx-spacer" />
+
+              <span className="mx-count-text" dir="ltr">
+                {toFaDigits(prompt.length)}/{toFaDigits(MAX_LEN)}
+              </span>
+
+              <div
+                className="mx-count"
+                aria-label={`${prompt.length} از ${MAX_LEN}`}
+              >
+                <svg viewBox="0 0 26 26" aria-hidden="true">
+                  <circle
+                    cx="13"
+                    cy="13"
+                    r="10"
+                    className="mx-count-bg"
                   />
+                  <circle
+                    cx="13"
+                    cy="13"
+                    r="10"
+                    className={`mx-count-fg${
+                      ratio > 0.9 ? " warn" : ""
+                    }`}
+                    strokeDasharray={RING}
+                    strokeDashoffset={RING * (1 - ratio)}
+                  />
+                </svg>
+              </div>
+            </div>
 
-                  <div className="im-corners" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </div>
+            {/* ---- Boosters ---- */}
 
-                  <div className="im-empty-label">
-                    <b>بوم خالیِ تو</b>
-                    <span>اینجا تصویرت متولد می‌شه</span>
-                  </div>
+            <div className="mx-row-label">
+              <IconSpark />
+              <span>افزودنی‌های حرفه‌ای</span>
+            </div>
+
+            <div className="mx-chips" role="group" aria-label="افزودنی‌ها">
+              {BOOSTERS.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  disabled={loading}
+                  className={`mx-chip${
+                    prompt.includes(item) ? " on" : ""
+                  }`}
+                  onClick={() => toggleBooster(item)}
+                >
+                  {prompt.includes(item) ? "✓ " : "+ "}
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            {/* ---- Styles ---- */}
+
+            <div className="mx-row-label">
+              <IconGrid />
+              <span>سبک تصویر</span>
+            </div>
+
+            <div className="mx-styles" role="radiogroup" aria-label="سبک">
+              {STYLES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={styleId === item.id}
+                  disabled={loading}
+                  className={`mx-style${
+                    styleId === item.id ? " on" : ""
+                  }`}
+                  onClick={() => setStyleId(item.id)}
+                >
+                  <i>{item.icon}</i>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* ---- Create ---- */}
+
+            <button
+              type="button"
+              className={`mx-create${ready ? " ready" : ""}`}
+              onClick={() => generateImage()}
+              disabled={!prompt.trim() || loading}
+              aria-label="ساخت تصویر"
+            >
+              {loading ? (
+                <>
+                  <span className="mx-spinner" />
+                  <span>در حال ساخت...</span>
+                </>
+              ) : (
+                <>
+                  <IconSpark />
+                  <span>بساز</span>
+                </>
+              )}
+            </button>
+
+            <div className="mx-kbd">
+              Ctrl + Enter برای ساخت سریع
+            </div>
+          </section>
+
+          {/* ---------------- ERROR ---------------- */}
+
+          {error && (
+            <div className="mx-error" role="alert">
+              <i>!</i>
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* ---------------- GENERATING ---------------- */}
+
+          {loading && (
+            <section className="mx-gen" aria-live="polite">
+              <div className="mx-gen-canvas">
+                <div className="mx-gen-flow" />
+                <div className="mx-gen-aurora" />
+                <div className="mx-scan" />
+
+                <i className="mx-fl f1">✦</i>
+                <i className="mx-fl f2">✦</i>
+                <i className="mx-fl f3">✦</i>
+                <i className="mx-fl f4">✦</i>
+                <i className="mx-fl f5">✦</i>
+                <i className="mx-fl f6">✦</i>
+
+                <div className="mx-orb">
+                  <i className="mx-orb-ring r1" />
+                  <i className="mx-orb-ring r2" />
+                  <i className="mx-orb-ring r3" />
+                  <i className="mx-orb-core" />
                 </div>
 
-                <div className="im-ideas">
-                  <span className="im-ideas-title">ایده‌ی آماده</span>
+                <div className="mx-gen-info">
+                  <div className="mx-stage" key={stageIndex}>
+                    {STAGES[stageIndex]}
+                  </div>
 
-                  <div className="im-ideas-row">
-                    {IDEAS.slice(0, 6).map((idea) => (
-                      <button
-                        key={idea}
-                        type="button"
-                        className="im-idea"
-                        onClick={() => typeIdea(idea)}
-                        disabled={loading}
-                      >
-                        {idea}
-                      </button>
-                    ))}
+                  <div className="mx-bar">
+                    <span style={{ width: `${progress}%` }} />
+                  </div>
+
+                  <div className="mx-gen-meta">
+                    <span>{toFaDigits(Math.floor(elapsed))} ثانیه</span>
+                    <span>{toFaDigits(Math.round(progress))}٪</span>
                   </div>
                 </div>
               </div>
-            )}
 
-            {showResult && image && (
-              <div className="im-result">
-                <div
-                  className="im-card reveal"
-                  key={image}
-                  ref={cardRef}
-                  onPointerMove={tiltMove}
-                  onPointerLeave={tiltLeave}
-                >
-                  <div className="im-card-inner">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={image}
-                      alt="تصویر ساخته شده توسط موبیکسا"
-                      onClick={() => setZoom(true)}
-                      onError={() =>
-                        setError("نمایش تصویر انجام نشد. دوباره امتحان کن.")
-                      }
-                    />
+              <div className="mx-gen-prompt" dir="auto">
+                {prompt}
+              </div>
 
-                    <span className="im-gloss" aria-hidden="true" />
-                    <span className="im-flash" aria-hidden="true" />
+              <button
+                type="button"
+                className="mx-cancel"
+                onClick={cancelGeneration}
+              >
+                لغو ساخت
+              </button>
+            </section>
+          )}
 
-                    <button
-                      type="button"
-                      className="im-expand"
-                      onClick={() => setZoom(true)}
-                      aria-label="نمایش بزرگ"
-                    >
-                      <ExpandIcon />
-                    </button>
+          {/* ---------------- RESULT ---------------- */}
+
+          {image && !loading && (
+            <section className="mx-result" ref={resultRef}>
+              <div className="mx-frame">
+                <div className="mx-frame-glow" aria-hidden="true" />
+
+                <div className="mx-frame-inner">
+                  <img
+                    ref={imgRef}
+                    src={image}
+                    alt="تصویر ساخته شده توسط موبیکسا"
+                    className={`mx-img${imgLoaded ? " in" : ""}`}
+                    onLoad={() => {
+                      setImgLoaded(true);
+                      setBurstKey((k) => k + 1);
+                    }}
+                    onClick={() => setViewer(true)}
+                  />
+
+                  {imgLoaded && <i className="mx-shine" aria-hidden="true" />}
+
+                  <div className="mx-badge">
+                    <IconSpark />
+                    <span>Mobixa Image Lab</span>
                   </div>
+                </div>
 
-                  <div className="im-burst" aria-hidden="true">
-                    {Array.from({ length: 14 }, (_, index) => (
+                {imgLoaded && (
+                  <div className="mx-burst" key={burstKey} aria-hidden="true">
+                    {SPARKS.map((s, i) => (
                       <i
-                        key={index}
+                        key={i}
                         style={
                           {
-                            "--ba": `${(index / 14) * 360}deg`,
-                            "--bd": `${110 + seeded(index + 3) * 90}px`,
-                            "--bs": `${0.6 + seeded(index + 9) * 0.9}`,
+                            "--a": `${s.angle}deg`,
+                            "--d": `${s.dist}px`,
+                            "--s": `${s.size}px`,
+                            animationDelay: `${s.delay}s`,
                           } as CSSProperties
                         }
                       />
                     ))}
                   </div>
-                </div>
-
-                <div className="im-actions">
-                  <button
-                    type="button"
-                    className="im-action primary"
-                    onClick={downloadImage}
-                  >
-                    <DownloadIcon />
-                    <span>دانلود</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="im-action"
-                    onClick={retryImage}
-                    disabled={loading}
-                  >
-                    <RetryIcon />
-                    <span>تلاش مجدد</span>
-                  </button>
-                </div>
+                )}
               </div>
-            )}
 
-            {history.length > 0 && !showStage && (
-              <div className="im-gallery">
-                <span className="im-ideas-title">ساخته‌های این نشست</span>
-
-                <div className="im-gallery-row">
-                  {history.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={`im-thumb${
-                        item.image === image ? " on" : ""
-                      }`}
-                      onClick={() => openHistory(item)}
-                      aria-label={item.prompt}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.image} alt="" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        </div>
-
-        {/* ============ INSPIRATION MARQUEE ============ */}
-        <section className="im-marquee-section im-in" style={{ "--d": "0.4s" } as CSSProperties}>
-          <div className="im-marquee-head">
-            <span className="im-ideas-title">الهام بگیر</span>
-            <b>از هر کدوم شروع کن، بقیه‌اش با موبیکساست</b>
-          </div>
-
-          <div className="im-marquee">
-            <div className="im-marquee-track">
-              {[...IDEAS, ...IDEAS].map((idea, index) => (
+              <div className="mx-actions">
                 <button
-                  key={`${idea}-${index}`}
                   type="button"
-                  className="im-chip"
-                  tabIndex={index >= IDEAS.length ? -1 : 0}
-                  aria-hidden={index >= IDEAS.length}
-                  disabled={loading}
-                  onClick={() => {
-                    typeIdea(idea);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  className="mx-act mx-act-main"
+                  onClick={downloadImage}
                 >
-                  <span className="im-chip-dot" />
-                  {idea}
+                  <IconDownload />
+                  <span>دانلود</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="mx-act"
+                  onClick={retryImage}
+                  disabled={loading}
+                >
+                  <IconRetry />
+                  <span>تلاش مجدد</span>
+                </button>
+              </div>
+
+              <div className="mx-actions mx-actions-small">
+                <button
+                  type="button"
+                  className="mx-act mx-act-s"
+                  onClick={copyPrompt}
+                >
+                  <IconCopy />
+                  <span>کپی ایده</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="mx-act mx-act-s"
+                  onClick={() => setViewer(true)}
+                >
+                  <IconExpand />
+                  <span>تمام‌صفحه</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="mx-act mx-act-s"
+                  onClick={newIdea}
+                >
+                  <IconPlus />
+                  <span>ایده‌ی جدید</span>
+                </button>
+              </div>
+
+              {used.prompt && (
+                <div className="mx-used">
+                  <div className="mx-used-top">
+                    <span>ایده‌ی تو</span>
+
+                    {usedStyle && usedStyle.id !== "none" && (
+                      <em>
+                        {usedStyle.icon} {usedStyle.label}
+                      </em>
+                    )}
+                  </div>
+
+                  <p dir="auto">{used.prompt}</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* ---------------- INSPIRATION ---------------- */}
+
+          <section className="mx-section">
+            <div className="mx-sec-head">
+              <h2>ایده‌هایی برای شروع</h2>
+              <span>روی هر کدوم بزن</span>
+            </div>
+
+            <div className="mx-ideas">
+              {IDEAS.map((idea, i) => (
+                <button
+                  key={idea.title}
+                  type="button"
+                  className="mx-idea"
+                  disabled={loading}
+                  onClick={() => fillPrompt(idea.prompt)}
+                  style={
+                    {
+                      "--from": idea.from,
+                      "--to": idea.to,
+                      animationDelay: `${0.05 * i}s`,
+                    } as CSSProperties
+                  }
+                >
+                  <i className="mx-idea-emoji" aria-hidden="true">
+                    {idea.icon}
+                  </i>
+                  <b>{idea.title}</b>
+                  <span>{idea.prompt}</span>
                 </button>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        <footer className="im-footer">
-          <span className="im-footer-serif">Made with curiosity</span>
-          <i />
-          <span>MOBIXA IMAGE LAB</span>
-        </footer>
+          {/* ---------------- HISTORY ---------------- */}
+
+          <section className="mx-section" ref={historyRef}>
+            <div className="mx-sec-head">
+              <h2>ساخته‌های این نشست</h2>
+              <span>{toFaDigits(history.length)} تصویر</span>
+            </div>
+
+            {history.length === 0 ? (
+              <div className="mx-empty">
+                <i>🖼️</i>
+                <p>
+                  هر تصویری که بسازی همین‌جا نگه داشته میشه تا
+                  دوباره بازش کنی.
+                </p>
+              </div>
+            ) : (
+              <div className="mx-history">
+                {history.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`mx-thumb${
+                      item.url === image ? " active" : ""
+                    }`}
+                    onClick={() => openFromHistory(item)}
+                    aria-label={item.prompt}
+                  >
+                    <img src={item.url} alt="" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <footer className="mx-foot">
+            <IconSpark />
+            <span>Mobixa Image Lab</span>
+          </footer>
+        </main>
       </div>
 
-      {/* ============ LIGHTBOX ============ */}
-      {zoom && image && (
+      {/* ---------------- LIGHTBOX ---------------- */}
+
+      {viewer && image && (
         <div
-          className="im-lightbox"
+          className="mx-viewer"
           role="dialog"
           aria-modal="true"
-          aria-label="نمایش بزرگ تصویر"
-          onClick={() => setZoom(false)}
+          onClick={() => setViewer(false)}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt="تصویر بزرگ" />
+          <button
+            type="button"
+            className="mx-viewer-close"
+            onClick={() => setViewer(false)}
+            aria-label="بستن"
+          >
+            <IconClose />
+          </button>
+
+          <img
+            src={image}
+            alt="تصویر ساخته شده توسط موبیکسا"
+            onClick={(e) => e.stopPropagation()}
+          />
 
           <button
             type="button"
-            className="im-lightbox-close"
-            onClick={() => setZoom(false)}
-            aria-label="بستن"
+            className="mx-viewer-dl"
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadImage();
+            }}
           >
-            <CloseIcon />
+            <IconDownload />
+            <span>دانلود</span>
           </button>
         </div>
       )}
 
+      {/* ---------------- TOAST ---------------- */}
+
+      {toast && <div className="mx-toast">{toast}</div>}
+
       <style jsx global>{`
-        /* =====================================================
-           ROOT
-        ===================================================== */
-
-        html:has(.im-root),
-        body:has(.im-root) {
-          background: #dcd6ff;
-        }
-
-        body:has(.im-root)::before,
-        body:has(.im-root)::after {
-          display: none;
-        }
-
-        .im-root {
-          --ink: #1b1740;
-          --muted: rgba(27, 23, 64, 0.64);
-          --violet: #6d4cff;
-          --blue: #3e7bff;
-          --cyan: #1fc3f2;
-          --pink: #ff5fae;
-
-          position: relative;
-          z-index: 0;
-          isolation: isolate;
-          min-height: 100vh;
-          overflow-x: clip;
+        .mx-root {
+          --ink: #1d1a3d;
+          --violet: #7852f5;
+          --violet-d: #4a35d0;
+          --pink: #ff78c4;
+          --cyan: #28b0ff;
+          position: fixed;
+          inset: 0;
+          z-index: 1;
+          direction: rtl;
           color: var(--ink);
-          font-family:
-            "Vazirmatn",
-            Tahoma,
-            "Segoe UI",
-            Arial,
-            sans-serif;
+          overflow: hidden;
+          font-family: Vazirmatn, Tahoma, system-ui, -apple-system,
+            "Segoe UI", Roboto, "Noto Sans Arabic", Arial, sans-serif;
           -webkit-font-smoothing: antialiased;
           background:
             radial-gradient(
-              90% 40% at 50% 0%,
-              rgba(255, 255, 255, 0.7),
-              transparent 70%
+              120% 60% at 50% -10%,
+              rgba(255, 255, 255, 0.75),
+              transparent 60%
             ),
-            linear-gradient(
-              180deg,
-              #d9d3ff 0%,
-              #cfe0ff 34%,
-              #e3d9ff 66%,
-              #f1dbf3 100%
-            );
+            radial-gradient(
+              90% 60% at 100% 100%,
+              rgba(255, 160, 214, 0.55),
+              transparent 62%
+            ),
+            radial-gradient(
+              90% 60% at 0% 90%,
+              rgba(140, 190, 255, 0.6),
+              transparent 62%
+            ),
+            linear-gradient(165deg, #cdbfff 0%, #c3d5ff 50%, #e2d0ff 100%);
         }
 
-        :where(.im-root h1, .im-root p) {
-          margin: 0;
+        .mx-root *,
+        .mx-root *::before,
+        .mx-root *::after {
+          box-sizing: border-box;
         }
 
-        :where(.im-root a) {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        :where(.im-root button) {
+        .mx-root button,
+        .mx-root textarea {
           font: inherit;
           color: inherit;
-        }
-
-        .im-root button {
           -webkit-tap-highlight-color: transparent;
         }
 
-        .im-root a:focus-visible,
-        .im-root button:focus-visible,
-        .im-root textarea:focus-visible {
-          outline: 2px solid rgba(109, 76, 255, 0.9);
-          outline-offset: 3px;
+        .mx-root ::selection {
+          background: rgba(124, 92, 255, 0.28);
         }
 
-        /* =====================================================
-           BACKGROUND
-        ===================================================== */
+        /* ---------- Background ---------- */
 
-        .im-bg {
+        .mx-bg {
           position: absolute;
           inset: 0;
-          z-index: -1;
           overflow: hidden;
           pointer-events: none;
         }
 
-        .im-aurora {
+        .mx-bg::after {
+          content: "";
           position: absolute;
-          top: -280px;
-          left: 50%;
-          width: 860px;
-          height: 860px;
-          margin-left: -430px;
-          border-radius: 50%;
-          background:
-            conic-gradient(
-              from 0deg,
-              rgba(109, 76, 255, 0),
-              rgba(109, 76, 255, 0.4),
-              rgba(31, 195, 242, 0.34),
-              rgba(255, 95, 174, 0.34),
-              rgba(255, 180, 138, 0.28),
-              rgba(109, 76, 255, 0)
-            );
-          filter: blur(64px);
-          opacity: 0.85;
-          animation: imSpin 50s linear infinite;
+          inset: 0;
+          background-image: radial-gradient(
+            rgba(90, 70, 210, 0.2) 1px,
+            transparent 1.3px
+          );
+          background-size: 22px 22px;
+          -webkit-mask-image: linear-gradient(to bottom, #000, transparent 72%);
+          mask-image: linear-gradient(to bottom, #000, transparent 72%);
         }
 
-        .im-blob {
+        .mx-blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(80px);
           will-change: transform;
         }
 
-        .im-blob.b1 {
-          top: 220px;
-          left: -180px;
-          width: 340px;
-          height: 340px;
-          background: rgba(139, 108, 255, 0.45);
-          animation: imDriftA 20s ease-in-out infinite alternate;
+        .mx-b1 {
+          width: 520px;
+          height: 520px;
+          left: -230px;
+          top: -40px;
+          background: radial-gradient(
+            closest-side,
+            rgba(139, 108, 255, 0.55),
+            transparent
+          );
+          animation: mxDriftA 18s ease-in-out infinite alternate;
         }
 
-        .im-blob.b2 {
-          top: 760px;
-          right: -190px;
-          width: 360px;
-          height: 360px;
-          background: rgba(31, 195, 242, 0.36);
-          animation: imDriftB 24s ease-in-out infinite alternate;
+        .mx-b2 {
+          width: 500px;
+          height: 500px;
+          right: -240px;
+          top: 36%;
+          background: radial-gradient(
+            closest-side,
+            rgba(70, 200, 255, 0.5),
+            transparent
+          );
+          animation: mxDriftB 22s ease-in-out infinite alternate;
         }
 
-        .im-blob.b3 {
-          top: 1300px;
-          left: -170px;
-          width: 340px;
-          height: 340px;
-          background: rgba(255, 111, 181, 0.34);
-          animation: imDriftA 26s ease-in-out infinite alternate;
+        .mx-b3 {
+          width: 440px;
+          height: 440px;
+          left: 6%;
+          bottom: -200px;
+          background: radial-gradient(
+            closest-side,
+            rgba(255, 130, 200, 0.5),
+            transparent
+          );
+          animation: mxDriftA 20s ease-in-out infinite alternate-reverse;
         }
 
-        .im-grid {
+        .mx-spark {
           position: absolute;
-          inset: 0 0 auto 0;
-          height: 900px;
-          background-image:
-            radial-gradient(
-              rgba(80, 60, 200, 0.22) 1px,
-              transparent 1.4px
-            );
-          background-size: 24px 24px;
-          -webkit-mask-image: linear-gradient(#000, transparent 85%);
-          mask-image: linear-gradient(#000, transparent 85%);
-        }
-
-        .im-star {
-          position: absolute;
-          width: 14px;
-          height: 14px;
+          font-style: normal;
           color: #fff;
-          filter:
-            drop-shadow(0 0 6px rgba(109, 76, 255, 0.9))
-            drop-shadow(0 0 14px rgba(109, 76, 255, 0.5));
-          animation: imTwinkle 4.2s ease-in-out infinite;
+          text-shadow: 0 0 12px rgba(120, 82, 245, 0.8);
+          animation: mxTwinkle 3.6s ease-in-out infinite;
         }
 
-        .im-star svg {
-          width: 100%;
-          height: 100%;
+        .mx-spark.s1 {
+          top: 10%;
+          right: 10%;
+          font-size: 16px;
+        }
+        .mx-spark.s2 {
+          top: 20%;
+          left: 8%;
+          font-size: 11px;
+          animation-delay: 0.7s;
+        }
+        .mx-spark.s3 {
+          top: 42%;
+          right: 5%;
+          font-size: 10px;
+          animation-delay: 1.5s;
+        }
+        .mx-spark.s4 {
+          top: 56%;
+          left: 12%;
+          font-size: 14px;
+          animation-delay: 2.1s;
+        }
+        .mx-spark.s5 {
+          top: 74%;
+          right: 16%;
+          font-size: 12px;
+          animation-delay: 1s;
+        }
+        .mx-spark.s6 {
+          top: 88%;
+          left: 28%;
+          font-size: 9px;
+          animation-delay: 2.6s;
         }
 
-        .im-star.s1 { top: 150px; left: 10%; }
-        .im-star.s2 { top: 240px; right: 11%; width: 18px; height: 18px; animation-delay: 0.9s; }
-        .im-star.s3 { top: 520px; left: 6%; width: 10px; height: 10px; animation-delay: 1.7s; }
-        .im-star.s4 { top: 640px; right: 8%; width: 12px; height: 12px; animation-delay: 2.4s; }
+        /* ---------- Scroll container ---------- */
 
-        .im-grain {
+        .mx-scroll {
           position: absolute;
           inset: 0;
-          opacity: 0.07;
-          mix-blend-mode: overlay;
-          background-image:
-            url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+          overflow-y: auto;
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+          scrollbar-width: none;
+          scroll-behavior: smooth;
         }
 
-        /* =====================================================
-           HEADER
-        ===================================================== */
+        .mx-scroll::-webkit-scrollbar {
+          display: none;
+        }
 
-        .im-header {
-          position: fixed;
-          top: 12px;
-          inset-inline: 12px;
-          z-index: 70;
-          max-width: 1120px;
-          height: 60px;
-          margin-inline: auto;
+        /* ---------- Top bar ---------- */
+
+        .mx-top {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: 10px;
+          padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 10px;
+          background: linear-gradient(
+            to bottom,
+            rgba(225, 215, 255, 0.82),
+            rgba(225, 215, 255, 0)
+          );
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          animation: mxFadeDown 0.6s ease both;
+        }
+
+        .mx-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          height: 38px;
           padding: 0 14px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.62);
-          border: 1px solid rgba(255, 255, 255, 0.95);
-          box-shadow: 0 14px 40px rgba(70, 55, 190, 0.16);
-          -webkit-backdrop-filter: blur(20px);
-          backdrop-filter: blur(20px);
-          animation: imDrop 0.8s cubic-bezier(.2,.8,.2,1) both;
-        }
-
-        .im-logo {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          direction: ltr;
-        }
-
-        .im-logo-word {
-          font-family: "Sora", "Vazirmatn", sans-serif;
-          font-size: 16px;
-          font-weight: 800;
-          letter-spacing: 0.2em;
-        }
-
-        .im-logo b {
-          padding: 3px 7px 3px 9px;
-          border-radius: 7px;
-          font-family: "Sora", sans-serif;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.14em;
-          color: #fff;
-          background: linear-gradient(135deg, #7c5cff, #3e7bff);
-          box-shadow: 0 6px 16px rgba(100, 80, 240, 0.4);
-        }
-
-        .im-back {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 9px 16px;
           border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.78);
+          box-shadow: 0 6px 18px rgba(86, 66, 200, 0.14);
           font-size: 13px;
           font-weight: 700;
-          background: rgba(255, 255, 255, 0.75);
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          box-shadow: 0 8px 22px rgba(80, 60, 200, 0.14);
-          transition:
-            transform 0.25s cubic-bezier(.2,.8,.2,1),
-            background 0.25s ease;
+          color: var(--violet-d);
+          cursor: pointer;
+          transition: transform 0.2s ease;
         }
 
-        .im-back svg {
+        .mx-pill:active {
+          transform: scale(0.94);
+        }
+
+        .mx-pill svg {
           width: 17px;
           height: 17px;
         }
 
-        .im-back:hover {
-          transform: translateY(-1px);
-          background: #fff;
+        .mx-back {
+          justify-self: start;
         }
 
-        /* =====================================================
-           LAYOUT / HERO
-        ===================================================== */
+        .mx-back svg {
+          transform: rotate(0deg);
+        }
 
-        .im-wrap {
+        .mx-hist-btn {
+          justify-self: end;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .mx-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          letter-spacing: 4px;
+          color: #2a1f7a;
+        }
+
+        .mx-logo {
+          width: 26px;
+          height: 26px;
+          display: grid;
+          place-items: center;
+          border-radius: 9px;
+          color: #fff;
+          background: linear-gradient(135deg, #7852f5, #c25bff 60%, #ff78c4);
+          box-shadow: 0 6px 14px rgba(120, 82, 245, 0.45);
+        }
+
+        .mx-logo svg {
+          width: 15px;
+          height: 15px;
+        }
+
+        /* ---------- Layout ---------- */
+
+        .mx-wrap {
           position: relative;
-          max-width: 1120px;
+          z-index: 2;
+          width: 100%;
+          max-width: 760px;
           margin: 0 auto;
-          padding: 100px 16px 28px;
+          padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 40px);
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
         }
 
-        .im-in {
-          animation: imRise 0.95s cubic-bezier(.2,.8,.2,1) var(--d, 0s) both;
+        /* ---------- Hero ---------- */
+
+        .mx-hero {
+          text-align: center;
+          padding-top: 6px;
+          animation: mxRise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
         }
 
-        .im-hero {
+        .mx-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 14px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 2.5px;
+          color: var(--violet-d);
+          background: rgba(255, 255, 255, 0.72);
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          box-shadow: 0 6px 18px rgba(86, 66, 200, 0.14);
+          direction: ltr;
+        }
+
+        .mx-label-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--cyan), var(--pink));
+          animation: mxPulse 1.8s ease-out infinite;
+        }
+
+        .mx-hero h1 {
+          margin: 16px 0 8px;
+          font-size: clamp(28px, 7.6vw, 44px);
+          line-height: 1.45;
+          font-weight: 900;
+          color: var(--ink);
+        }
+
+        .mx-hero h1 span {
+          display: inline-block;
+          background: linear-gradient(
+            90deg,
+            #4a35d0,
+            #b43fe0 30%,
+            #ff5fa8 55%,
+            #1f9bff 80%,
+            #4a35d0
+          );
+          background-size: 250% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          color: transparent;
+          animation: mxFlow 7s linear infinite;
+        }
+
+        .mx-hero p {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 500;
+          color: rgba(29, 26, 61, 0.7);
+        }
+
+        .mx-steps {
+          list-style: none;
+          margin: 20px auto 0;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          max-width: 460px;
+        }
+
+        .mx-steps li {
           display: flex;
           flex-direction: column;
           align-items: center;
-          text-align: center;
-        }
-
-        .im-eyebrow {
-          display: inline-flex;
-          align-items: center;
-          gap: 9px;
-          padding: 8px 16px;
-          border-radius: 999px;
-          font-family: "Sora", sans-serif;
+          gap: 7px;
           font-size: 11.5px;
-          font-weight: 800;
-          letter-spacing: 0.22em;
-          color: #4a36d6;
-          direction: ltr;
-          background: rgba(255, 255, 255, 0.66);
-          border: 1px solid rgba(255, 255, 255, 0.95);
-          box-shadow: 0 10px 28px rgba(100, 80, 230, 0.18);
-          -webkit-backdrop-filter: blur(14px);
-          backdrop-filter: blur(14px);
+          font-weight: 700;
+          color: rgba(29, 26, 61, 0.75);
+          white-space: nowrap;
         }
 
-        .im-eyebrow-star {
-          width: 15px;
-          height: 15px;
-          color: var(--pink);
-          animation: imSpin 9s linear infinite;
+        .mx-steps li b {
+          width: 30px;
+          height: 30px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          font-size: 13px;
+          color: #fff;
+          background: linear-gradient(135deg, #7852f5, #c25bff);
+          box-shadow: 0 6px 14px rgba(120, 82, 245, 0.4);
         }
 
-        .im-eyebrow-star svg {
-          width: 100%;
-          height: 100%;
-        }
-
-        .im-title {
-          margin-top: 18px;
-          text-wrap: balance;
-          font-size: clamp(29px, 7.4vw, 64px);
-          line-height: 1.3;
-          font-weight: 900;
-          letter-spacing: -0.01em;
-        }
-
-        .im-title span {
+        .mx-steps li.mx-step-line {
+          flex: 1;
+          height: 2px;
+          min-width: 18px;
+          margin-bottom: 22px;
+          border-radius: 2px;
           background: linear-gradient(
             90deg,
-            #5b3df0,
-            #2f7bff,
-            #ff5fae,
-            #5b3df0
+            rgba(120, 82, 245, 0.1),
+            rgba(120, 82, 245, 0.5),
+            rgba(120, 82, 245, 0.1)
           );
-          background-size: 260% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation: imGradText 7s linear infinite;
+          background-size: 200% 100%;
+          animation: mxFlow 3s linear infinite;
         }
 
-        .im-sub {
-          max-width: 520px;
-          margin-top: 14px;
-          font-size: clamp(14.5px, 2.4vw, 17px);
-          line-height: 2;
-          color: var(--muted);
-        }
+        /* ---------- Studio ---------- */
 
-        .im-grid-layout {
-          display: grid;
-          gap: 22px;
-          margin-top: 30px;
-          align-items: start;
-        }
-
-        .im-grid-layout > * {
-          min-width: 0;
-        }
-
-        /* =====================================================
-           STUDIO
-        ===================================================== */
-
-        .im-studio {
+        .mx-studio {
           position: relative;
-          padding: 20px;
-          border-radius: 30px;
-          background:
-            linear-gradient(
-              160deg,
-              rgba(255, 255, 255, 0.88),
-              rgba(255, 255, 255, 0.58)
-            );
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          box-shadow:
-            0 26px 60px rgba(70, 55, 190, 0.16),
-            inset 0 1px 0 #fff;
-          -webkit-backdrop-filter: blur(18px);
-          backdrop-filter: blur(18px);
-          transition:
-            border-color 0.3s ease,
-            box-shadow 0.3s ease;
-        }
-
-        .im-studio:focus-within {
-          border-color: rgba(124, 92, 255, 0.55);
-          box-shadow:
-            0 0 0 4px rgba(124, 92, 255, 0.14),
-            0 30px 70px rgba(70, 55, 190, 0.22),
-            inset 0 1px 0 #fff;
-        }
-
-        .im-studio-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          margin-bottom: 14px;
-        }
-
-        .im-studio-title {
-          display: inline-flex;
-          align-items: center;
-          gap: 9px;
-          font-size: 15px;
-          font-weight: 800;
-        }
-
-        .im-studio-title i {
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          background: var(--violet);
-          box-shadow: 0 0 12px var(--violet);
-          animation: imPulseDot 1.8s ease-in-out infinite;
-        }
-
-        .im-surprise {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          padding: 8px 14px;
-          border: 0;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 800;
-          color: #4a36d6;
-          cursor: pointer;
-          background: rgba(109, 76, 255, 0.12);
-          transition:
-            transform 0.25s cubic-bezier(.2,.9,.3,1.25),
-            background 0.25s ease;
-        }
-
-        .im-surprise svg {
-          width: 18px;
-          height: 18px;
-          transition: transform 0.5s cubic-bezier(.2,.9,.3,1.25);
-        }
-
-        .im-surprise:hover:not(:disabled) {
-          transform: translateY(-2px);
-          background: rgba(109, 76, 255, 0.2);
-        }
-
-        .im-surprise:hover:not(:disabled) svg {
-          transform: rotate(-18deg) scale(1.12);
-        }
-
-        .im-surprise:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .im-field {
-          border-radius: 22px;
+          padding: 16px;
+          border-radius: 28px;
           background: rgba(255, 255, 255, 0.78);
-          border: 1px solid rgba(109, 76, 255, 0.16);
-          transition: border-color 0.25s ease;
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          box-shadow:
+            0 24px 60px rgba(86, 66, 200, 0.22),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          animation: mxRise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
+          transition: box-shadow 0.35s ease;
         }
 
-        .im-field:focus-within {
-          border-color: rgba(124, 92, 255, 0.5);
+        .mx-studio::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 1.6px;
+          background: linear-gradient(
+            120deg,
+            #7852f5,
+            #28b0ff,
+            #ff78c4,
+            #7852f5
+          );
+          background-size: 300% 100%;
+          -webkit-mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask:
+            linear-gradient(#000 0 0) content-box exclude,
+            linear-gradient(#000 0 0);
+          opacity: 0.25;
+          transition: opacity 0.35s ease;
+          animation: mxFlow 6s linear infinite;
+          pointer-events: none;
         }
 
-        .im-field textarea {
-          display: block;
+        .mx-studio.focus {
+          box-shadow:
+            0 28px 70px rgba(120, 82, 245, 0.34),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .mx-studio.focus::before {
+          opacity: 0.95;
+        }
+
+        .mx-field {
+          position: relative;
+        }
+
+        .mx-field textarea {
           width: 100%;
-          min-height: 112px;
-          max-height: 260px;
-          padding: 16px 18px 6px;
+          min-height: 118px;
+          max-height: 280px;
+          resize: none;
           border: 0;
           outline: 0;
-          resize: none;
+          padding: 8px 6px;
           background: transparent;
+          font-size: 17px;
+          font-weight: 500;
+          line-height: 2;
           color: var(--ink);
-          caret-color: #6a4df0;
-          font: inherit;
-          font-size: 16px;
-          line-height: 1.95;
           text-align: start;
         }
 
-        .im-field textarea::placeholder {
-          color: rgba(27, 23, 64, 0.42);
+        .mx-field textarea:disabled {
+          opacity: 0.55;
         }
 
-        .im-field textarea:disabled {
-          opacity: 0.6;
+        .mx-ph {
+          position: absolute;
+          inset: 8px 6px auto 6px;
+          pointer-events: none;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
         }
 
-        .im-field-foot {
+        .mx-ph-title {
+          font-size: 17px;
+          font-weight: 800;
+          line-height: 2;
+          color: rgba(29, 26, 61, 0.78);
+        }
+
+        .mx-ph-hint {
+          font-size: 14.5px;
+          font-weight: 500;
+          line-height: 1.9;
+          color: rgba(29, 26, 61, 0.45);
+          animation: mxTextIn 0.6s ease both;
+        }
+
+        .mx-tools {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          padding: 4px 12px 10px 14px;
+          gap: 8px;
+          margin-top: 6px;
+          padding-top: 10px;
+          border-top: 1px dashed rgba(120, 82, 245, 0.2);
         }
 
-        .im-counter {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          direction: ltr;
-          font-size: 11.5px;
-          font-weight: 700;
-          color: rgba(27, 23, 64, 0.5);
+        .mx-spacer {
+          flex: 1;
         }
 
-        .im-counter svg {
-          width: 22px;
-          height: 22px;
-          transform: rotate(-90deg);
-        }
-
-        .im-counter circle {
-          fill: none;
-          stroke-width: 2.6;
-        }
-
-        .im-counter .track {
-          stroke: rgba(27, 23, 64, 0.1);
-        }
-
-        .im-counter .bar {
-          stroke: #6d4cff;
-          stroke-linecap: round;
-          transition: stroke-dashoffset 0.25s ease;
-        }
-
-        .im-copy {
+        .mx-chip-btn {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 6px 11px;
-          border: 0;
-          border-radius: 10px;
-          font-size: 12px;
+          height: 36px;
+          padding: 0 13px;
+          border-radius: 999px;
+          border: 1px solid rgba(120, 82, 245, 0.2);
+          background: rgba(120, 82, 245, 0.08);
+          font-size: 12.5px;
           font-weight: 700;
-          color: rgba(27, 23, 64, 0.55);
-          background: transparent;
+          color: var(--violet-d);
           cursor: pointer;
-          transition:
-            background 0.2s ease,
-            color 0.2s ease;
+          transition: transform 0.2s ease, background 0.2s ease;
         }
 
-        .im-copy svg {
-          width: 15px;
-          height: 15px;
+        .mx-chip-btn svg {
+          width: 17px;
+          height: 17px;
         }
 
-        .im-copy:hover:not(:disabled) {
-          color: #4a36d6;
-          background: rgba(109, 76, 255, 0.1);
+        .mx-chip-btn:hover svg {
+          animation: mxWiggle 0.6s ease;
         }
 
-        .im-copy:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
+        .mx-chip-btn:active {
+          transform: scale(0.93);
         }
 
-        /* styles */
-
-        .im-styles {
-          margin-top: 16px;
+        .mx-chip-btn:disabled {
+          opacity: 0.45;
+          cursor: default;
         }
 
-        .im-styles-label {
-          display: block;
-          margin-bottom: 9px;
+        .mx-chip-quiet {
+          padding: 0 10px;
+          color: rgba(29, 26, 61, 0.55);
+          background: rgba(29, 26, 61, 0.05);
+          border-color: rgba(29, 26, 61, 0.1);
+        }
+
+        .mx-count {
+          position: relative;
+          width: 30px;
+          height: 30px;
+          display: grid;
+          place-items: center;
+        }
+
+        .mx-count svg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          transform: rotate(-90deg);
+        }
+
+        .mx-count circle {
+          fill: none;
+          stroke-width: 2.4;
+        }
+
+        .mx-count-bg {
+          stroke: rgba(120, 82, 245, 0.15);
+        }
+
+        .mx-count-fg {
+          stroke: #7852f5;
+          stroke-linecap: round;
+          transition: stroke-dashoffset 0.25s ease, stroke 0.25s ease;
+        }
+
+        .mx-count-fg.warn {
+          stroke: #ff4f7b;
+        }
+
+        .mx-count-text {
+          font-size: 11.5px;
+          font-weight: 700;
+          color: rgba(29, 26, 61, 0.5);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .mx-row-label {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          margin: 16px 2px 9px;
           font-size: 12.5px;
           font-weight: 800;
-          color: rgba(27, 23, 64, 0.55);
+          color: rgba(29, 26, 61, 0.7);
         }
 
-        .im-styles-row {
+        .mx-row-label svg {
+          width: 16px;
+          height: 16px;
+          color: var(--violet);
+        }
+
+        .mx-chips,
+        .mx-styles {
           display: flex;
           gap: 8px;
-          margin: 0 -20px;
-          padding: 2px 20px 8px;
           overflow-x: auto;
+          padding: 2px 2px 6px;
           scrollbar-width: none;
-          -webkit-overflow-scrolling: touch;
+          scroll-snap-type: x proximity;
         }
 
-        .im-styles-row::-webkit-scrollbar {
+        .mx-chips::-webkit-scrollbar,
+        .mx-styles::-webkit-scrollbar {
           display: none;
         }
 
-        .im-style {
+        .mx-chip {
           flex: 0 0 auto;
-          padding: 9px 16px;
-          border: 1px solid rgba(255, 255, 255, 0.98);
+          scroll-snap-align: start;
+          height: 34px;
+          padding: 0 13px;
           border-radius: 999px;
-          font-size: 13.5px;
-          font-weight: 700;
+          border: 1px solid rgba(120, 82, 245, 0.2);
+          background: rgba(255, 255, 255, 0.85);
+          font-size: 12.5px;
+          font-weight: 600;
+          color: rgba(29, 26, 61, 0.8);
           cursor: pointer;
-          background: rgba(255, 255, 255, 0.78);
-          box-shadow: 0 6px 16px rgba(80, 60, 200, 0.1);
+          white-space: nowrap;
           transition:
-            transform 0.25s cubic-bezier(.2,.9,.3,1.25),
+            transform 0.2s ease,
             background 0.25s ease,
             color 0.25s ease,
             box-shadow 0.25s ease;
         }
 
-        .im-style:hover:not(:disabled) {
-          transform: translateY(-2px);
+        .mx-chip:active {
+          transform: scale(0.94);
         }
 
-        .im-style.on {
+        .mx-chip.on {
           color: #fff;
-          background: linear-gradient(135deg, #7c5cff, #3e7bff);
           border-color: transparent;
-          box-shadow: 0 10px 24px rgba(100, 80, 240, 0.4);
-          transform: scale(1.04);
+          background: linear-gradient(135deg, #7852f5, #b04bff);
+          box-shadow: 0 8px 18px rgba(120, 82, 245, 0.4);
         }
 
-        .im-style:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
+        .mx-chip:disabled,
+        .mx-style:disabled {
+          opacity: 0.5;
+          cursor: default;
         }
 
-        /* generate */
-
-        .im-cta-row {
+        .mx-style {
+          flex: 0 0 auto;
+          scroll-snap-align: start;
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-top: 16px;
-        }
-
-        .im-hint-keys {
-          display: none;
+          flex-direction: column;
           align-items: center;
           gap: 5px;
+          width: 78px;
+          padding: 10px 6px 9px;
+          border-radius: 18px;
+          border: 1px solid rgba(120, 82, 245, 0.16);
+          background: rgba(255, 255, 255, 0.85);
+          cursor: pointer;
+          transition:
+            transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+            box-shadow 0.25s ease,
+            background 0.25s ease;
         }
 
-        .im-hint-keys kbd {
-          padding: 4px 9px;
-          border-radius: 8px;
-          font-family: "Sora", sans-serif;
-          font-size: 11px;
+        .mx-style i {
+          width: 38px;
+          height: 38px;
+          display: grid;
+          place-items: center;
+          border-radius: 13px;
+          font-style: normal;
+          font-size: 20px;
+          background: linear-gradient(
+            135deg,
+            rgba(120, 82, 245, 0.14),
+            rgba(40, 176, 255, 0.14)
+          );
+        }
+
+        .mx-style span {
+          font-size: 11.5px;
           font-weight: 700;
-          color: rgba(27, 23, 64, 0.55);
-          background: rgba(255, 255, 255, 0.8);
-          border: 1px solid rgba(27, 23, 64, 0.12);
-          border-bottom-width: 2px;
+          color: rgba(29, 26, 61, 0.8);
+          white-space: nowrap;
         }
 
-        .im-gen-wrap {
+        .mx-style:active {
+          transform: scale(0.94);
+        }
+
+        .mx-style.on {
+          transform: translateY(-2px);
+          background: #fff;
+          border-color: transparent;
+          box-shadow:
+            0 0 0 2px #7852f5,
+            0 12px 26px rgba(120, 82, 245, 0.35);
+        }
+
+        .mx-style.on i {
+          background: linear-gradient(135deg, #7852f5, #c25bff);
+        }
+
+        /* ---------- Create button ---------- */
+
+        .mx-create {
           position: relative;
-          flex: 1;
-        }
-
-        .im-gen-light {
-          position: absolute;
-          inset: 10px 8% -10px;
-          border-radius: 999px;
-          background: linear-gradient(90deg, #7c5cff, #3e7bff, #ff5fae);
-          filter: blur(22px);
-          opacity: 0;
-          transition: opacity 0.4s ease;
-          pointer-events: none;
-        }
-
-        .im-gen-light.active {
-          opacity: 0.6;
-          animation: imGlowPulse 2.6s ease-in-out infinite;
-        }
-
-        .im-gen {
-          position: relative;
+          overflow: hidden;
+          width: 100%;
+          height: 58px;
+          margin-top: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 11px;
-          width: 100%;
-          height: 58px;
-          padding: 0 28px;
-          border: 1px solid rgba(255, 255, 255, 0.55);
-          border-radius: 999px;
-          overflow: hidden;
-          font-size: 17px;
+          gap: 10px;
+          border: 0;
+          border-radius: 20px;
+          font-size: 18px;
           font-weight: 900;
           color: #fff;
           cursor: pointer;
           background: linear-gradient(
             110deg,
             #6a4df0,
-            #3e7bff 45%,
-            #ff5fae 90%
+            #9b4dff 40%,
+            #ff6fb8 75%,
+            #6a4df0
           );
-          background-size: 200% 100%;
-          box-shadow:
-            0 16px 36px rgba(100, 80, 240, 0.42),
-            inset 0 1px 2px rgba(255, 255, 255, 0.5);
+          background-size: 250% 100%;
+          box-shadow: 0 16px 34px rgba(106, 77, 240, 0.45);
           transition:
-            transform 0.3s cubic-bezier(.2,.9,.3,1.25),
+            transform 0.2s ease,
             filter 0.3s ease,
             box-shadow 0.3s ease;
+          animation: mxFlow 5s linear infinite;
         }
 
-        .im-gen::after {
+        .mx-create svg {
+          width: 22px;
+          height: 22px;
+        }
+
+        .mx-create.ready::after {
           content: "";
           position: absolute;
           top: 0;
           bottom: 0;
-          width: 40%;
+          width: 60px;
+          left: -80px;
           background: linear-gradient(
-            100deg,
+            90deg,
             transparent,
-            rgba(255, 255, 255, 0.5),
+            rgba(255, 255, 255, 0.55),
             transparent
           );
-          animation: imShine 3.4s ease-in-out infinite;
-          pointer-events: none;
+          transform: skewX(-20deg);
+          animation: mxSweep 3.2s ease-in-out infinite;
         }
 
-        .im-gen:hover:not(:disabled) {
-          transform: translateY(-2px) scale(1.015);
-          background-position: 100% 0;
-          filter: brightness(1.06);
+        .mx-create.ready svg {
+          animation: mxTwinkleIcon 2.4s ease-in-out infinite;
         }
 
-        .im-gen:active:not(:disabled) {
+        .mx-create:active {
           transform: scale(0.97);
         }
 
-        .im-gen:disabled {
-          cursor: not-allowed;
-          filter: grayscale(0.55);
-          opacity: 0.55;
-          box-shadow: none;
+        .mx-create:disabled {
+          cursor: default;
+          filter: saturate(0.35) brightness(1.05);
+          box-shadow: 0 8px 18px rgba(106, 77, 240, 0.18);
+          animation: none;
         }
 
-        .im-gen:disabled::after {
+        .mx-kbd {
           display: none;
+          margin-top: 10px;
+          text-align: center;
+          direction: ltr;
+          font-size: 11px;
+          color: rgba(29, 26, 61, 0.45);
         }
 
-        .im-gen-icon {
-          display: grid;
-          place-items: center;
-          width: 21px;
-          height: 21px;
-          transition: transform 0.6s cubic-bezier(.2,.9,.3,1.25);
+        @media (hover: hover) and (pointer: fine) {
+          .mx-kbd {
+            display: block;
+          }
         }
 
-        .im-gen-icon svg {
-          width: 100%;
-          height: 100%;
-        }
-
-        .im-gen:hover:not(:disabled) .im-gen-icon {
-          transform: rotate(180deg) scale(1.2);
-        }
-
-        .im-spinner {
+        .mx-spinner {
           width: 20px;
           height: 20px;
           border-radius: 50%;
           border: 2.5px solid rgba(255, 255, 255, 0.4);
           border-top-color: #fff;
-          animation: imSpin 0.8s linear infinite;
+          animation: mxSpin 0.8s linear infinite;
         }
 
-        .im-error {
+        /* ---------- Error ---------- */
+
+        .mx-error {
           display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          margin-top: 14px;
-          padding: 12px 14px;
-          border-radius: 16px;
-          font-size: 14px;
-          line-height: 1.9;
-          color: #a8202c;
-          background: rgba(255, 235, 238, 0.88);
-          border: 1px solid rgba(220, 70, 85, 0.3);
-          animation: imRise 0.5s cubic-bezier(.2,.8,.2,1) both;
+          align-items: center;
+          gap: 12px;
+          padding: 13px 16px;
+          border-radius: 18px;
+          font-size: 13.5px;
+          font-weight: 600;
+          line-height: 1.8;
+          color: #b4234f;
+          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(255, 93, 122, 0.35);
+          box-shadow: 0 10px 26px rgba(255, 93, 122, 0.18);
+          animation: mxRise 0.4s ease both;
         }
 
-        .im-error span {
-          display: grid;
-          place-items: center;
-          flex: 0 0 22px;
-          height: 22px;
-          margin-top: 3px;
-          border-radius: 50%;
-          font-size: 13px;
-          font-weight: 900;
-          color: #fff;
-          background: #e5484d;
-        }
-
-        /* =====================================================
-           STAGE
-        ===================================================== */
-
-        .im-stage {
-          scroll-margin-top: 84px;
-          display: flex;
-          flex-direction: column;
-          gap: 22px;
-        }
-
-        .im-stage-card,
-        .im-empty,
-        .im-result {
-          width: 100%;
-          max-width: 560px;
-          margin-inline: auto;
-        }
-
-        .im-frame {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 1 / 1;
-          border-radius: 30px;
-          overflow: hidden;
-          background: #d9d0ff;
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          box-shadow:
-            0 30px 70px rgba(70, 55, 190, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-
-        .im-diffusion {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          display: block;
-        }
-
-        .im-corners i {
-          position: absolute;
+        .mx-error i {
+          flex: 0 0 auto;
           width: 26px;
           height: 26px;
-          border: 3px solid rgba(255, 255, 255, 0.95);
-          filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-          animation: imCorner 2.4s ease-in-out infinite;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          font-style: normal;
+          font-weight: 900;
+          color: #fff;
+          background: #ff4f7b;
         }
 
-        .im-corners i:nth-child(1) { top: 16px; right: 16px; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
-        .im-corners i:nth-child(2) { top: 16px; left: 16px; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
-        .im-corners i:nth-child(3) { bottom: 16px; right: 16px; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
-        .im-corners i:nth-child(4) { bottom: 16px; left: 16px; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
+        /* ---------- Generating ---------- */
 
-        .im-words {
+        .mx-gen {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 14px;
+          animation: mxRise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        .mx-gen-canvas {
+          position: relative;
+          width: 100%;
+          max-width: 520px;
+          aspect-ratio: 1 / 1;
+          overflow: hidden;
+          border-radius: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          background: linear-gradient(
+            135deg,
+            #e9defe,
+            #cfe3ff,
+            #ffd9ee,
+            #e9defe
+          );
+          background-size: 300% 300%;
+          box-shadow:
+            0 26px 64px rgba(120, 82, 245, 0.34),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          animation: mxGradMove 6s ease-in-out infinite;
+        }
+
+        .mx-gen-flow,
+        .mx-gen-aurora {
           position: absolute;
           inset: 0;
-          --R: min(36vw, 170px);
-          pointer-events: none;
         }
 
-        .im-words span {
+        .mx-gen-aurora::before {
+          content: "";
           position: absolute;
           left: 50%;
           top: 50%;
-          padding: 5px 12px;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 800;
-          white-space: nowrap;
-          color: var(--ink);
-          background: rgba(255, 255, 255, 0.86);
-          box-shadow: 0 8px 20px rgba(80, 60, 200, 0.28);
-          opacity: 0;
-          animation: imWord 5.6s cubic-bezier(.5, 0, .3, 1) var(--wd) infinite;
+          width: 150%;
+          height: 150%;
+          margin: -75% 0 0 -75%;
+          background: conic-gradient(
+            from 0deg,
+            rgba(120, 82, 245, 0),
+            rgba(120, 82, 245, 0.45),
+            rgba(40, 176, 255, 0),
+            rgba(255, 120, 196, 0.5),
+            rgba(120, 82, 245, 0)
+          );
+          animation: mxSpin 9s linear infinite;
         }
 
-        .im-core {
+        .mx-scan {
           position: absolute;
-          inset: 0;
-          display: grid;
-          place-items: center;
-          pointer-events: none;
+          left: 0;
+          right: 0;
+          height: 90px;
+          top: -90px;
+          background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.7),
+            rgba(255, 255, 255, 0)
+          );
+          animation: mxScan 2.8s ease-in-out infinite;
         }
 
-        .im-core i {
-          width: 58px;
-          height: 58px;
-          border-radius: 50%;
-          border: 2px solid rgba(255, 255, 255, 0.95);
-          box-shadow:
-            0 0 30px rgba(255, 255, 255, 0.8),
-            inset 0 0 20px rgba(255, 255, 255, 0.6);
-          animation: imCore 2.2s ease-out infinite;
+        .mx-fl {
+          position: absolute;
+          font-style: normal;
+          color: #fff;
+          text-shadow: 0 0 14px rgba(120, 82, 245, 0.9);
+          animation: mxFloat 4s ease-in-out infinite;
         }
 
-        .im-stage-info {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          margin-top: 20px;
-          text-align: center;
+        .mx-fl.f1 {
+          left: 14%;
+          top: 22%;
+          font-size: 18px;
+        }
+        .mx-fl.f2 {
+          right: 16%;
+          top: 18%;
+          font-size: 12px;
+          animation-delay: 0.8s;
+        }
+        .mx-fl.f3 {
+          left: 22%;
+          top: 62%;
+          font-size: 13px;
+          animation-delay: 1.6s;
+        }
+        .mx-fl.f4 {
+          right: 20%;
+          top: 56%;
+          font-size: 20px;
+          animation-delay: 0.4s;
+        }
+        .mx-fl.f5 {
+          left: 48%;
+          top: 12%;
+          font-size: 10px;
+          animation-delay: 2.2s;
+        }
+        .mx-fl.f6 {
+          right: 40%;
+          top: 70%;
+          font-size: 11px;
+          animation-delay: 1.2s;
         }
 
-        .im-stage-label {
-          font-size: 19px;
-          font-weight: 900;
-          background: linear-gradient(90deg, #5b3df0, #2f7bff, #ff5fae);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation: imFlip 0.55s cubic-bezier(.2,.8,.2,1) both;
-        }
-
-        .im-stage-dots {
-          display: flex;
-          gap: 7px;
-        }
-
-        .im-stage-dots i {
-          width: 26px;
-          height: 6px;
-          border-radius: 999px;
-          background: rgba(27, 23, 64, 0.14);
-          transition:
-            background 0.5s ease,
-            box-shadow 0.5s ease;
-        }
-
-        .im-stage-dots i.on {
-          background: linear-gradient(90deg, #7c5cff, #ff5fae);
-          box-shadow: 0 0 12px rgba(124, 92, 255, 0.55);
-        }
-
-        .im-stage-sub {
-          font-size: 14px;
-          line-height: 1.9;
-          color: var(--muted);
-        }
-
-        /* empty */
-
-        .im-empty {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .im-empty-label {
+        .mx-orb {
           position: absolute;
           left: 50%;
-          bottom: 22px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          min-width: 70%;
-          padding: 12px 18px;
-          border-radius: 20px;
-          text-align: center;
-          transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.72);
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          box-shadow: 0 14px 34px rgba(70, 55, 190, 0.2);
-          -webkit-backdrop-filter: blur(14px);
-          backdrop-filter: blur(14px);
+          top: 42%;
+          width: 120px;
+          height: 120px;
+          margin: -60px 0 0 -60px;
         }
 
-        .im-empty-label b {
-          font-size: 16px;
-          font-weight: 900;
-        }
-
-        .im-empty-label span {
-          font-size: 13px;
-          color: var(--muted);
-        }
-
-        .im-ideas-title {
-          display: block;
-          margin-bottom: 10px;
-          font-size: 12.5px;
-          font-weight: 800;
-          color: rgba(27, 23, 64, 0.55);
-        }
-
-        .im-ideas-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .im-idea {
-          max-width: 100%;
-          padding: 10px 15px;
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          border-radius: 16px;
-          font-size: 13.5px;
-          line-height: 1.8;
-          text-align: start;
-          cursor: pointer;
-          background: rgba(255, 255, 255, 0.74);
-          box-shadow: 0 8px 20px rgba(80, 60, 200, 0.1);
-          transition:
-            transform 0.25s cubic-bezier(.2,.9,.3,1.25),
-            border-color 0.25s ease,
-            box-shadow 0.25s ease;
-        }
-
-        .im-idea:hover:not(:disabled) {
-          transform: translateY(-3px);
-          border-color: rgba(124, 92, 255, 0.55);
-          box-shadow: 0 14px 30px rgba(80, 60, 200, 0.2);
-        }
-
-        /* result */
-
-        .im-result {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-
-        .im-card {
-          --rx: 0deg;
-          --ry: 0deg;
-          --gx: 50%;
-          --gy: 30%;
-          position: relative;
-          transform: perspective(1000px) rotateY(var(--rx)) rotateX(var(--ry));
-          transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
-        }
-
-        .im-card-inner {
-          position: relative;
-          border-radius: 30px;
-          overflow: hidden;
-          background: #d9d0ff;
-          border: 1px solid rgba(255, 255, 255, 0.98);
+        .mx-orb-core {
+          position: absolute;
+          inset: 28px;
+          border-radius: 50%;
+          background: radial-gradient(
+            circle at 32% 28%,
+            #fff,
+            #c9b6ff 40%,
+            #7852f5 75%,
+            #4a35d0
+          );
           box-shadow:
-            0 34px 80px rgba(70, 55, 190, 0.32),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            0 0 40px rgba(120, 82, 245, 0.7),
+            0 14px 30px rgba(74, 53, 208, 0.45);
+          animation: mxBreath 2.4s ease-in-out infinite;
         }
 
-        .im-card-inner img {
+        .mx-orb-ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          border: 1.5px solid rgba(120, 82, 245, 0.5);
+          animation: mxRing 2.8s ease-out infinite;
+        }
+
+        .mx-orb-ring.r2 {
+          animation-delay: 0.9s;
+        }
+
+        .mx-orb-ring.r3 {
+          animation-delay: 1.8s;
+        }
+
+        .mx-gen-info {
+          position: absolute;
+          left: 16px;
+          right: 16px;
+          bottom: 16px;
+          padding: 13px 15px 12px;
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 10px 26px rgba(86, 66, 200, 0.2);
+        }
+
+        .mx-stage {
+          font-size: 14.5px;
+          font-weight: 800;
+          color: var(--violet-d);
+          animation: mxTextIn 0.5s ease both;
+        }
+
+        .mx-bar {
+          height: 7px;
+          margin: 9px 0 7px;
+          overflow: hidden;
+          border-radius: 6px;
+          background: rgba(120, 82, 245, 0.15);
+        }
+
+        .mx-bar span {
+          display: block;
+          height: 100%;
+          border-radius: 6px;
+          background: linear-gradient(90deg, #7852f5, #ff78c4, #28b0ff);
+          background-size: 200% 100%;
+          transition: width 0.4s linear;
+          animation: mxFlow 2s linear infinite;
+        }
+
+        .mx-gen-meta {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11.5px;
+          font-weight: 600;
+          color: rgba(29, 26, 61, 0.6);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .mx-gen-prompt {
+          width: 100%;
+          max-width: 520px;
+          padding: 10px 14px;
+          border-radius: 16px;
+          font-size: 13px;
+          line-height: 1.9;
+          text-align: start;
+          color: rgba(29, 26, 61, 0.78);
+          background: rgba(255, 255, 255, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.9);
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .mx-cancel {
+          height: 36px;
+          padding: 0 18px;
+          border-radius: 999px;
+          border: 1px solid rgba(29, 26, 61, 0.15);
+          background: rgba(255, 255, 255, 0.7);
+          font-size: 12.5px;
+          font-weight: 700;
+          color: rgba(29, 26, 61, 0.7);
+          cursor: pointer;
+        }
+
+        /* ---------- Result ---------- */
+
+        .mx-result {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          scroll-margin-top: 70px;
+          animation: mxRise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        .mx-frame {
+          position: relative;
+          width: 100%;
+          max-width: 560px;
+          margin: 0 auto;
+        }
+
+        .mx-frame-glow {
+          position: absolute;
+          inset: 6% 4% -4%;
+          border-radius: 36px;
+          background: linear-gradient(135deg, #7852f5, #28b0ff, #ff78c4);
+          opacity: 0.55;
+          animation: mxGlow 4s ease-in-out infinite alternate;
+        }
+
+        .mx-frame-inner {
+          position: relative;
+          overflow: hidden;
+          border-radius: 30px;
+          padding: 7px;
+          background: rgba(255, 255, 255, 0.92);
+          border: 1px solid rgba(255, 255, 255, 1);
+          box-shadow: 0 26px 60px rgba(60, 40, 170, 0.32);
+          min-height: 200px;
+        }
+
+        .mx-img {
           display: block;
           width: 100%;
           height: auto;
-          max-height: 82vh;
-          object-fit: contain;
+          border-radius: 24px;
+          opacity: 0;
+          filter: blur(22px) saturate(1.4);
+          transform: scale(1.06);
+          transition:
+            opacity 0.8s ease,
+            filter 1s ease,
+            transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
           cursor: zoom-in;
         }
 
-        .im-gloss {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: 0;
-          background: radial-gradient(
-            420px circle at var(--gx) var(--gy),
-            rgba(255, 255, 255, 0.34),
-            transparent 60%
-          );
-          transition: opacity 0.3s ease;
-        }
-
-        .im-card:hover .im-gloss {
+        .mx-img.in {
           opacity: 1;
+          filter: blur(0) saturate(1);
+          transform: scale(1);
         }
 
-        .im-flash {
+        .mx-shine {
           position: absolute;
-          inset: 0;
+          top: 0;
+          bottom: 0;
+          width: 90px;
+          left: -120px;
           pointer-events: none;
-          opacity: 0;
-          background: radial-gradient(
-            circle at 50% 50%,
-            #fff,
-            rgba(255, 255, 255, 0.4) 50%,
-            transparent 80%
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.6),
+            transparent
           );
+          transform: skewX(-20deg);
+          animation: mxSweepOnce 1.3s ease 0.35s 1 both;
         }
 
-        .im-expand {
+        .mx-badge {
           position: absolute;
-          top: 14px;
-          left: 14px;
-          display: grid;
-          place-items: center;
-          width: 40px;
-          height: 40px;
-          border: 1px solid rgba(255, 255, 255, 0.95);
-          border-radius: 14px;
-          color: var(--ink);
-          cursor: pointer;
-          background: rgba(255, 255, 255, 0.78);
-          box-shadow: 0 10px 24px rgba(40, 30, 120, 0.25);
-          -webkit-backdrop-filter: blur(12px);
-          backdrop-filter: blur(12px);
-          transition: transform 0.25s cubic-bezier(.2,.9,.3,1.25);
+          left: 16px;
+          bottom: 16px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 11px;
+          border-radius: 999px;
+          font-size: 10.5px;
+          font-weight: 800;
+          letter-spacing: 0.4px;
+          color: #fff;
+          direction: ltr;
+          background: rgba(29, 26, 61, 0.45);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
         }
 
-        .im-expand svg {
-          width: 20px;
-          height: 20px;
+        .mx-badge svg {
+          width: 13px;
+          height: 13px;
         }
 
-        .im-expand:hover {
-          transform: scale(1.1);
-        }
-
-        .im-card.reveal .im-card-inner img {
-          animation: imDevelop 1.4s cubic-bezier(.2,.8,.2,1) both;
-        }
-
-        .im-card.reveal .im-flash {
-          animation: imFlash 1.2s ease-out both;
-        }
-
-        .im-burst {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-        }
-
-        .im-burst i {
+        .mx-burst {
           position: absolute;
           left: 50%;
           top: 50%;
-          width: 9px;
-          height: 9px;
-          margin: -4.5px;
+          width: 0;
+          height: 0;
+          pointer-events: none;
+        }
+
+        .mx-burst i {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: var(--s);
+          height: var(--s);
           border-radius: 50%;
+          background: radial-gradient(circle, #fff, #ffd1ef 45%, #a98bff);
+          box-shadow: 0 0 12px rgba(160, 120, 255, 0.9);
           opacity: 0;
-          background: linear-gradient(135deg, #fff, #ffc8ec);
-          box-shadow:
-            0 0 12px rgba(255, 255, 255, 0.95),
-            0 0 24px rgba(160, 120, 255, 0.7);
+          animation: mxBurst 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
         }
 
-        .im-card.reveal .im-burst i {
-          animation: imBurst 1.3s cubic-bezier(.2,.8,.3,1) 0.15s both;
-        }
-
-        .im-actions {
+        .mx-actions {
           display: flex;
-          justify-content: center;
-          flex-wrap: wrap;
           gap: 10px;
-          animation: imRise 0.8s cubic-bezier(.2,.8,.2,1) 0.5s both;
+          width: 100%;
+          max-width: 560px;
+          margin: 0 auto;
         }
 
-        .im-action {
-          display: inline-flex;
+        .mx-act {
+          flex: 1;
+          height: 52px;
+          display: flex;
           align-items: center;
-          gap: 9px;
-          padding: 13px 24px;
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          border-radius: 999px;
-          font-size: 15px;
+          justify-content: center;
+          gap: 8px;
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.82);
+          box-shadow: 0 8px 22px rgba(86, 66, 200, 0.16);
+          font-size: 14px;
           font-weight: 800;
+          color: var(--violet-d);
           cursor: pointer;
-          background: rgba(255, 255, 255, 0.8);
-          box-shadow: 0 10px 26px rgba(80, 60, 200, 0.14);
-          transition:
-            transform 0.28s cubic-bezier(.2,.9,.3,1.25),
-            box-shadow 0.28s ease;
+          transition: transform 0.2s ease;
         }
 
-        .im-action svg {
+        .mx-act svg {
           width: 19px;
           height: 19px;
         }
 
-        .im-action:hover:not(:disabled) {
-          transform: translateY(-3px);
-          box-shadow: 0 16px 34px rgba(80, 60, 200, 0.24);
+        .mx-act:active {
+          transform: scale(0.95);
         }
 
-        .im-action:active:not(:disabled) {
+        .mx-act:disabled {
+          opacity: 0.5;
+        }
+
+        .mx-act-main {
+          flex: 1.4;
+          color: #fff;
+          border-color: transparent;
+          background: linear-gradient(135deg, #6a4df0, #b04bff);
+          box-shadow: 0 12px 26px rgba(106, 77, 240, 0.42);
+        }
+
+        .mx-actions-small .mx-act {
+          height: 46px;
+          flex-direction: column;
+          gap: 2px;
+          font-size: 11.5px;
+          border-radius: 16px;
+        }
+
+        .mx-actions-small .mx-act svg {
+          width: 17px;
+          height: 17px;
+        }
+
+        .mx-used {
+          width: 100%;
+          max-width: 560px;
+          margin: 0 auto;
+          padding: 12px 15px 13px;
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          box-shadow: 0 8px 22px rgba(86, 66, 200, 0.14);
+        }
+
+        .mx-used-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 4px;
+          font-size: 11.5px;
+          font-weight: 800;
+          color: var(--violet-d);
+        }
+
+        .mx-used-top em {
+          font-style: normal;
+          padding: 3px 10px;
+          border-radius: 999px;
+          background: rgba(120, 82, 245, 0.12);
+        }
+
+        .mx-used p {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 1.95;
+          text-align: start;
+          color: var(--ink);
+        }
+
+        /* ---------- Sections ---------- */
+
+        .mx-section {
+          animation: mxRise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+          scroll-margin-top: 70px;
+        }
+
+        .mx-sec-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          margin: 0 4px 12px;
+        }
+
+        .mx-sec-head h2 {
+          margin: 0;
+          font-size: 17px;
+          font-weight: 900;
+          color: var(--ink);
+        }
+
+        .mx-sec-head span {
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(29, 26, 61, 0.55);
+        }
+
+        .mx-ideas {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        @media (min-width: 640px) {
+          .mx-ideas {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+
+        .mx-idea {
+          position: relative;
+          overflow: hidden;
+          min-height: 150px;
+          padding: 14px 13px 13px;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          text-align: start;
+          border-radius: 22px;
+          border: 1px solid rgba(255, 255, 255, 0.95);
+          background:
+            linear-gradient(
+              160deg,
+              rgba(255, 255, 255, 0.92),
+              rgba(255, 255, 255, 0.7)
+            );
+          box-shadow: 0 10px 26px rgba(86, 66, 200, 0.16);
+          cursor: pointer;
+          animation: mxRise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+          transition:
+            transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+            box-shadow 0.3s ease;
+        }
+
+        .mx-idea::before {
+          content: "";
+          position: absolute;
+          width: 120px;
+          height: 120px;
+          left: -34px;
+          bottom: -44px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--from), var(--to));
+          opacity: 0.28;
+          transition: opacity 0.3s ease, transform 0.4s ease;
+        }
+
+        .mx-idea:hover::before,
+        .mx-idea:active::before {
+          opacity: 0.5;
+          transform: scale(1.25);
+        }
+
+        .mx-idea:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 16px 34px rgba(86, 66, 200, 0.26);
+        }
+
+        .mx-idea:active {
           transform: scale(0.96);
         }
 
-        .im-action:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
+        .mx-idea:disabled {
+          opacity: 0.55;
+          cursor: default;
         }
 
-        .im-action.primary {
-          color: #fff;
-          border-color: rgba(255, 255, 255, 0.5);
-          background: linear-gradient(135deg, #6a4df0, #3e7bff);
-          box-shadow: 0 16px 34px rgba(100, 80, 240, 0.42);
+        .mx-idea-emoji {
+          position: relative;
+          width: 40px;
+          height: 40px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          font-style: normal;
+          font-size: 22px;
+          background: linear-gradient(135deg, var(--from), var(--to));
+          box-shadow: 0 8px 16px rgba(60, 40, 170, 0.25);
         }
 
-        /* gallery */
-
-        .im-gallery {
-          width: 100%;
-          max-width: 560px;
-          margin-inline: auto;
+        .mx-idea b {
+          position: relative;
+          margin-top: 5px;
+          font-size: 14px;
+          font-weight: 900;
+          color: var(--ink);
         }
 
-        .im-gallery-row {
+        .mx-idea span {
+          position: relative;
+          font-size: 11.5px;
+          line-height: 1.8;
+          color: rgba(29, 26, 61, 0.62);
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        /* ---------- History ---------- */
+
+        .mx-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 24px 18px;
+          text-align: center;
+          border-radius: 24px;
+          border: 1.5px dashed rgba(120, 82, 245, 0.35);
+          background: rgba(255, 255, 255, 0.5);
+        }
+
+        .mx-empty i {
+          font-style: normal;
+          font-size: 30px;
+          animation: mxFloat 3.6s ease-in-out infinite;
+        }
+
+        .mx-empty p {
+          margin: 0;
+          max-width: 300px;
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 1.9;
+          color: rgba(29, 26, 61, 0.62);
+        }
+
+        .mx-history {
           display: flex;
           gap: 10px;
-          padding: 4px 4px 10px;
           overflow-x: auto;
+          padding: 4px 2px 10px;
           scrollbar-width: none;
         }
 
-        .im-gallery-row::-webkit-scrollbar {
+        .mx-history::-webkit-scrollbar {
           display: none;
         }
 
-        .im-thumb {
+        .mx-thumb {
           flex: 0 0 auto;
-          width: 66px;
-          height: 66px;
+          width: 96px;
+          height: 96px;
           padding: 0;
-          border: 2px solid rgba(255, 255, 255, 0.95);
-          border-radius: 18px;
           overflow: hidden;
+          border-radius: 20px;
+          border: 2px solid rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.7);
+          box-shadow: 0 8px 20px rgba(86, 66, 200, 0.2);
           cursor: pointer;
-          background: #d9d0ff;
-          box-shadow: 0 10px 22px rgba(80, 60, 200, 0.18);
-          transition:
-            transform 0.28s cubic-bezier(.2,.9,.3,1.25),
-            border-color 0.25s ease,
-            box-shadow 0.25s ease;
+          transition: transform 0.2s ease, box-shadow 0.25s ease;
         }
 
-        .im-thumb img {
-          display: block;
+        .mx-thumb img {
           width: 100%;
           height: 100%;
+          display: block;
           object-fit: cover;
         }
 
-        .im-thumb:hover {
-          transform: translateY(-3px);
+        .mx-thumb:active {
+          transform: scale(0.94);
         }
 
-        .im-thumb.on {
-          border-color: #7c5cff;
+        .mx-thumb.active {
+          border-color: #7852f5;
           box-shadow:
-            0 0 0 3px rgba(124, 92, 255, 0.28),
-            0 12px 26px rgba(100, 80, 240, 0.4);
-          transform: scale(1.06);
+            0 0 0 2px rgba(120, 82, 245, 0.35),
+            0 12px 26px rgba(120, 82, 245, 0.4);
         }
 
-        /* footer */
-
-        .im-footer {
+        .mx-foot {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 12px;
-          margin-top: 44px;
-          direction: ltr;
-          font-family: "Sora", sans-serif;
+          gap: 7px;
+          padding-top: 4px;
           font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.2em;
-          color: rgba(27, 23, 64, 0.48);
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          color: rgba(29, 26, 61, 0.45);
+          direction: ltr;
         }
 
-        .im-footer-serif {
-          font-family: "Instrument Serif", Georgia, serif;
-          font-style: italic;
-          font-size: 19px;
-          letter-spacing: 0;
-          color: rgba(27, 23, 64, 0.62);
+        .mx-foot svg {
+          width: 14px;
+          height: 14px;
         }
 
-        .im-footer i {
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: var(--violet);
-        }
+        /* ---------- Viewer ---------- */
 
-        /* lightbox */
-
-        .im-lightbox {
+        .mx-viewer {
           position: fixed;
           inset: 0;
-          z-index: 400;
-          display: grid;
-          place-items: center;
-          padding: 20px;
-          cursor: zoom-out;
-          background: rgba(20, 14, 60, 0.8);
-          -webkit-backdrop-filter: blur(14px);
-          backdrop-filter: blur(14px);
-          animation: imFade 0.3s ease both;
+          z-index: 60;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 54px 14px 90px;
+          background: rgba(20, 14, 52, 0.86);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          animation: mxFadeIn 0.3s ease both;
         }
 
-        .im-lightbox img {
-          max-width: min(94vw, 1100px);
-          max-height: 88vh;
-          border-radius: 22px;
-          box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
-          animation: imZoomIn 0.45s cubic-bezier(.2,.9,.3,1.1) both;
+        .mx-viewer img {
+          max-width: 100%;
+          max-height: 100%;
+          border-radius: 18px;
+          box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+          animation: mxZoomIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
         }
 
-        .im-lightbox-close {
+        .mx-viewer-close {
           position: absolute;
-          top: calc(18px + env(safe-area-inset-top));
-          left: 18px;
+          top: calc(env(safe-area-inset-top, 0px) + 12px);
+          right: 14px;
+          width: 42px;
+          height: 42px;
           display: grid;
           place-items: center;
-          width: 46px;
-          height: 46px;
-          border: 1px solid rgba(255, 255, 255, 0.5);
           border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.16);
           color: #fff;
           cursor: pointer;
-          background: rgba(255, 255, 255, 0.18);
         }
 
-        .im-lightbox-close svg {
-          width: 22px;
-          height: 22px;
+        .mx-viewer-close svg {
+          width: 20px;
+          height: 20px;
         }
 
-        /* =====================================================
-           KEYFRAMES
-        ===================================================== */
+        .mx-viewer-dl {
+          position: absolute;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+          left: 50%;
+          transform: translateX(-50%);
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          height: 48px;
+          padding: 0 26px;
+          border: 0;
+          border-radius: 999px;
+          font-size: 14px;
+          font-weight: 800;
+          color: #fff;
+          background: linear-gradient(135deg, #6a4df0, #b04bff);
+          box-shadow: 0 12px 28px rgba(106, 77, 240, 0.5);
+          cursor: pointer;
+        }
 
-        @keyframes imRise {
+        .mx-viewer-dl svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        /* ---------- Toast ---------- */
+
+        .mx-toast {
+          position: fixed;
+          left: 50%;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
+          z-index: 80;
+          transform: translateX(-50%);
+          padding: 11px 20px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          background: rgba(29, 26, 61, 0.88);
+          box-shadow: 0 12px 30px rgba(20, 14, 52, 0.4);
+          animation: mxToast 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        /* ---------- Keyframes ---------- */
+
+        @keyframes mxRise {
           from {
             opacity: 0;
-            transform: translateY(26px);
-            filter: blur(8px);
+            transform: translateY(22px);
           }
-
           to {
             opacity: 1;
-            transform: none;
-            filter: blur(0);
+            transform: translateY(0);
           }
         }
 
-        @keyframes imDrop {
+        @keyframes mxFadeDown {
           from {
             opacity: 0;
-            transform: translateY(-24px);
+            transform: translateY(-14px);
           }
-
           to {
             opacity: 1;
-            transform: none;
+            transform: translateY(0);
           }
         }
 
-        @keyframes imSpin {
+        @keyframes mxFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes mxZoomIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes mxTextIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes mxToast {
+          from {
+            opacity: 0;
+            transform: translate(-50%, 14px);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+
+        @keyframes mxDriftA {
+          from {
+            transform: translate3d(0, 0, 0) scale(1);
+          }
+          to {
+            transform: translate3d(70px, 50px, 0) scale(1.15);
+          }
+        }
+
+        @keyframes mxDriftB {
+          from {
+            transform: translate3d(0, 0, 0) scale(1.1);
+          }
+          to {
+            transform: translate3d(-60px, -70px, 0) scale(0.95);
+          }
+        }
+
+        @keyframes mxTwinkle {
+          0%,
+          100% {
+            opacity: 0.25;
+            transform: scale(0.8) rotate(0deg);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2) rotate(20deg);
+          }
+        }
+
+        @keyframes mxTwinkleIcon {
+          0%,
+          100% {
+            transform: scale(1) rotate(0deg);
+          }
+          50% {
+            transform: scale(1.18) rotate(14deg);
+          }
+        }
+
+        @keyframes mxFlow {
+          from {
+            background-position: 0% 50%;
+          }
+          to {
+            background-position: 250% 50%;
+          }
+        }
+
+        @keyframes mxGradMove {
+          0%,
+          100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+
+        @keyframes mxSweep {
+          0%,
+          55% {
+            left: -80px;
+          }
+          100% {
+            left: 120%;
+          }
+        }
+
+        @keyframes mxSweepOnce {
+          from {
+            left: -120px;
+          }
+          to {
+            left: 120%;
+          }
+        }
+
+        @keyframes mxPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(120, 82, 245, 0.55);
+          }
+          100% {
+            box-shadow: 0 0 0 10px rgba(120, 82, 245, 0);
+          }
+        }
+
+        @keyframes mxSpin {
           to {
             transform: rotate(360deg);
           }
         }
 
-        @keyframes imGradText {
-          from {
-            background-position: 0% 50%;
-          }
-
-          to {
-            background-position: 220% 50%;
-          }
-        }
-
-        @keyframes imDriftA {
-          from {
-            transform: translate(0, 0);
-          }
-
-          to {
-            transform: translate(50px, 40px);
-          }
-        }
-
-        @keyframes imDriftB {
-          from {
-            transform: translate(0, 0);
-          }
-
-          to {
-            transform: translate(-50px, -40px);
-          }
-        }
-
-        @keyframes imTwinkle {
+        @keyframes mxWiggle {
           0%,
           100% {
-            opacity: 0.25;
-            transform: scale(0.8);
+            transform: rotate(0deg);
           }
-
-          50% {
-            opacity: 1;
-            transform: scale(1.15);
+          25% {
+            transform: rotate(-18deg);
           }
-        }
-
-        @keyframes imPulseDot {
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-
-          50% {
-            transform: scale(1.5);
-            opacity: 0.5;
+          75% {
+            transform: rotate(18deg);
           }
         }
 
-        @keyframes imGlowPulse {
-          0%,
-          100% {
-            opacity: 0.45;
-            transform: scale(0.96);
-          }
-
-          50% {
-            opacity: 0.75;
-            transform: scale(1.04);
-          }
-        }
-
-        @keyframes imShine {
+        @keyframes mxScan {
           0% {
-            inset-inline-start: -50%;
+            top: -90px;
           }
-
-          60%,
           100% {
-            inset-inline-start: 130%;
+            top: 100%;
           }
         }
 
-        @keyframes imCorner {
+        @keyframes mxFloat {
           0%,
           100% {
-            opacity: 0.55;
-            transform: scale(1);
+            transform: translateY(0) scale(0.9);
+            opacity: 0.4;
           }
-
           50% {
+            transform: translateY(-14px) scale(1.15);
             opacity: 1;
-            transform: scale(1.12);
           }
         }
 
-        @keyframes imCore {
+        @keyframes mxBreath {
+          0%,
+          100% {
+            transform: scale(0.94);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+        }
+
+        @keyframes mxRing {
           0% {
+            transform: scale(0.5);
             opacity: 0.9;
-            transform: scale(0.45);
           }
-
           100% {
+            transform: scale(1.5);
             opacity: 0;
-            transform: scale(2.6);
           }
         }
 
-        @keyframes imWord {
-          0% {
-            opacity: 0;
-            transform:
-              translate(-50%, -50%)
-              translate(
-                calc(var(--R) * var(--cx)),
-                calc(var(--R) * var(--cy))
-              )
-              scale(1);
-          }
-
-          12% {
-            opacity: 1;
-          }
-
-          70% {
-            opacity: 0.95;
-          }
-
-          100% {
-            opacity: 0;
-            filter: blur(5px);
-            transform:
-              translate(-50%, -50%)
-              translate(0px, 0px)
-              scale(0.15);
-          }
-        }
-
-        @keyframes imFlip {
+        @keyframes mxGlow {
           from {
-            opacity: 0;
-            transform: translateY(12px);
+            opacity: 0.4;
+            transform: scale(0.98);
           }
-
           to {
+            opacity: 0.7;
+            transform: scale(1.03);
+          }
+        }
+
+        @keyframes mxBurst {
+          0% {
             opacity: 1;
-            transform: none;
+            transform: rotate(var(--a)) translateX(0) scale(0.4);
           }
-        }
-
-        @keyframes imDevelop {
-          0% {
-            -webkit-clip-path: circle(0% at 50% 50%);
-            clip-path: circle(0% at 50% 50%);
-            filter: blur(24px) saturate(1.7) brightness(1.3);
-            transform: scale(1.08);
-          }
-
-          55% {
-            filter: blur(7px) saturate(1.25) brightness(1.1);
-          }
-
-          100% {
-            -webkit-clip-path: circle(150% at 50% 50%);
-            clip-path: circle(150% at 50% 50%);
-            filter: none;
-            transform: none;
-          }
-        }
-
-        @keyframes imFlash {
-          0% {
-            opacity: 0.95;
-          }
-
           100% {
             opacity: 0;
-          }
-        }
-
-        @keyframes imBurst {
-          0% {
-            opacity: 0;
-            transform: rotate(var(--ba)) translateX(0) scale(0.2);
-          }
-
-          18% {
-            opacity: 1;
-          }
-
-          100% {
-            opacity: 0;
-            transform:
-              rotate(var(--ba))
-              translateX(var(--bd))
-              scale(var(--bs));
-          }
-        }
-
-        @keyframes imFade {
-          from {
-            opacity: 0;
-          }
-
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes imZoomIn {
-          from {
-            opacity: 0;
-            transform: scale(0.88);
-          }
-
-          to {
-            opacity: 1;
-            transform: none;
-          }
-        }
-
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-
-        @media (min-width: 960px) {
-          .im-wrap {
-            padding-top: 112px;
-          }
-
-          .im-grid-layout {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-            gap: 30px;
-          }
-
-          .im-studio {
-            padding: 26px;
-          }
-
-          .im-styles-row {
-            margin: 0 -26px;
-            padding-inline: 26px;
-          }
-
-          .im-hint-keys {
-            display: inline-flex;
-          }
-
-          .im-gen-wrap {
-            flex: 0 1 270px;
-          }
-
-          .im-stage {
-            position: sticky;
-            top: 92px;
-          }
-        }
-
-        @media (max-width: 520px) {
-          .im-wrap {
-            padding-inline: 14px;
-          }
-
-          .im-studio {
-            padding: 16px;
-          }
-
-          .im-styles-row {
-            margin: 0 -16px;
-            padding-inline: 16px;
-          }
-
-          .im-gen {
-            height: 56px;
-            font-size: 16px;
+            transform: rotate(var(--a)) translateX(var(--d)) scale(1);
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .im-root *,
-          .im-root *::before,
-          .im-root *::after {
-            animation: none !important;
-            transition-duration: 0.01ms !important;
+          .mx-root *,
+          .mx-root *::before,
+          .mx-root *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
           }
         }
-
-        /* =====================================================
-           IDEAS PANEL + INSPIRATION MARQUEE
-        ===================================================== */
-
-        .im-ideas {
-          padding: 14px;
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.58);
-          border: 1px solid rgba(255, 255, 255, 0.96);
-          box-shadow: 0 14px 40px rgba(70, 55, 190, 0.12);
-        }
-
-        .im-marquee-section {
-          margin: 40px -16px 0;
-        }
-
-        .im-marquee-head {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          margin-bottom: 14px;
-          text-align: center;
-        }
-
-        .im-marquee-head .im-ideas-title {
-          margin-bottom: 0;
-          color: #5a3fe6;
-          letter-spacing: 0.2em;
-        }
-
-        .im-marquee-head b {
-          font-size: clamp(18px, 4vw, 24px);
-          font-weight: 900;
-        }
-
-        .im-marquee {
-          direction: ltr;
-          overflow: hidden;
-          padding: 6px 0;
-          -webkit-mask-image:
-            linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-          mask-image:
-            linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-        }
-
-        .im-marquee-track {
-          display: flex;
-          gap: 12px;
-          width: max-content;
-          padding-inline-end: 12px;
-          animation: imMarquee 70s linear infinite;
-        }
-
-        .im-marquee:hover .im-marquee-track {
-          animation-play-state: paused;
-        }
-
-        .im-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          direction: rtl;
-          padding: 13px 22px;
-          border: 1px solid rgba(255, 255, 255, 0.98);
-          border-radius: 999px;
-          font-family: inherit;
-          font-size: 14.5px;
-          font-weight: 600;
-          white-space: nowrap;
-          color: #1b1740;
-          cursor: pointer;
-          background: rgba(255, 255, 255, 0.74);
-          box-shadow: 0 10px 26px rgba(80, 60, 200, 0.1);
-          transition:
-            transform 0.25s cubic-bezier(.2,.9,.3,1.25),
-            box-shadow 0.25s ease;
-        }
-
-        .im-chip:hover:not(:disabled) {
-          transform: translateY(-3px);
-          box-shadow: 0 16px 34px rgba(80, 60, 200, 0.2);
-        }
-
-        .im-chip:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .im-chip-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #7c5cff, #ff5fae);
-        }
-
-        @keyframes imMarquee {
-          to {
-            transform: translateX(-50%);
-          }
-        }
-
-        @keyframes imPop {
-          from {
-            opacity: 0;
-            transform: scale(0.94);
-          }
-
-          to {
-            opacity: 1;
-            transform: none;
-          }
-        }
-
       `}</style>
-    </main>
+    </div>
   );
 }
