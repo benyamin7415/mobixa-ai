@@ -11,15 +11,6 @@ import {
 } from "react";
 
 /* =========================================================
-   SIGNATURE (امضای بنیامین — پاک‌سازی و نرم‌سازی‌شده از روی امضای اصلی)
-========================================================= */
-
-const SIGNATURE_VIEWBOX = "0 0 1359 559";
-
-const SIGNATURE_PATH =
-  "M31 501C32 504 32 506 33 508C34 510 36 513 38 515C40 518 41 519 44 521C46 523 50 525 53 526C55 528 57 528 60 528C63 528 66 529 71 528C76 527 83 526 91 524C98 522 107 520 115 516C122 513 128 510 136 505C144 500 158 490 163 486C169 481 168 482 170 479C173 475 176 468 180 465C184 462 189 462 195 461C200 460 207 461 212 460C217 459 220 458 225 456C229 455 232 454 237 451C242 448 249 441 254 439C258 436 261 435 263 434C265 433 264 433 263 432C263 432 265 431 261 432C256 434 243 440 237 443C231 445 231 445 226 445C221 446 211 446 208 446C205 446 206 446 205 445C205 445 203 445 203 443C203 442 203 440 205 435C208 430 214 420 217 412C221 404 225 394 227 386C230 379 229 377 233 369C236 361 244 342 247 336C250 330 249 334 250 334C250 334 251 333 251 335C252 338 252 345 253 349C254 352 256 355 257 357C259 359 259 359 261 360C263 361 264 362 269 362C273 362 282 362 289 360C296 358 302 352 310 350C318 348 330 350 336 350C342 350 341 350 345 349C349 348 356 346 359 344C363 343 364 342 367 340C370 338 375 332 378 329C380 326 381 325 383 322C385 318 387 316 388 310C390 304 392 293 393 287C394 280 394 278 395 270C397 263 400 251 402 243C403 235 403 228 403 224C404 220 405 220 405 219C406 218 407 217 407 217C408 217 408 217 409 218C409 219 409 220 409 223C408 225 408 225 407 232C406 239 406 256 404 266C403 276 401 282 400 291C399 300 397 316 397 323C397 330 397 330 398 333C399 336 399 338 401 340C402 341 404 343 406 344C408 345 411 345 414 346C416 346 419 346 422 345C425 344 428 343 432 342C435 341 440 341 444 340C447 339 449 338 452 335C456 333 463 327 466 325C470 323 473 322 475 322C476 322 476 320 476 323C476 326 475 337 475 340C475 343 476 341 476 341C476 341 477 343 478 340C479 337 480 329 482 326C483 323 483 322 485 322C486 321 488 321 489 322C490 322 490 321 492 323C494 325 500 330 502 332C504 334 504 333 506 334C508 335 512 335 514 335C516 335 518 334 520 333C523 332 521 336 528 329C536 321 559 296 566 289C573 282 567 289 569 289C570 290 573 292 576 293C578 294 580 295 583 295C586 295 589 295 593 295C596 295 601 293 602 293C604 293 604 293 603 296C603 298 601 308 601 310C600 313 602 311 602 311C603 311 603 312 604 310C605 308 606 303 607 300C609 298 608 295 611 294C614 293 621 295 625 295C630 294 634 294 637 293C640 292 641 291 644 288C647 286 653 279 656 277C658 275 657 276 660 276C663 276 668 278 676 277C684 277 695 273 707 272C719 270 722 269 747 268C772 267 833 267 859 267C885 268 887 269 902 270C916 270 932 269 946 269C961 269 980 270 990 270C1001 271 988 272 1011 272C1034 273 1092 273 1126 273C1159 274 1196 276 1213 276C1230 277 1218 275 1228 275C1238 275 1260 275 1272 274C1285 273 1296 269 1304 267C1312 265 1318 265 1322 264C1325 264 1325 263 1326 263C1326 263 1327 262 1326 262C1325 262 1324 263 1318 263C1312 263 1301 263 1289 263C1278 263 1264 261 1247 261C1230 261 1207 262 1186 262C1166 261 1155 259 1126 259C1096 258 1033 258 1011 258C988 257 1007 256 990 256C973 255 925 255 906 255C887 254 902 253 876 252C849 252 774 253 747 253C720 254 723 254 712 256C701 257 687 260 681 261C674 262 673 262 672 262C670 262 671 262 671 259C671 255 672 246 672 242C672 238 672 238 671 237C671 236 670 233 670 235C669 238 668 248 667 252C666 256 665 256 664 258C662 260 662 260 660 261C658 263 654 265 652 265C651 266 652 266 651 265C650 264 648 262 647 260C646 257 646 250 646 248C645 246 645 246 644 246C643 246 643 246 642 248C642 250 642 251 642 255C642 259 645 266 643 269C641 273 632 274 628 276C625 278 623 281 620 283C617 284 611 289 610 286C609 282 611 267 613 260C614 254 618 248 619 245C620 242 619 243 618 243C618 243 619 240 617 243C615 247 609 256 606 263C603 269 600 277 599 280C598 284 600 282 598 282C596 282 591 281 588 280C585 280 583 278 582 277C581 276 581 278 582 275C582 273 584 275 586 263C589 251 595 223 598 202C600 182 602 151 603 139C603 127 602 133 602 131C602 129 600 129 600 125C600 122 602 113 602 108C603 103 603 102 602 94C602 86 598 70 598 61C597 52 598 43 598 39C597 35 597 37 596 37C595 37 595 37 594 39C594 41 596 38 594 49C591 60 583 90 580 102C577 114 580 117 578 121C577 125 574 126 573 128C571 131 571 126 569 137C567 149 561 185 559 198C557 211 556 208 555 216C554 223 553 234 552 242C552 250 551 258 552 264C552 270 558 272 555 278C553 284 542 293 536 300C529 306 520 315 517 318C513 322 514 320 513 320C512 321 513 321 511 320C509 319 504 314 501 312C498 311 497 311 495 310C494 310 492 310 490 310C488 310 485 312 482 312C478 313 474 311 469 313C464 314 456 318 451 321C447 323 446 327 443 329C440 331 436 332 435 332C434 332 434 333 434 331C434 328 435 319 435 316C435 313 434 314 434 313C434 313 433 312 433 313C432 313 432 314 431 316C431 317 431 320 431 323C430 326 429 332 427 334C424 336 418 334 415 334C413 334 412 334 411 331C411 328 410 326 411 316C413 305 417 285 419 270C421 254 422 232 423 223C423 213 423 215 423 212C422 209 420 211 420 204C420 197 423 185 422 170C421 156 416 127 414 116C413 105 415 106 415 104C414 102 414 102 413 102C412 102 412 99 411 104C411 109 411 120 409 133C408 146 404 170 402 181C401 192 402 195 401 200C400 204 396 206 394 209C392 212 391 212 390 217C389 222 388 231 387 240C385 249 382 260 380 269C378 278 378 287 377 293C376 299 377 301 373 306C369 312 358 323 354 327C350 331 351 330 349 330C347 331 344 332 340 332C336 332 331 330 325 330C319 330 308 330 302 331C297 332 296 333 292 335C289 337 284 342 281 344C278 346 276 347 274 347C272 348 270 348 269 347C268 347 268 349 267 344C266 339 264 328 264 318C264 309 266 302 268 289C271 275 278 248 280 236C282 223 282 226 283 215C284 204 287 182 288 171C288 159 287 154 287 147C288 140 289 134 289 132C289 129 289 126 287 131C285 136 282 156 280 164C278 172 276 172 274 180C272 187 268 200 267 210C265 220 267 221 264 239C260 257 251 301 247 316C242 330 241 320 236 327C232 335 224 352 221 361C218 369 218 373 216 379C213 386 211 393 207 401C203 409 195 421 192 429C189 436 189 441 187 444C186 447 186 446 184 446C182 447 177 448 174 448C172 448 173 447 168 446C163 445 152 443 144 441C137 438 130 436 124 433C118 430 112 426 108 423C104 420 101 418 99 416C98 415 92 421 100 414C107 408 132 388 143 378C154 368 161 359 166 354C170 349 167 353 171 347C175 341 184 326 187 319C190 311 191 308 192 302C193 296 193 289 193 285C193 280 192 280 191 276C190 272 189 266 187 261C185 256 183 253 180 248C176 243 170 234 166 230C162 225 161 224 158 222C154 220 150 219 147 218C143 218 141 218 138 219C135 220 130 222 127 224C123 226 121 227 117 231C113 234 107 240 102 246C97 252 92 258 86 267C80 275 72 291 68 298C64 306 63 308 61 312C60 317 58 320 57 324C56 328 56 330 55 336C55 341 55 351 55 357C56 363 56 363 58 370C60 377 63 390 66 397C69 404 74 411 76 414C78 417 80 411 76 415C72 419 60 431 54 438C48 446 44 453 40 458C37 463 37 466 35 469C34 472 33 475 32 479C32 482 31 486 31 490C30 494 31 498 31 501ZM163 462C163 463 162 465 160 468C158 471 155 474 150 479C144 483 134 490 128 494C122 498 121 499 114 501C107 504 94 508 86 510C79 512 76 513 71 513C66 514 59 513 56 512C53 512 54 511 52 510C51 509 48 506 47 504C46 501 46 498 45 495C45 492 45 488 46 485C47 481 47 479 49 475C50 472 51 469 53 465C56 461 58 457 62 451C67 446 78 435 82 431C86 427 80 424 87 427C94 430 116 444 124 449C133 453 132 452 138 454C144 456 156 458 160 460C164 461 163 460 163 462ZM147 234C149 235 149 234 153 239C156 243 165 254 169 260C173 266 175 271 177 275C178 280 178 282 179 285C179 288 179 290 179 294C178 298 177 304 176 308C174 312 173 315 171 320C168 324 166 329 162 335C158 341 153 347 147 354C140 360 131 370 125 375C119 380 118 382 111 387C105 391 93 402 88 403C83 405 82 398 81 396C80 394 81 398 79 392C77 386 71 367 70 358C68 350 68 345 69 339C70 333 70 330 73 323C76 316 82 303 85 295C89 287 93 281 96 277C98 273 98 273 102 269C106 264 113 256 117 251C122 246 126 242 130 240C133 237 136 236 139 235C142 234 145 233 147 234ZM587 138C587 139 588 136 588 145C587 153 586 176 585 187C584 199 582 203 580 213C578 222 577 237 576 245C574 253 572 257 571 260C570 263 569 264 569 264C568 264 567 264 567 262C567 261 566 263 566 257C566 251 567 236 568 226C569 216 573 203 574 195C576 187 575 184 576 177C577 171 580 163 581 157C583 151 583 144 584 140C585 137 586 137 587 138Z";
-
-/* =========================================================
    FONTS (Google Fonts — اگر لود نشد، فونت‌های جایگزین استفاده می‌شوند)
 ========================================================= */
 
@@ -139,6 +130,30 @@ function useTypewriterLoop(
   }, [active, phrases]);
 
   return text;
+}
+
+/* =========================================================
+   TYPED PROMPT (isolated so typing never re-renders the page)
+========================================================= */
+
+function TypedPrompt({
+  active,
+  reduced,
+}: {
+  active: boolean;
+  reduced: boolean;
+}) {
+  const text = useTypewriterLoop(
+    PLACEHOLDERS,
+    active && !reduced
+  );
+
+  return (
+    <>
+      {reduced ? PLACEHOLDERS[0] : text}
+      {!reduced && <span className="hm-caret thin" />}
+    </>
+  );
 }
 
 /* =========================================================
@@ -507,6 +522,24 @@ const ROW_TWO: Chip[] = [
   { text: "روایت یه داستان کوتاه شبانه", href: "/voice", tone: "pink", icon: "🌙" },
 ];
 
+/* =========================================================
+   STACK ORBIT (فناوری‌های واقعی پروژه)
+========================================================= */
+
+const ORBIT_CHIPS: Array<{
+  label: string;
+  ring: "a" | "b";
+  angle: number;
+  tone: "violet" | "cyan" | "pink";
+}> = [
+  { label: "Next.js", ring: "a", angle: 0, tone: "violet" },
+  { label: "Gemini", ring: "a", angle: 120, tone: "cyan" },
+  { label: "OpenRouter", ring: "a", angle: 240, tone: "pink" },
+  { label: "Deepgram", ring: "b", angle: 60, tone: "cyan" },
+  { label: "ElevenLabs", ring: "b", angle: 180, tone: "violet" },
+  { label: "Cloudflare", ring: "b", angle: 300, tone: "pink" },
+];
+
 const STEPS = [
   {
     n: "۰۱",
@@ -575,20 +608,6 @@ export default function Home() {
   const [showDock, setShowDock] = useState(false);
   const [placeholderActive, setPlaceholderActive] =
     useState(false);
-
-  const placeholder = useTypewriterLoop(
-    PLACEHOLDERS,
-    placeholderActive && !reduced
-  );
-
-  const [sigRef, sigInView] = useInView<HTMLDivElement>(0.45);
-  const [sigDrawn, setSigDrawn] = useState(false);
-
-  useEffect(() => {
-    if (sigInView) {
-      setSigDrawn(true);
-    }
-  }, [sigInView]);
 
   /* اسکرول: هدر شیشه‌ای + دوک پایین */
   useEffect(() => {
@@ -662,6 +681,38 @@ export default function Home() {
       root.classList.remove("hm-js");
     };
   }, []);
+
+  /* بخش‌های خارج از صفحه انیمیشن‌هایشان را موقتاً متوقف می‌کنند
+     (وقتی برگردند، دقیقاً از همان نقطه ادامه می‌دهند؛ ظاهر تغییر نمی‌کند) */
+  useEffect(() => {
+    const root = rootRef.current;
+
+    if (!root || reduced) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle(
+            "hm-idle",
+            !entry.isIntersecting
+          );
+        });
+      },
+      { rootMargin: "240px 0px" }
+    );
+
+    root
+      .querySelectorAll<HTMLElement>(
+        ".hm-hero, .hm-section, .hm-footer"
+      )
+      .forEach((element) => observer.observe(element));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [reduced]);
 
   /* شروع تایپ placeholder بعد از ظاهر شدن هیرو */
   useEffect(() => {
@@ -797,8 +848,10 @@ export default function Home() {
 
           <span className="hm-prompt-inner">
             <span className="hm-prompt-text">
-              {reduced ? PLACEHOLDERS[0] : placeholder}
-              {!reduced && <span className="hm-caret thin" />}
+              <TypedPrompt
+                active={placeholderActive}
+                reduced={reduced}
+              />
             </span>
 
             <span className="hm-prompt-send">
@@ -1026,41 +1079,42 @@ export default function Home() {
             وسواس و عشق ساخته شده.
           </p>
 
-          <div
-            className={`hm-sign${sigDrawn ? " drawn" : ""}`}
-            ref={sigRef}
-          >
-            <span className="hm-sign-x" aria-hidden="true">×</span>
+          <div className="hm-orbit" aria-label="فناوری‌هایی که موبیکسا رو کنار هم گذاشتن">
+            <div className="hm-orbit-glow" aria-hidden="true" />
 
-            <div className="hm-sign-art">
-              <svg
-                viewBox={SIGNATURE_VIEWBOX}
-                role="img"
-                aria-label="امضای بنیامین"
+            <i className="hm-orbit-ring ring-a" aria-hidden="true" />
+            <i className="hm-orbit-ring ring-b" aria-hidden="true" />
+
+            {ORBIT_CHIPS.map((chip, index) => (
+              <span
+                key={chip.label}
+                className={`hm-orbit-chip ring-${chip.ring} tone-${chip.tone}`}
+                style={{ "--a": `${chip.angle}deg` } as CSSProperties}
               >
+                <i aria-hidden="true" />
+                {chip.label}
+              </span>
+            ))}
+
+            <div className="hm-orbit-core" aria-hidden="true">
+              <svg viewBox="0 0 48 48">
                 <defs>
-                  <linearGradient
-                    id="hmInk"
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="0.4"
-                  >
-                    <stop offset="0%" stopColor="#1c2bb4" />
-                    <stop offset="55%" stopColor="#3b3fe0" />
-                    <stop offset="100%" stopColor="#7b4dff" />
+                  <linearGradient id="hmCoreGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#f4eeff" />
+                    <stop offset="55%" stopColor="#a98bff" />
+                    <stop offset="100%" stopColor="#35d8ff" />
                   </linearGradient>
                 </defs>
-
                 <path
-                  d={SIGNATURE_PATH}
-                  fill="url(#hmInk)"
-                  fillRule="evenodd"
+                  d="M11 35V13l13 15 13-15v22"
+                  fill="none"
+                  stroke="url(#hmCoreGrad)"
+                  strokeWidth="3.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </div>
-
-            <span className="hm-sign-line" aria-hidden="true" />
           </div>
 
           <p className="hm-sign-caption">
@@ -1244,16 +1298,17 @@ export default function Home() {
         .hm-blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(80px);
           will-change: transform;
         }
+
+        /* glow with the same soft falloff as blur(80px), without re-blurring every frame */
 
         .hm-blob-a {
           top: 160px;
           left: -180px;
           width: 340px;
           height: 340px;
-          background: rgba(139, 108, 255, 0.45);
+          background: radial-gradient(circle, rgba(139, 108, 255, 0.45) 0%, rgba(139, 108, 255, 0) 70%);
           animation: hmDriftA 20s ease-in-out infinite alternate;
         }
 
@@ -1262,7 +1317,7 @@ export default function Home() {
           right: -190px;
           width: 360px;
           height: 360px;
-          background: rgba(31, 195, 242, 0.36);
+          background: radial-gradient(circle, rgba(31, 195, 242, 0.36) 0%, rgba(31, 195, 242, 0) 70%);
           animation: hmDriftB 24s ease-in-out infinite alternate;
         }
 
@@ -1271,7 +1326,7 @@ export default function Home() {
           left: -170px;
           width: 340px;
           height: 340px;
-          background: rgba(255, 111, 181, 0.34);
+          background: radial-gradient(circle, rgba(255, 111, 181, 0.34) 0%, rgba(255, 111, 181, 0) 70%);
           animation: hmDriftA 26s ease-in-out infinite alternate;
         }
 
@@ -1280,7 +1335,7 @@ export default function Home() {
           right: -170px;
           width: 340px;
           height: 340px;
-          background: rgba(139, 108, 255, 0.4);
+          background: radial-gradient(circle, rgba(139, 108, 255, 0.4) 0%, rgba(139, 108, 255, 0) 70%);
           animation: hmDriftB 22s ease-in-out infinite alternate;
         }
 
@@ -2831,6 +2886,168 @@ export default function Home() {
         /* =====================================================
            KEYFRAMES
         ===================================================== */
+
+        /* =====================================================
+           STACK ORBIT (جای امضا)
+        ===================================================== */
+
+        .hm-orbit {
+          position: relative;
+          width: min(340px, 90%);
+          height: 330px;
+          margin: 30px auto 0;
+          display: grid;
+          place-items: center;
+        }
+
+        .hm-orbit-glow {
+          position: absolute;
+          width: 70%;
+          height: 70%;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle,
+              rgba(124, 92, 255, 0.34),
+              rgba(31, 195, 242, 0.12) 55%,
+              transparent 72%
+            );
+          filter: blur(14px);
+          animation: hmPulseBadge 5s ease-in-out infinite;
+        }
+
+        .hm-orbit-ring {
+          position: absolute;
+          border-radius: 50%;
+          border: 1.5px dashed rgba(109, 76, 255, 0.28);
+        }
+
+        .hm-orbit-ring.ring-a {
+          width: 62%;
+          height: 62%;
+          animation: hmSpinSlow 40s linear infinite;
+        }
+
+        .hm-orbit-ring.ring-b {
+          width: 92%;
+          height: 92%;
+          border-color: rgba(31, 195, 242, 0.3);
+          animation: hmSpinSlow 60s linear infinite reverse;
+        }
+
+        .hm-orbit-chip {
+          --R: 0px;
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 6px 12px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+          color: var(--tone-ink);
+          background: rgba(255, 255, 255, 0.86);
+          border: 1px solid rgba(255, 255, 255, 0.98);
+          box-shadow: 0 10px 24px rgba(80, 60, 200, 0.2);
+          font-family: "Sora", sans-serif;
+        }
+
+        .hm-orbit-chip.ring-a {
+          --R: 112px;
+          transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--R) * -1)) rotate(calc(var(--a) * -1));
+          animation: hmOrbitA 26s linear infinite;
+        }
+
+        .hm-orbit-chip.ring-b {
+          --R: 146px;
+          transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--R) * -1)) rotate(calc(var(--a) * -1));
+          animation: hmOrbitB 42s linear infinite;
+        }
+
+        .hm-orbit-chip i {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--tone);
+          box-shadow: 0 0 8px var(--tone);
+        }
+
+        .hm-orbit-core {
+          position: relative;
+          display: grid;
+          place-items: center;
+          width: 96px;
+          height: 96px;
+          border-radius: 50%;
+          background:
+            radial-gradient(
+              circle at 34% 24%,
+              rgba(140, 110, 255, 0.4),
+              rgba(12, 11, 34, 0.95) 68%
+            );
+          border: 1px solid rgba(255, 255, 255, 0.9);
+          box-shadow:
+            0 18px 40px rgba(60, 40, 180, 0.35),
+            inset 0 0 24px rgba(120, 90, 255, 0.3);
+          animation: hmFloat 6s ease-in-out infinite;
+        }
+
+        .hm-orbit-core svg {
+          width: 44px;
+          height: 44px;
+          filter: drop-shadow(0 0 8px rgba(150, 120, 255, 0.7));
+        }
+
+        @media (max-width: 520px) {
+          .hm-orbit-chip.ring-a {
+            --R: 96px;
+          }
+
+          .hm-orbit-chip.ring-b {
+            --R: 118px;
+          }
+        }
+
+        @keyframes hmOrbitA {
+          from {
+            transform: translate(-50%, -50%) rotate(calc(var(--a) + 0deg)) translateY(calc(var(--R) * -1)) rotate(calc(var(--a) * -1 - 0deg));
+          }
+
+          to {
+            transform: translate(-50%, -50%) rotate(calc(var(--a) + 360deg)) translateY(calc(var(--R) * -1)) rotate(calc((var(--a) + 360deg) * -1));
+          }
+        }
+
+        @keyframes hmOrbitB {
+          from {
+            transform: translate(-50%, -50%) rotate(calc(var(--a) + 0deg)) translateY(calc(var(--R) * -1)) rotate(calc(var(--a) * -1 - 0deg));
+          }
+
+          to {
+            transform: translate(-50%, -50%) rotate(calc(var(--a) - 360deg)) translateY(calc(var(--R) * -1)) rotate(calc((var(--a) - 360deg) * -1));
+          }
+        }
+
+        /* =====================================================
+           PERFORMANCE (بدون تغییر ظاهری)
+           - بخش‌های پایین صفحه فقط وقتی نزدیک نمایش‌اند رندر می‌شوند
+           - لایه‌های متحرک جدا (GPU) می‌شوند
+        ===================================================== */
+
+        .hm-aurora,
+        .hm-prompt-glow,
+        .hm-float {
+          will-change: transform;
+        }
+
+        .hm-idle,
+        .hm-idle * {
+          animation-play-state: paused !important;
+        }
 
         @keyframes hmRise {
           from {
