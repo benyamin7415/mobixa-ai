@@ -2656,10 +2656,6 @@ export default function ChatPage() {
             <span>
               Mobixa AI ✦
             </span>
-
-            <span>
-              ممکن است گاهی پاسخ نادرست باشد.
-            </span>
           </div>
         </div>
       </section>
@@ -3828,7 +3824,7 @@ export default function ChatPage() {
           width: 100%;
           padding:
             7px 18px
-            26px;
+            10px;
           background:
             linear-gradient(
               to top,
@@ -4209,45 +4205,23 @@ export default function ChatPage() {
           order: 3;
         }
 
-        /*
-          پاورقی: گوشه‌ی پایین-راست، کوچک و ظریف.
-          فضای آن در composer-zone رزرو شده تا کادر پیام
-          سر جای قبلی‌اش بماند.
-        */
         .footer {
-          position: absolute;
-          right: 16px;
-          bottom: 5px;
-          left: auto;
+          width: 100%;
+          max-width: 760px;
+          margin: 6px auto 0;
+          padding: 0 7px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          max-width: calc(100% - 32px);
-          pointer-events: none;
-          color: rgba(29, 26, 61, 0.42);
-          font-size: 9px;
-          line-height: 12px;
-          letter-spacing: 0.03em;
-          white-space: nowrap;
-        }
-
-        .footer span:last-child {
-          overflow: hidden;
-          text-overflow: ellipsis;
+          justify-content: space-between;
+          color:
+            rgba(29, 26, 61, 0.52);
+          font-size: 10px;
+          line-height: 10px;
         }
 
         .footer span:first-child {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 2px 8px;
-          border-radius: 999px;
-          color: #5a3fe6;
+          color: #6a4df0;
           font-weight: 700;
-          letter-spacing: 0.06em;
-          background: rgba(255, 255, 255, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 4px 12px rgba(100, 80, 240, 0.12);
         }
 
         /* =====================================================
@@ -4745,7 +4719,7 @@ export default function ChatPage() {
 
           .composer-zone {
             padding:
-              7px 12px 25px;
+              7px 12px 10px;
           }
 
           .composer {
@@ -4787,10 +4761,8 @@ export default function ChatPage() {
           }
 
           .footer {
-            right: 14px;
-            bottom: 4px;
-            font-size: 8.5px;
-            line-height: 11px;
+            font-size: 9px;
+            line-height: 9px;
           }
 
           .image-preview-card {
@@ -5050,24 +5022,23 @@ export default function ChatPage() {
 
         .hist-toggle {
           position: absolute;
-          left: 50%;
-          top: 18px;
+          right: 24px;
+          top: 54px;
           z-index: 2;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 5px;
-          width: 42px;
-          height: 42px;
+          gap: 4.5px;
+          width: 34px;
+          height: 34px;
           padding: 0;
-          transform: translateX(-50%);
-          border-radius: 14px;
+          border-radius: 11px;
           border: 1px solid rgba(255, 255, 255, 0.92);
-          background: rgba(255, 255, 255, 0.6);
-          box-shadow: 0 8px 22px rgba(80, 60, 200, 0.16);
-          -webkit-backdrop-filter: blur(16px);
-          backdrop-filter: blur(16px);
+          background: rgba(255, 255, 255, 0.55);
+          box-shadow: 0 6px 16px rgba(80, 60, 200, 0.14);
+          -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
           cursor: pointer;
           transition:
             transform 0.3s cubic-bezier(.2,.9,.3,1.25),
@@ -5077,9 +5048,9 @@ export default function ChatPage() {
         }
 
         .hist-toggle:hover:not(:disabled) {
-          transform: translateX(-50%) translateY(-1px);
+          transform: translateY(-1px);
           background: rgba(255, 255, 255, 0.85);
-          box-shadow: 0 12px 28px rgba(80, 60, 200, 0.22);
+          box-shadow: 0 10px 22px rgba(80, 60, 200, 0.2);
         }
 
         .hist-toggle:disabled {
@@ -5089,8 +5060,8 @@ export default function ChatPage() {
 
         .hist-toggle span {
           display: block;
-          width: 18px;
-          height: 2px;
+          width: 14px;
+          height: 1.8px;
           border-radius: 2px;
           background: #1d1a3d;
           transition:
@@ -5100,20 +5071,20 @@ export default function ChatPage() {
         }
 
         .hist-toggle span:nth-child(2) {
-          width: 12px;
+          width: 9px;
         }
 
         .hist-toggle.is-open span:nth-child(1) {
-          transform: translateY(7px) rotate(45deg);
+          transform: translateY(6.3px) rotate(45deg);
         }
 
         .hist-toggle.is-open span:nth-child(2) {
           opacity: 0;
-          width: 18px;
+          width: 14px;
         }
 
         .hist-toggle.is-open span:nth-child(3) {
-          transform: translateY(-7px) rotate(-45deg);
+          transform: translateY(-6.3px) rotate(-45deg);
         }
 
         .hist-backdrop {
@@ -5382,9 +5353,28 @@ export default function ChatPage() {
 
         @media (max-width: 500px) {
           .hist-toggle {
-            top: 16px;
-            width: 40px;
-            height: 40px;
+            right: 18px;
+            top: 48px;
+            width: 32px;
+            height: 32px;
+            gap: 4px;
+            border-radius: 10px;
+          }
+
+          .hist-toggle span {
+            width: 13px;
+          }
+
+          .hist-toggle span:nth-child(2) {
+            width: 8px;
+          }
+
+          .hist-toggle.is-open span:nth-child(1) {
+            transform: translateY(5.8px) rotate(45deg);
+          }
+
+          .hist-toggle.is-open span:nth-child(3) {
+            transform: translateY(-5.8px) rotate(-45deg);
           }
         }
 
