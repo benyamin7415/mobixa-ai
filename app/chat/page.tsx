@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -1038,6 +1039,288 @@ function LiveIcon() {
   );
 }
 
+/* =========================================================
+   CHAT HISTORY (فقط روی همین مرورگر ذخیره می‌شود)
+========================================================= */
+
+const HISTORY_KEY = "mobixa-chat-history-v1";
+const HISTORY_LIMIT = 30;
+const HISTORY_MESSAGE_LIMIT = 120;
+
+type SavedMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
+type SavedChat = {
+  id: string;
+  title: string;
+  updatedAt: number;
+  messages: SavedMessage[];
+};
+
+function readHistory(): SavedChat[] {
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+
+    if (!raw) {
+      return [];
+    }
+
+    const data = JSON.parse(raw);
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data.filter(
+      (item): item is SavedChat =>
+        !!item &&
+        typeof item.id === "string" &&
+        typeof item.updatedAt === "number" &&
+        Array.isArray(item.messages)
+    );
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(list: SavedChat[]) {
+  try {
+    window.localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(list)
+    );
+  } catch {
+    // حافظه‌ی مرورگر پر است؛ گفتگو همچنان در صفحه باقی می‌ماند.
+  }
+}
+
+function toSavedMessages(messages: Message[]): SavedMessage[] {
+  return messages
+    .filter(
+      (item) =>
+        item.content.trim() &&
+        !item.content.startsWith("⚠️")
+    )
+    .slice(-HISTORY_MESSAGE_LIMIT)
+    .map((item) => ({
+      id: item.id,
+      role: item.role,
+      content: item.content.slice(0, 8000),
+    }));
+}
+
+function sameSavedMessages(
+  a: SavedMessage[],
+  b: SavedMessage[]
+): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  return a.every(
+    (item, index) =>
+      item.id === b[index].id &&
+      item.content === b[index].content
+  );
+}
+
+function makeChatTitle(messages: SavedMessage[]): string {
+  const first = messages.find(
+    (item) => item.role === "user"
+  );
+
+  const text = (first?.content || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) {
+    return "گفتگو با تصویر";
+  }
+
+  return text.length > 46
+    ? `${text.slice(0, 46)}…`
+    : text;
+}
+
+function formatHistoryDate(timestamp: number): string {
+  try {
+    return new Intl.DateTimeFormat("fa-IR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(timestamp);
+  } catch {
+    return "";
+  }
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 5v14M5 12h14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M4.5 7h15M9.5 7V5h5v2M6.8 7l.9 12.1A2 2 0 0 0 9.7 21h4.6a2 2 0 0 0 2-1.9L17.2 7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function HistoryPanel({
+  open,
+  items,
+  activeId,
+  disabled,
+  onClose,
+  onNew,
+  onLoad,
+  onDelete,
+}: {
+  open: boolean;
+  items: SavedChat[];
+  activeId: string | null;
+  disabled: boolean;
+  onClose: () => void;
+  onNew: () => void;
+  onLoad: (chat: SavedChat) => void;
+  onDelete: (id: string) => void;
+}) {
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const onKey = (event: Event) => {
+      if (
+        (event as unknown as { key?: string }).key ===
+        "Escape"
+      ) {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
+  return (
+    <>
+      <div
+        className={`hist-backdrop${open ? " show" : ""}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`hist-panel${open ? " open" : ""}`}
+        aria-label="تاریخچه گفتگوها"
+        aria-hidden={!open}
+      >
+        <div className="hist-head">
+          <div>
+            <span className="hist-kicker">HISTORY</span>
+            <h2>گفتگوهای قبلی</h2>
+          </div>
+
+          <button
+            type="button"
+            className="hist-close"
+            onClick={onClose}
+            aria-label="بستن"
+            tabIndex={open ? 0 : -1}
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="hist-new"
+          onClick={onNew}
+          disabled={disabled}
+          tabIndex={open ? 0 : -1}
+        >
+          <PlusIcon />
+          <span>گفتگوی جدید</span>
+        </button>
+
+        <div className="hist-list">
+          {items.length === 0 ? (
+            <div className="hist-empty">
+              <b>هنوز گفتگویی ذخیره نشده</b>
+              <span>
+                اولین پیامت رو که بفرستی، اینجا می‌مونه.
+              </span>
+            </div>
+          ) : (
+            items.map((item, index) => (
+              <div
+                key={item.id}
+                className={`hist-item${
+                  item.id === activeId ? " active" : ""
+                }`}
+                style={
+                  { "--i": index } as CSSProperties
+                }
+              >
+                <button
+                  type="button"
+                  className="hist-open"
+                  onClick={() => onLoad(item)}
+                  disabled={disabled}
+                  tabIndex={open ? 0 : -1}
+                >
+                  <span className="hist-title" dir="auto">
+                    {item.title}
+                  </span>
+                  <span className="hist-date">
+                    {formatHistoryDate(item.updatedAt)}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className="hist-del"
+                  onClick={() => onDelete(item.id)}
+                  disabled={disabled}
+                  aria-label="حذف این گفتگو"
+                  tabIndex={open ? 0 : -1}
+                >
+                  <TrashIcon />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </aside>
+    </>
+  );
+}
+
 export default function ChatPage() {
   const router = useRouter();
 
@@ -1181,6 +1464,137 @@ export default function ChatPage() {
       window.clearTimeout(timer);
     };
   }, []);
+
+  /*
+    تاریخچه‌ی گفتگوها (فقط روی همین مرورگر)
+  */
+  const [historyOpen, setHistoryOpen] =
+    useState(false);
+
+  const [historyList, setHistoryList] =
+    useState<SavedChat[]>([]);
+
+  const [activeId, setActiveId] =
+    useState<string | null>(null);
+
+  const activeIdRef = useRef<string | null>(null);
+
+  function setActive(id: string | null) {
+    activeIdRef.current = id;
+    setActiveId(id);
+  }
+
+  useEffect(() => {
+    setHistoryList(readHistory());
+  }, []);
+
+  /*
+    ذخیره‌ی گفتگوی فعلی؛ وقتی پاسخ هنوز در حال نوشتن است
+    ذخیره نمی‌شود تا با هر تکه‌ی جواب، حافظه نوشته نشود.
+  */
+  useEffect(() => {
+    if (loading || messages.length === 0) {
+      return;
+    }
+
+    const saved = toSavedMessages(messages);
+
+    if (saved.length === 0) {
+      return;
+    }
+
+    if (!activeIdRef.current) {
+      setActive(crypto.randomUUID());
+    }
+
+    const id = activeIdRef.current as string;
+
+    setHistoryList((old) => {
+      const existing = old.find(
+        (item) => item.id === id
+      );
+
+      if (
+        existing &&
+        sameSavedMessages(existing.messages, saved)
+      ) {
+        return old;
+      }
+
+      const chat: SavedChat = {
+        id,
+        title: makeChatTitle(saved),
+        updatedAt: Date.now(),
+        messages: saved,
+      };
+
+      const next = [
+        chat,
+        ...old.filter((item) => item.id !== id),
+      ].slice(0, HISTORY_LIMIT);
+
+      writeHistory(next);
+
+      return next;
+    });
+  }, [messages, loading]);
+
+  function startNewChat() {
+    if (loading) {
+      return;
+    }
+
+    setActive(null);
+    setMessages([]);
+    setHistoryOpen(false);
+
+    lastImageDataUrlRef.current = null;
+    removeSelectedImage();
+  }
+
+  function loadChat(chat: SavedChat) {
+    if (loading) {
+      return;
+    }
+
+    setActive(chat.id);
+
+    setMessages(
+      chat.messages.map((item) => ({
+        id: item.id,
+        role: item.role,
+        content: item.content,
+      }))
+    );
+
+    setHistoryOpen(false);
+
+    lastImageDataUrlRef.current = null;
+    removeSelectedImage();
+  }
+
+  function deleteChat(id: string) {
+    if (loading) {
+      return;
+    }
+
+    setHistoryList((old) => {
+      const next = old.filter((item) => item.id !== id);
+
+      writeHistory(next);
+
+      return next;
+    });
+
+    if (activeIdRef.current === id) {
+      startNewChat();
+    }
+  }
+
+  const closeHistory = useCallback(
+    () => setHistoryOpen(false),
+    []
+  );
 
   function goBack() {
     if (window.history.length > 1) {
@@ -1902,6 +2316,19 @@ export default function ChatPage() {
           <span>MOBIXA</span>
           <b>AI</b>
         </div>
+
+        <button
+          type="button"
+          className={`hist-toggle${historyOpen ? " is-open" : ""}`}
+          onClick={() => setHistoryOpen((value) => !value)}
+          disabled={loading}
+          aria-label="تاریخچه گفتگوها"
+          aria-expanded={historyOpen}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </header>
 
       <section className="page-content">
@@ -2267,6 +2694,17 @@ export default function ChatPage() {
           </div>
         </div>
       )}
+
+      <HistoryPanel
+        open={historyOpen}
+        items={historyList}
+        activeId={activeId}
+        disabled={loading}
+        onClose={closeHistory}
+        onNew={startNewChat}
+        onLoad={loadChat}
+        onDelete={deleteChat}
+      />
 
       {liveOpen && (
         <LiveVoice
@@ -4578,6 +5016,360 @@ export default function ChatPage() {
           .live-icon rect,
           .live-btn::before {
             animation: none;
+          }
+        }
+
+        /* =====================================================
+           CHAT HISTORY
+        ===================================================== */
+
+        .hist-toggle {
+          position: absolute;
+          left: 50%;
+          top: 18px;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          width: 42px;
+          height: 42px;
+          padding: 0;
+          transform: translateX(-50%);
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.92);
+          background: rgba(255, 255, 255, 0.6);
+          box-shadow: 0 8px 22px rgba(80, 60, 200, 0.16);
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
+          cursor: pointer;
+          transition:
+            transform 0.3s cubic-bezier(.2,.9,.3,1.25),
+            background 0.25s ease,
+            box-shadow 0.25s ease,
+            opacity 0.25s ease;
+        }
+
+        .hist-toggle:hover:not(:disabled) {
+          transform: translateX(-50%) translateY(-1px);
+          background: rgba(255, 255, 255, 0.85);
+          box-shadow: 0 12px 28px rgba(80, 60, 200, 0.22);
+        }
+
+        .hist-toggle:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .hist-toggle span {
+          display: block;
+          width: 18px;
+          height: 2px;
+          border-radius: 2px;
+          background: #1d1a3d;
+          transition:
+            transform 0.4s cubic-bezier(.2,.8,.2,1),
+            opacity 0.25s ease,
+            width 0.3s ease;
+        }
+
+        .hist-toggle span:nth-child(2) {
+          width: 12px;
+        }
+
+        .hist-toggle.is-open span:nth-child(1) {
+          transform: translateY(7px) rotate(45deg);
+        }
+
+        .hist-toggle.is-open span:nth-child(2) {
+          opacity: 0;
+          width: 18px;
+        }
+
+        .hist-toggle.is-open span:nth-child(3) {
+          transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .hist-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 400;
+          background: rgba(29, 26, 61, 0.22);
+          -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+          opacity: 0;
+          visibility: hidden;
+          transition:
+            opacity 0.35s ease,
+            visibility 0.35s ease;
+        }
+
+        .hist-backdrop.show {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .hist-panel {
+          position: fixed;
+          top: 10px;
+          bottom: 10px;
+          right: 10px;
+          left: auto;
+          z-index: 401;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          width: min(340px, 88vw);
+          padding: 18px 16px 14px;
+          border-radius: 28px;
+          background:
+            linear-gradient(
+              165deg,
+              rgba(255, 255, 255, 0.96),
+              rgba(246, 243, 255, 0.92)
+            );
+          border: 1px solid rgba(255, 255, 255, 0.98);
+          box-shadow:
+            0 30px 80px rgba(60, 45, 170, 0.32),
+            inset 0 1px 0 #fff;
+          -webkit-backdrop-filter: blur(22px);
+          backdrop-filter: blur(22px);
+          transform: translateX(calc(100% + 40px));
+          visibility: hidden;
+          transition:
+            transform 0.55s cubic-bezier(.2,.9,.25,1),
+            visibility 0.55s ease;
+        }
+
+        .hist-panel.open {
+          transform: translateX(0);
+          visibility: visible;
+        }
+
+        .hist-head {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 4px 4px 0;
+        }
+
+        .hist-kicker {
+          display: block;
+          direction: ltr;
+          font-size: 9.5px;
+          font-weight: 800;
+          letter-spacing: 0.24em;
+          color: #5a3fe6;
+        }
+
+        .hist-head h2 {
+          margin: 4px 0 0;
+          font-size: 19px;
+          font-weight: 900;
+          color: #1d1a3d;
+        }
+
+        .hist-close {
+          display: grid;
+          place-items: center;
+          width: 36px;
+          height: 36px;
+          flex: 0 0 36px;
+          border-radius: 12px;
+          border: 1px solid rgba(106, 77, 240, 0.2);
+          background: rgba(106, 77, 240, 0.08);
+          color: #4a36d6;
+          cursor: pointer;
+          transition: transform 0.25s ease, background 0.25s ease;
+        }
+
+        .hist-close:hover {
+          transform: rotate(90deg);
+          background: rgba(106, 77, 240, 0.16);
+        }
+
+        .hist-close svg {
+          width: 17px;
+          height: 17px;
+        }
+
+        .hist-new {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          height: 48px;
+          border: 0;
+          border-radius: 16px;
+          font-size: 14.5px;
+          font-weight: 800;
+          color: #fff;
+          cursor: pointer;
+          background: linear-gradient(135deg, #7c5cff, #4f7cff 60%, #c264ff);
+          box-shadow: 0 14px 30px rgba(100, 80, 240, 0.38);
+          transition: transform 0.25s cubic-bezier(.2,.9,.3,1.25), filter 0.25s ease;
+        }
+
+        .hist-new svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        .hist-new:hover:not(:disabled) {
+          transform: translateY(-2px);
+          filter: brightness(1.06);
+        }
+
+        .hist-new:disabled,
+        .hist-open:disabled,
+        .hist-del:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .hist-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 0;
+          flex: 1;
+          overflow-y: auto;
+          padding: 2px 2px 6px;
+          scrollbar-width: none;
+        }
+
+        .hist-list::-webkit-scrollbar {
+          display: none;
+        }
+
+        .hist-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.78);
+          border: 1px solid rgba(255, 255, 255, 0.98);
+          box-shadow: 0 6px 16px rgba(80, 60, 200, 0.08);
+          animation: histIn 0.5s cubic-bezier(.2,.8,.2,1) both;
+          animation-delay: calc(var(--i, 0) * 45ms + 120ms);
+          transition: border-color 0.25s ease, background 0.25s ease;
+        }
+
+        .hist-item:hover {
+          border-color: rgba(124, 92, 255, 0.35);
+        }
+
+        .hist-item.active {
+          border-color: rgba(124, 92, 255, 0.55);
+          background:
+            linear-gradient(
+              135deg,
+              rgba(124, 92, 255, 0.16),
+              rgba(79, 124, 255, 0.1)
+            );
+        }
+
+        .hist-open {
+          display: flex;
+          flex: 1;
+          min-width: 0;
+          flex-direction: column;
+          gap: 3px;
+          padding: 8px 10px;
+          border: 0;
+          background: transparent;
+          text-align: start;
+          cursor: pointer;
+        }
+
+        .hist-title {
+          overflow: hidden;
+          font-size: 14px;
+          font-weight: 700;
+          color: #1d1a3d;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+
+        .hist-date {
+          font-size: 11px;
+          color: rgba(29, 26, 61, 0.5);
+        }
+
+        .hist-del {
+          display: grid;
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          flex: 0 0 34px;
+          border: 0;
+          border-radius: 12px;
+          color: #c2344f;
+          background: rgba(255, 80, 110, 0.08);
+          cursor: pointer;
+          transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .hist-del:hover:not(:disabled) {
+          background: rgba(255, 80, 110, 0.18);
+          transform: scale(1.06);
+        }
+
+        .hist-del svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        .hist-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          padding: 30px 14px;
+          text-align: center;
+          color: rgba(29, 26, 61, 0.6);
+        }
+
+        .hist-empty b {
+          font-size: 14.5px;
+          color: #1d1a3d;
+        }
+
+        .hist-empty span {
+          font-size: 12.5px;
+          line-height: 1.9;
+        }
+
+        @keyframes histIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
+        @media (max-width: 500px) {
+          .hist-toggle {
+            top: 16px;
+            width: 40px;
+            height: 40px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hist-item,
+          .hist-panel,
+          .hist-backdrop,
+          .hist-toggle span {
+            animation: none;
+            transition-duration: 0.01ms;
           }
         }
       `}</style>
