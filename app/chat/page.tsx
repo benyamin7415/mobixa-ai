@@ -3828,7 +3828,7 @@ export default function ChatPage() {
           width: 100%;
           padding:
             7px 18px
-            10px;
+            26px;
           background:
             linear-gradient(
               to top,
@@ -4209,23 +4209,45 @@ export default function ChatPage() {
           order: 3;
         }
 
+        /*
+          پاورقی: گوشه‌ی پایین-راست، کوچک و ظریف.
+          فضای آن در composer-zone رزرو شده تا کادر پیام
+          سر جای قبلی‌اش بماند.
+        */
         .footer {
-          width: 100%;
-          max-width: 760px;
-          margin: 6px auto 0;
-          padding: 0 7px;
+          position: absolute;
+          right: 16px;
+          bottom: 5px;
+          left: auto;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          color:
-            rgba(29, 26, 61, 0.52);
-          font-size: 10px;
-          line-height: 10px;
+          gap: 8px;
+          max-width: calc(100% - 32px);
+          pointer-events: none;
+          color: rgba(29, 26, 61, 0.42);
+          font-size: 9px;
+          line-height: 12px;
+          letter-spacing: 0.03em;
+          white-space: nowrap;
+        }
+
+        .footer span:last-child {
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .footer span:first-child {
-          color: #6a4df0;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          color: #5a3fe6;
           font-weight: 700;
+          letter-spacing: 0.06em;
+          background: rgba(255, 255, 255, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.9);
+          box-shadow: 0 4px 12px rgba(100, 80, 240, 0.12);
         }
 
         /* =====================================================
@@ -4723,7 +4745,7 @@ export default function ChatPage() {
 
           .composer-zone {
             padding:
-              7px 12px 10px;
+              7px 12px 25px;
           }
 
           .composer {
@@ -4765,8 +4787,10 @@ export default function ChatPage() {
           }
 
           .footer {
-            font-size: 9px;
-            line-height: 9px;
+            right: 14px;
+            bottom: 4px;
+            font-size: 8.5px;
+            line-height: 11px;
           }
 
           .image-preview-card {
