@@ -2944,7 +2944,6 @@ export default function ChatPage() {
         }
 
         .wordmark {
-          order: 2;
           direction: ltr;
           display: flex;
           align-items: center;
@@ -5021,53 +5020,37 @@ export default function ChatPage() {
            CHAT HISTORY
         ===================================================== */
 
-        /*
-          دکمه‌ی منو: درست کنار دکمه‌ی بازگشت و هم‌تراز با آن.
-          لوگو و دکمه‌ی بازگشت سر جای قبلی‌شان می‌مانند.
-        */
         .hist-toggle {
-          order: 1;
-          position: relative;
+          position: absolute;
+          right: 24px;
+          top: 54px;
           z-index: 2;
-          align-self: flex-start;
-          margin-top: 20px;
-          margin-left: 10px;
-          margin-right: auto;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 4px;
-          width: 38px;
-          height: 38px;
+          gap: 4.5px;
+          width: 34px;
+          height: 34px;
           padding: 0;
-          border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.95);
-          background:
-            linear-gradient(
-              150deg,
-              rgba(255, 255, 255, 0.9),
-              rgba(255, 255, 255, 0.55)
-            );
-          box-shadow:
-            0 8px 20px rgba(80, 60, 200, 0.16),
-            inset 0 1px 0 #fff;
-          -webkit-backdrop-filter: blur(16px);
-          backdrop-filter: blur(16px);
+          border-radius: 11px;
+          border: 1px solid rgba(255, 255, 255, 0.92);
+          background: rgba(255, 255, 255, 0.55);
+          box-shadow: 0 6px 16px rgba(80, 60, 200, 0.14);
+          -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
           cursor: pointer;
           transition:
-            transform 0.35s cubic-bezier(.2,.9,.3,1.3),
+            transform 0.3s cubic-bezier(.2,.9,.3,1.25),
+            background 0.25s ease,
             box-shadow 0.25s ease,
             opacity 0.25s ease;
         }
 
         .hist-toggle:hover:not(:disabled) {
-          transform: translateY(-2px) rotate(-6deg);
-          box-shadow: 0 12px 26px rgba(80, 60, 200, 0.24);
-        }
-
-        .hist-toggle:active:not(:disabled) {
-          transform: scale(0.92);
+          transform: translateY(-1px);
+          background: rgba(255, 255, 255, 0.85);
+          box-shadow: 0 10px 22px rgba(80, 60, 200, 0.2);
         }
 
         .hist-toggle:disabled {
@@ -5077,10 +5060,10 @@ export default function ChatPage() {
 
         .hist-toggle span {
           display: block;
-          width: 16px;
+          width: 14px;
           height: 1.8px;
           border-radius: 2px;
-          background: linear-gradient(90deg, #6a4df0, #3b82f6);
+          background: #1d1a3d;
           transition:
             transform 0.4s cubic-bezier(.2,.8,.2,1),
             opacity 0.25s ease,
@@ -5088,21 +5071,20 @@ export default function ChatPage() {
         }
 
         .hist-toggle span:nth-child(2) {
-          width: 11px;
-          justify-self: flex-end;
+          width: 9px;
         }
 
         .hist-toggle.is-open span:nth-child(1) {
-          transform: translateY(5.8px) rotate(45deg);
+          transform: translateY(6.3px) rotate(45deg);
         }
 
         .hist-toggle.is-open span:nth-child(2) {
           opacity: 0;
-          width: 16px;
+          width: 14px;
         }
 
         .hist-toggle.is-open span:nth-child(3) {
-          transform: translateY(-5.8px) rotate(-45deg);
+          transform: translateY(-6.3px) rotate(-45deg);
         }
 
         .hist-backdrop {
@@ -5371,28 +5353,28 @@ export default function ChatPage() {
 
         @media (max-width: 500px) {
           .hist-toggle {
-            width: 34px;
-            height: 34px;
-            margin-top: 19px;
-            margin-left: 8px;
-            margin-right: auto;
-            gap: 3.5px;
+            right: 18px;
+            top: 48px;
+            width: 32px;
+            height: 32px;
+            gap: 4px;
+            border-radius: 10px;
           }
 
           .hist-toggle span {
-            width: 14px;
+            width: 13px;
           }
 
           .hist-toggle span:nth-child(2) {
-            width: 9px;
+            width: 8px;
           }
 
           .hist-toggle.is-open span:nth-child(1) {
-            transform: translateY(5.3px) rotate(45deg);
+            transform: translateY(5.8px) rotate(45deg);
           }
 
           .hist-toggle.is-open span:nth-child(3) {
-            transform: translateY(-5.3px) rotate(-45deg);
+            transform: translateY(-5.8px) rotate(-45deg);
           }
         }
 
